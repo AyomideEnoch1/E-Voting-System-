@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candidate Profile — SecureVote</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ink:#0d1117;--ivory:#f5f0e8;--gold:#c9a84c;--gold-lt:#e8d49a;--crimson:#9b1c1c;--slate:#3a4556;--muted:#6c7a8d;--border:#ddd8ce; }
+    body { font-family:'DM Sans',sans-serif; background:#f0eee8; min-height:100vh; }
+
+    .top-bar {
+      background:var(--ink); padding:1rem 2rem;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .top-bar .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .top-bar .brand i { color:var(--gold); font-size:1.2rem; }
+    .top-bar .brand span { font-family:'Playfair Display',serif; color:#fff; font-size:1.1rem; font-weight:700; }
+    .top-bar .back-link { color:rgba(255,255,255,0.6); text-decoration:none; font-size:0.85rem; transition:color 0.2s; }
+    .top-bar .back-link:hover { color:#fff; }
+
+    .hero-section {
+      background: linear-gradient(135deg, var(--ink) 0%, #1e2c3d 100%);
+      padding: 4rem 0 3rem;
+    }
+    .candidate-photo-lg {
+      width: 160px; height: 160px; border-radius: 50%;
+      border: 5px solid rgba(201,168,76,0.4);
+      object-fit: cover; background: var(--slate);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem; color: rgba(255,255,255,0.3);
+      flex-shrink: 0; margin: 0 auto;
+    }
+    .candidate-photo-lg img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
+    .candidate-hero-name {
+      font-family:'Playfair Display',serif;
+      font-size:2.2rem; font-weight:900; color:#fff; margin-bottom:0.3rem;
+    }
+    .party-badge {
+      display:inline-block; background:rgba(201,168,76,0.2); border:1px solid rgba(201,168,76,0.4);
+      color:var(--gold-lt); border-radius:50px; padding:4px 14px;
+      font-size:0.82rem; font-weight:600; letter-spacing:0.06em;
+    }
+    .position-label { color:rgba(255,255,255,0.5); font-size:1rem; margin-top:0.3rem; }
+    .meta-grid {
+      display:flex; gap:2rem; flex-wrap:wrap;
+      margin-top:1.5rem;
+    }
+    .meta-item { text-align:center; }
+    .meta-item .val { color:#fff; font-size:1.1rem; font-weight:700; }
+    .meta-item .lbl { color:rgba(255,255,255,0.45); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; }
+
+    .content-section { padding: 3rem 0; }
+    .section-card {
+      background:#fff; border-radius:16px;
+      border:1px solid var(--border);
+      box-shadow:0 2px 12px rgba(0,0,0,0.04);
+      padding:2rem; margin-bottom:1.5rem;
+    }
+    .section-eyebrow {
+      font-size:0.7rem; font-weight:700; letter-spacing:0.14em;
+      text-transform:uppercase; color:var(--gold); margin-bottom:0.6rem;
+    }
+    .section-card h3 {
+      font-family:'Playfair Display',serif;
+      font-size:1.35rem; font-weight:700; color:var(--ink);
+      margin-bottom:1rem; padding-bottom:0.8rem;
+      border-bottom:2px solid var(--ivory);
+    }
+    .bio-text { color:var(--slate); line-height:1.8; font-size:0.95rem; }
+    .manifesto-text {
+      color:var(--ink); line-height:1.9; font-size:0.95rem;
+      white-space:pre-wrap;
+    }
+    .info-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1rem; }
+    .info-item { background:var(--ivory); border-radius:10px; padding:0.9rem 1rem; }
+    .info-item .lbl { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.3rem; }
+    .info-item .val { font-size:0.95rem; font-weight:600; color:var(--ink); }
+
+    .doc-item {
+      display:flex; align-items:center; gap:12px;
+      padding:0.9rem 1rem; border-radius:10px; background:var(--ivory);
+      border:1px solid var(--border); margin-bottom:0.8rem; text-decoration:none;
+      transition:background 0.2s;
+    }
+    .doc-item:hover { background:#ebe5d8; }
+    .doc-icon { width:40px; height:40px; border-radius:8px; background:rgba(155,28,28,0.1); color:var(--crimson); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .doc-name { font-size:0.88rem; font-weight:600; color:var(--ink); }
+    .doc-type { font-size:0.75rem; color:var(--muted); }
+
+    .back-btn {
+      background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
+      color:#fff; border-radius:8px; padding:0.55rem 1.2rem;
+      font-size:0.85rem; font-weight:600; text-decoration:none;
+      transition:background 0.2s;
+    }
+    .back-btn:hover { background:rgba(255,255,255,0.18); color:#fff; }
+
+    /* ── Candidate List Mode ── */
+    .list-candidate-card {
+      background:#fff; border-radius:16px; border:1px solid var(--border);
+      overflow:hidden; transition:box-shadow 0.2s, transform 0.2s;
+      box-shadow:0 2px 12px rgba(0,0,0,0.04);
+    }
+    .list-candidate-card:hover { box-shadow:0 6px 28px rgba(0,0,0,0.1); transform:translateY(-2px); }
+    .list-photo { width:100%; height:220px; object-fit:cover; background:linear-gradient(135deg,var(--gold-lt),var(--border)); display:flex; align-items:center; justify-content:center; font-size:4rem; color:var(--muted); }
+    .list-photo img { width:100%; height:100%; object-fit:cover; }
+    .list-body { padding:1.4rem; }
+    .list-name { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:var(--ink); }
+    .list-party { font-size:0.78rem; color:var(--muted); margin-bottom:0.5rem; }
+    .list-position { font-size:0.8rem; color:var(--gold); font-weight:600; margin-bottom:0.8rem; }
+    .list-bio { font-size:0.82rem; color:var(--muted); line-height:1.6; margin-bottom:1rem; }
+
+    @media (max-width: 768px) {
+      /* Top bar */
+      .top-bar { padding: 0.9rem 1rem; }
+      .top-bar .brand span { font-size: 0.95rem; }
+      .top-bar .back-link span { display: none; }
+
+      /* Hero section */
+      .hero-section { padding: 2.5rem 0 2rem; }
+      .candidate-photo-lg { width: 120px; height: 120px; font-size: 2.8rem; }
+      .candidate-hero-name { font-size: 1.7rem; }
+
+      /* Meta grid: wrap and center */
+      .meta-grid { justify-content: center !important; gap: 1.2rem; }
+
+      /* Profile body: single column */
+      #profileView .col-md-8,
+      #profileView .col-md-4 { width: 100%; }
+
+      /* Candidate list grid */
+      #candidateListGrid .col-md-4 { width: 50%; }
+      .list-photo { height: 180px; }
+
+      /* Content section padding */
+      .content-section { padding: 1.8rem 0; }
+      .section-card { padding: 1.4rem; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-section { padding: 1.8rem 0 1.5rem; }
+      .candidate-photo-lg { width: 90px; height: 90px; font-size: 2.2rem; border-width: 3px; }
+      .candidate-hero-name { font-size: 1.4rem; }
+      .party-badge { font-size: 0.75rem; }
+      .position-label { font-size: 0.88rem; }
+      .meta-item .val { font-size: 0.95rem; }
+
+      #candidateListGrid .col-md-4,
+      #candidateListGrid .col-sm-6 { width: 100%; }
+      .list-photo { height: 200px; }
+
+      .section-card { padding: 1.1rem; border-radius: 12px; }
+      .section-card h3 { font-size: 1.15rem; }
+      .info-grid { grid-template-columns: 1fr !important; }
+
+      /* Action buttons in list cards */
+      .list-body .d-flex { flex-direction: column; }
+      .list-body .btn { width: 100%; text-align: center; }
+
+      .content-section { padding: 1.2rem 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <a href="javascript:history.back()" class="brand" style="text-decoration:none;">
+    <i class="bi bi-shield-lock-fill"></i>
+    <span>SecureVote</span>
+  </a>
+  <a href="javascript:history.back()" class="back-link"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+
+<!-- Content -->
+<div id="listView" class="d-none">
+  <div class="hero-section">
+    <div class="container text-center">
+      <h1 class="candidate-hero-name" id="listElectionTitle">Candidates</h1>
+      <p class="position-label">All candidates running in this election</p>
+    </div>
+  </div>
+  <div class="content-section">
+    <div class="container">
+      <div class="row g-4" id="candidateListGrid">
+        <div class="col-12 text-center py-5 text-muted"><span class="spinner-border me-2"></span>Loading candidates…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="profileView" class="d-none">
+  <!-- Hero -->
+  <div class="hero-section">
+    <div class="container">
+      <div class="d-flex flex-column flex-md-row align-items-center gap-4">
+        <div class="candidate-photo-lg" id="heroPhoto"><i class="bi bi-person-fill"></i></div>
+        <div class="text-center text-md-start">
+          <h1 class="candidate-hero-name" id="heroName">Loading…</h1>
+          <span class="party-badge" id="heroParty">—</span>
+          <p class="position-label" id="heroPosition"></p>
+          <div class="meta-grid justify-content-center justify-content-md-start">
+            <div class="meta-item"><div class="val" id="metaAge">—</div><div class="lbl">Age</div></div>
+            <div class="meta-item"><div class="val" id="metaGender">—</div><div class="lbl">Gender</div></div>
+            <div class="meta-item"><div class="val" id="metaState">—</div><div class="lbl">State</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Body -->
+  <div class="content-section">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-8">
+          <!-- Bio -->
+          <div class="section-card">
+            <p class="section-eyebrow">About</p>
+            <h3>Biography</h3>
+            <p class="bio-text" id="profileBio">—</p>
+          </div>
+          <!-- Manifesto Text -->
+          <div class="section-card" id="manifestoTextCard">
+            <p class="section-eyebrow">Campaign Platform</p>
+            <h3>Manifesto</h3>
+            <div class="manifesto-text" id="profileManifesto">—</div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <!-- Personal Info -->
+          <div class="section-card">
+            <p class="section-eyebrow">Details</p>
+            <h3>Personal Info</h3>
+            <div class="info-grid" style="grid-template-columns:1fr;">
+              <div class="info-item"><div class="lbl">Education</div><div class="val" id="infoEdu">—</div></div>
+              <div class="info-item"><div class="lbl">Experience</div><div class="val" id="infoExp">—</div></div>
+            </div>
+          </div>
+          <!-- Documents -->
+          <div class="section-card" id="docsCard">
+            <p class="section-eyebrow">Downloads</p>
+            <h3>Documents</h3>
+            <div id="docsList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="loadingView" class="text-center py-5">
+  <span class="spinner-border text-secondary me-2"></span>Loading…
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const token = localStorage.getItem('token');
+  if (!token) { window.location.href = '/'; }
+  const H = token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+
+  // Detect mode from URL
+  const pathParts = window.location.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+  const isList = new URLSearchParams(window.location.search).get('list') === 'true';
+
+  async function loadProfile() {
+    try {
+      if (isList) {
+        // Election candidate list
+        document.getElementById('listView').classList.remove('d-none');
+        document.getElementById('loadingView').classList.add('d-none');
+
+        const res = await fetch(`/api/candidates/${id}`, { headers: H });
+        const candidates = await res.json();
+
+        const elRes = await fetch(`/api/elections/${id}`, { headers: H });
+        const election = await elRes.json();
+        document.getElementById('listElectionTitle').textContent = election.title || 'Candidates';
+        document.title = `${election.title} — Candidates`;
+
+        const grid = document.getElementById('candidateListGrid');
+        if (!candidates.length) {
+          grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-people fs-2 d-block mb-2"></i>No candidates have been added yet.</div>';
+          return;
+        }
+        grid.innerHTML = candidates.map(c => `
+          <div class="col-md-4 col-sm-6">
+            <div class="list-candidate-card">
+              <div class="list-photo">
+                ${c.photo_url ? `<img src="${c.photo_url}" alt="${c.name}" />` : '<i class="bi bi-person-fill"></i>'}
+              </div>
+              <div class="list-body">
+                <div class="list-name">${c.name}</div>
+                <div class="list-party">${c.party || 'Independent'}</div>
+                <div class="list-position">${c.position || ''}</div>
+                <p class="list-bio">${c.bio ? c.bio.substring(0,120)+'…' : 'No biography provided.'}</p>
+                <div class="d-flex gap-2 flex-wrap">
+                  <a href="/candidate/${c.id}" class="btn btn-sm" style="background:var(--ink);color:#fff;border-radius:8px;font-size:0.8rem;font-weight:600;">View Profile</a>
+                  ${c.manifesto_doc ? `<a href="${c.manifesto_doc}" target="_blank" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:0.8rem;"><i class="bi bi-file-pdf me-1"></i>Manifesto</a>` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        // Single candidate profile
+        const res = await fetch(`/api/candidates/profile/${id}`, { headers: H });
+        if (!res.ok) throw new Error('Not found');
+        const c = await res.json();
+
+        document.title = `${c.name} — SecureVote`;
+        document.getElementById('heroName').textContent    = c.name;
+        document.getElementById('heroParty').textContent   = c.party || 'Independent';
+        document.getElementById('heroPosition').textContent= c.position || '';
+        document.getElementById('metaAge').textContent     = c.age || '—';
+        document.getElementById('metaGender').textContent  = c.gender || '—';
+        document.getElementById('metaState').textContent   = c.state_of_origin || '—';
+        document.getElementById('profileBio').textContent  = c.bio || 'No biography provided.';
+        document.getElementById('profileManifesto').textContent = c.manifesto || 'No manifesto text provided.';
+        document.getElementById('infoEdu').textContent     = c.education || '—';
+        document.getElementById('infoExp').textContent     = c.experience || '—';
+
+        if (c.photo_url) {
+          document.getElementById('heroPhoto').innerHTML = `<img src="${c.photo_url}" alt="${c.name}" />`;
+        }
+
+        // Documents
+        const docsList = document.getElementById('docsList');
+        const docs = [];
+        if (c.manifesto_doc) docs.push({ name: 'Manifesto (PDF)', url: c.manifesto_doc, icon: 'bi-file-earmark-pdf' });
+        if (c.extra_docs?.length) c.extra_docs.forEach(d => docs.push({ name: d.name, url: d.url, icon: 'bi-file-earmark-text' }));
+
+        if (docs.length) {
+          docsList.innerHTML = docs.map(d => `
+            <a href="${d.url}" target="_blank" class="doc-item">
+              <div class="doc-icon"><i class="bi ${d.icon}"></i></div>
+              <div><div class="doc-name">${d.name}</div><div class="doc-type">Click to open</div></div>
+              <i class="bi bi-box-arrow-up-right ms-auto text-muted"></i>
+            </a>`).join('');
+        } else {
+          docsList.innerHTML = '<p class="text-muted" style="font-size:0.85rem;">No documents uploaded.</p>';
+        }
+
+        document.getElementById('loadingView').classList.add('d-none');
+        document.getElementById('profileView').classList.remove('d-none');
+      }
+    } catch (e) {
+      document.getElementById('loadingView').innerHTML = '<div class="alert alert-danger mx-auto" style="max-width:400px;">Profile not found.</div>';
+    }
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>

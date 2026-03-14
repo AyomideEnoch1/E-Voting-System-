@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureVote — Register</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0d1117; --ivory: #f5f0e8; --gold: #c9a84c;
+      --gold-lt: #e8d49a; --crimson: #9b1c1c; --slate: #3a4556;
+      --muted: #6c7a8d; --border: #ddd8ce;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--ivory); min-height: 100vh; }
+
+    .top-nav {
+      background: var(--ink);
+      padding: 1rem 2rem;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .top-nav i { color: var(--gold); font-size: 1.2rem; }
+    .top-nav span { color: #fff; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+
+    .register-wrap { max-width: 620px; margin: 3rem auto; padding: 0 1rem; }
+
+    .card-register {
+      background: #fff; border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 40px rgba(13,17,23,0.08);
+      overflow: hidden;
+    }
+    .card-header-custom { background: var(--ink); padding: 2rem 2.5rem; }
+    .card-header-custom .eyebrow {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.4rem;
+    }
+    .card-header-custom h2 {
+      font-family: 'Playfair Display', serif; font-size: 1.8rem;
+      font-weight: 700; color: #fff; margin: 0;
+    }
+    .card-header-custom p.sub {
+      color: #a0aab8; font-size: 0.88rem; margin: 0.5rem 0 0;
+    }
+    .card-body-custom { padding: 2rem 2.5rem; }
+
+    .form-label {
+      font-size: 0.82rem; font-weight: 600; color: var(--slate);
+      letter-spacing: 0.04em; margin-bottom: 0.4rem;
+    }
+    .form-control {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 0.72rem 1rem;
+      font-size: 0.95rem; color: var(--ink);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+    }
+    .input-group .form-control { border-radius: 10px 0 0 10px; }
+    .input-group .btn-outline-secondary {
+      border: 1.5px solid var(--border); border-left: none;
+      border-radius: 0 10px 10px 0; background: #fff; color: var(--muted); padding: 0 14px;
+    }
+    .input-group-text {
+      background: #fff; border: 1.5px solid var(--border);
+      border-right: none; border-radius: 10px 0 0 10px; color: var(--gold);
+    }
+    .input-group .input-group-text + .form-control {
+      border-left: none; border-radius: 0 10px 10px 0;
+    }
+
+    .section-title {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--gold);
+      border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; margin-bottom: 1.2rem;
+    }
+
+    .notice-box {
+      background: #fffbf0; border: 1.5px solid var(--gold-lt);
+      border-radius: 10px; padding: 0.85rem 1rem;
+      font-size: 0.83rem; color: var(--slate); margin-bottom: 1.4rem;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .notice-box i { color: var(--gold); font-size: 1.1rem; margin-top: 1px; flex-shrink: 0; }
+
+    .pwd-strength { margin-top: 6px; }
+    .pwd-strength .progress { height: 4px; border-radius: 4px; margin-bottom: 4px; }
+    .pwd-strength small { font-size: 0.75rem; color: var(--muted); }
+
+    .btn-register {
+      background: var(--ink); color: #fff; border: none;
+      border-radius: 10px; padding: 0.78rem; font-size: 0.95rem;
+      font-weight: 600; letter-spacing: 0.03em;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-register:hover { background: var(--slate); transform: translateY(-1px); }
+    .btn-register .spinner-border { width: 1rem; height: 1rem; border-width: 2px; }
+
+    .login-link { text-align: center; font-size: 0.88rem; color: var(--muted); margin-top: 1.2rem; }
+    .login-link a { color: var(--crimson); font-weight: 600; text-decoration: none; }
+    .login-link a:hover { text-decoration: underline; }
+    .alert { border-radius: 10px; font-size: 0.88rem; }
+
+    .step-badges {
+      display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .step-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: #f5f0e8; border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 12px; font-size: 0.75rem;
+      color: var(--slate); font-weight: 500;
+    }
+    .step-badge i { color: var(--gold); }
+    .step-badge.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .step-badge.active i { color: var(--gold); }
+
+    @media (max-width: 576px) {
+      .register-wrap { margin: 1.2rem auto; padding: 0 0.75rem; }
+      .card-header-custom { padding: 1.5rem 1.2rem; }
+      .card-header-custom h2 { font-size: 1.5rem; }
+      .card-body-custom { padding: 1.4rem 1.2rem; }
+      .row.g-3 .col-md-6 { width: 100%; }
+      .btn-register { padding: 0.85rem; font-size: 1rem; }
+      .step-badges { gap: 6px; }
+      .step-badge { font-size: 0.7rem; padding: 3px 10px; }
+      .top-nav { padding: 0.8rem 1rem; }
+    }
+
+    @media (max-width: 360px) {
+      .card-body-custom { padding: 1.2rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <i class="bi bi-shield-lock-fill"></i>
+  <span>SecureVote</span>
+</nav>
+
+<div class="register-wrap">
+  <div class="card-register">
+    <div class="card-header-custom">
+      <p class="eyebrow">Voter Registration</p>
+      <h2>Create your account</h2>
+      <p class="sub">For Redeemer's University students &amp; staff only</p>
+    </div>
+    <div class="card-body-custom">
+
+      <!-- Registration flow steps -->
+      <div class="step-badges">
+        <div class="step-badge active"><i class="bi bi-pencil-fill"></i> 1. Fill Form</div>
+        <div class="step-badge"><i class="bi bi-envelope-fill"></i> 2. Verify Email</div>
+        <div class="step-badge"><i class="bi bi-person-badge-fill"></i> 3. Receive Voter ID</div>
+      </div>
+
+      <!-- Notice -->
+      <div class="notice-box">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>
+          After registering, a <strong>verification link</strong> will be sent to your school email.
+          Once verified, your unique <strong>Voter ID (VTR-XXXXXX)</strong> will be emailed to you automatically.
+        </span>
+      </div>
+
+      <div id="alertBox" class="alert d-none mb-3" role="alert"></div>
+
+      <form id="registerForm" novalidate>
+
+        <!-- Personal Info -->
+        <p class="section-title">Personal Information</p>
+        <div class="row g-3 mb-3">
+          <div class="col-12">
+            <label class="form-label" for="fullName">Full Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="fullName" placeholder="e.g. Ayomide Enoch" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="email">School Email Address <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+              <input type="email" class="form-control" id="email"
+                placeholder="yourname@run.edu.ng" required />
+            </div>
+            <div class="form-text" style="font-size:0.78rem;color:var(--muted);margin-top:5px;">
+              <i class="bi bi-shield-check me-1" style="color:var(--gold);"></i>
+              Only <strong>@run.edu.ng</strong> addresses are accepted. Your Voter ID will be sent here after verification.
+            </div>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <p class="section-title">Security</p>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="password" placeholder="Min. 8 characters" required />
+              <button type="button" class="btn btn-outline-secondary" id="togglePwd">
+                <i class="bi bi-eye" id="eyeIcon"></i>
+              </button>
+            </div>
+            <div class="pwd-strength">
+              <div class="progress"><div class="progress-bar" id="pwdBar" role="progressbar"></div></div>
+              <small id="pwdLabel">Enter a password</small>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="confirmPwd">Confirm Password <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" id="confirmPwd" placeholder="Repeat password" required />
+          </div>
+        </div>
+
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="agreeTerms" required />
+          <label class="form-check-label" for="agreeTerms" style="font-size:0.85rem;color:var(--muted);">
+            I confirm that my information is accurate and I agree to the
+            <a href="#" style="color:var(--crimson);">terms of participation</a>.
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-register w-100" id="regBtn">
+          <span id="regText"><i class="bi bi-send me-2"></i>Register &amp; Send Verification Email</span>
+          <span id="regSpinner" class="spinner-border d-none" role="status"></span>
+        </button>
+      </form>
+
+      <div class="login-link mt-3">
+        Already registered? <a href="/login">Sign in here</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Password toggle
+  document.getElementById('togglePwd').addEventListener('click', () => {
+    const p = document.getElementById('password');
+    const i = document.getElementById('eyeIcon');
+    p.type = p.type === 'password' ? 'text' : 'password';
+    i.className = p.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+  });
+
+  // Password strength meter
+  document.getElementById('password').addEventListener('input', function () {
+    const v = this.value; let score = 0;
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const bar = document.getElementById('pwdBar');
+    const lbl = document.getElementById('pwdLabel');
+    if (!v) { bar.style.width = '0%'; bar.className = 'progress-bar'; lbl.textContent = 'Enter a password'; return; }
+    const map = [[25,'bg-danger','Too short'],[25,'bg-danger','Weak'],[50,'bg-warning','Fair'],[75,'bg-info','Good'],[100,'bg-success','Strong']];
+    const [w, c, t] = map[score] || map[0];
+    bar.style.width = w + '%'; bar.className = 'progress-bar ' + c;
+    lbl.textContent = t;
+  });
+
+  // School email live validation
+  document.getElementById('email').addEventListener('blur', function () {
+    const val = this.value.trim().toLowerCase();
+    if (val && !val.endsWith('@run.edu.ng')) {
+      this.style.borderColor = '#dc3545';
+      showAlert('Only @run.edu.ng email addresses are accepted.', 'danger');
+    } else {
+      this.style.borderColor = '';
+      document.getElementById('alertBox').classList.add('d-none');
+    }
+  });
+
+  function showAlert(msg, type = 'danger') {
+    const box = document.getElementById('alertBox');
+    box.className = `alert alert-${type}`;
+    box.innerHTML = `<i class="bi bi-${type === 'danger' ? 'exclamation-triangle' : 'check-circle'}-fill me-2"></i>${msg}`;
+    box.classList.remove('d-none');
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const full_name = document.getElementById('fullName').value.trim();
+    const email     = document.getElementById('email').value.trim().toLowerCase();
+    const password  = document.getElementById('password').value;
+    const confirm   = document.getElementById('confirmPwd').value;
+    const agreed    = document.getElementById('agreeTerms').checked;
+
+    // Client-side validation
+    if (!full_name || !email || !password)
+      return showAlert('Please fill in all required fields.');
+    if (!email.endsWith('@run.edu.ng'))
+      return showAlert('Only @run.edu.ng email addresses are accepted.');
+    if (password.length < 8)
+      return showAlert('Password must be at least 8 characters.');
+    if (password !== confirm)
+      return showAlert('Passwords do not match.');
+    if (!agreed)
+      return showAlert('Please agree to the terms to continue.');
+
+    const btn  = document.getElementById('regBtn');
+    const txt  = document.getElementById('regText');
+    const spin = document.getElementById('regSpinner');
+    btn.disabled = true; txt.classList.add('d-none'); spin.classList.remove('d-none');
+
+    try {
+      const res  = await fetch('/api/auth/register', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ full_name, email, password })  // no voter_id
+      });
+      const data = await res.json();
+      if (!res.ok) return showAlert(data.error || 'Registration failed.');
+
+      showAlert(
+        `<strong>Registration successful!</strong><br>
+         A verification link has been sent to <strong>${email}</strong>.<br>
+         Check your inbox — your Voter ID will arrive after you verify.`,
+        'success'
+      );
+      document.getElementById('registerForm').reset();
+    } catch {
+      showAlert('Network error — please try again.');
+    } finally {
+      btn.disabled = false; txt.classList.remove('d-none'); spin.classList.add('d-none');
+    }
+  });
+</script>
+</body>
+</html>

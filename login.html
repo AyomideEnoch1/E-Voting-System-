@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureVote — Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:     #0d1117;
+      --ivory:   #f5f0e8;
+      --gold:    #c9a84c;
+      --gold-lt: #e8d49a;
+      --crimson: #9b1c1c;
+      --slate:   #3a4556;
+      --muted:   #6c7a8d;
+      --card-bg: #ffffff;
+      --border:  #ddd8ce;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+    }
+
+    /* ── Left Panel ── */
+    .panel-left {
+      width: 55%;
+      background: linear-gradient(150deg, #0d1117 0%, #1a2332 50%, #0d1117 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 4rem 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .panel-left::before {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    }
+    .panel-left::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(155,28,28,0.1) 0%, transparent 70%);
+    }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 50px;
+      padding: 8px 18px;
+      margin-bottom: 2.5rem;
+    }
+    .brand-badge i { color: var(--gold); font-size: 1rem; }
+    .brand-badge span { color: var(--gold-lt); font-size: 0.82rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.6rem, 4vw, 3.8rem);
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.08;
+      margin-bottom: 1.4rem;
+    }
+    .hero-title span { color: var(--gold); }
+    .hero-sub {
+      color: rgba(255,255,255,0.55);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      max-width: 420px;
+      margin-bottom: 3rem;
+    }
+    .security-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+    .security-pill {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50px;
+      padding: 6px 14px;
+      color: rgba(255,255,255,0.65);
+      font-size: 0.8rem;
+    }
+    .security-pill i { color: var(--gold); font-size: 0.75rem; }
+
+    /* ── Right Panel ── */
+    .panel-right {
+      width: 45%;
+      background: var(--ivory);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 3.5rem;
+    }
+    .form-card {
+      max-width: 400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .form-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+    .form-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+    .form-subtext {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    .form-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--slate);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+    .form-control {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.72rem 1rem;
+      font-size: 0.95rem;
+      color: var(--ink);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+      outline: none;
+    }
+    .input-group .form-control { border-radius: 10px 0 0 10px; }
+    .input-group .btn-outline-secondary {
+      border: 1.5px solid var(--border);
+      border-left: none;
+      border-radius: 0 10px 10px 0;
+      background: #fff;
+      color: var(--muted);
+      padding: 0 14px;
+    }
+    .input-group .btn-outline-secondary:hover { background: #f0ebe0; color: var(--ink); }
+    .btn-login {
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.78rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: background 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-login:hover { background: var(--slate); transform: translateY(-1px); }
+    .btn-login:active { transform: translateY(0); }
+    .btn-login .spinner-border { width: 1rem; height: 1rem; border-width: 2px; }
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--muted); font-size: 0.82rem; margin: 1.4rem 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .register-link {
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .register-link a { color: var(--crimson); font-weight: 600; text-decoration: none; }
+    .register-link a:hover { text-decoration: underline; }
+    .alert { border-radius: 10px; font-size: 0.88rem; padding: 0.75rem 1rem; }
+
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .panel-left {
+        width: 100%; padding: 2rem 1.5rem;
+        min-height: auto;
+      }
+      .panel-right { width: 100%; padding: 2rem 1.5rem; }
+      .hero-title { font-size: 1.9rem; margin-bottom: 0.8rem; }
+      .hero-sub { font-size: 0.92rem; margin-bottom: 1.5rem; }
+      .security-pills { display: none; }
+      .brand-badge { margin-bottom: 1.2rem; }
+    }
+
+    @media (max-width: 480px) {
+      .panel-left { padding: 1.6rem 1.2rem; }
+      .panel-right { padding: 1.6rem 1.2rem; }
+      .hero-title { font-size: 1.6rem; }
+      .form-heading { font-size: 1.6rem; }
+      .btn-login { padding: 0.85rem; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Panel -->
+  <div class="panel-left">
+    <div class="brand-badge">
+      <i class="bi bi-shield-lock-fill"></i>
+      <span>SecureVote Platform</span>
+    </div>
+    <h1 class="hero-title">Your vote,<br/>your <span>voice</span>.</h1>
+    <p class="hero-sub">A cryptographically secured e-voting system. Every ballot is encrypted, every result is digitally signed, and your identity remains protected.</p>
+    <div class="security-pills">
+      <span class="security-pill"><i class="bi bi-lock-fill"></i> AES-256-GCM Encryption</span>
+      <span class="security-pill"><i class="bi bi-key-fill"></i> RSA-4096 Signatures</span>
+      <span class="security-pill"><i class="bi bi-shield-check"></i> bcrypt Hashing</span>
+      <span class="security-pill"><i class="bi bi-incognito"></i> Anonymous Ballots</span>
+      <span class="security-pill"><i class="bi bi-receipt"></i> Signed Receipts</span>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="panel-right">
+    <div class="form-card">
+      <p class="form-eyebrow">Secure Access</p>
+      <h2 class="form-heading">Sign in</h2>
+      <p class="form-subtext">Enter your credentials to access the voting portal.</p>
+
+      <div id="alertBox" class="alert d-none" role="alert"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="mb-3">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" class="form-control" id="email" placeholder="voter@example.com" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="password" placeholder="Enter password" required />
+            <button type="button" class="btn btn-outline-secondary" id="togglePwd">
+              <i class="bi bi-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="rememberMe" />
+            <label class="form-check-label" for="rememberMe" style="font-size:0.85rem;color:var(--muted);">Remember me</label>
+          </div>
+          <a href="#" id="forgotPwdLink" style="font-size:0.82rem;color:var(--crimson);font-weight:600;text-decoration:none;">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-login w-100" id="loginBtn">
+          <span id="loginText">Sign In</span>
+          <span id="loginSpinner" class="spinner-border d-none" role="status"></span>
+        </button>
+      </form>
+
+      <div class="divider">or</div>
+
+      <div class="register-link">
+        Don't have an account? <a href="/register">Register as a voter</a>
+        <div style="margin-top:0.5rem;font-size:0.8rem;">Administrator? <a href="/admin/login" style="color:rgba(155,28,28,0.8);font-weight:600;">Admin Login →</a></div>
+        <div style="margin-top:0.5rem;font-size:0.8rem;"><a href="/landing" style="color:var(--muted);">← Back to Home</a></div>
+      </div>
+    </div>
+  </div>
+
+<!-- ── FORGOT PASSWORD MODAL ── -->
+<div class="modal fade" id="forgotModal" tabindex="-1" aria-labelledby="forgotModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+    <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+      <div class="modal-header" style="border-bottom:1px solid var(--border);padding:1.2rem 1.5rem;">
+        <h5 class="modal-title fw-bold" id="forgotModalLabel" style="font-family:'Playfair Display',serif;color:var(--ink);">
+          <i class="bi bi-key-fill me-2" style="color:var(--gold);"></i>Reset Password
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.2rem;">
+          Enter your registered school email address. We'll send a reset link valid for <strong>1 hour</strong>.
+        </p>
+        <div id="forgotAlertBox" class="alert d-none mb-3" style="border-radius:10px;font-size:0.85rem;"></div>
+        <label class="form-label" for="forgotEmail">School Email Address</label>
+        <input type="email" class="form-control" id="forgotEmail" placeholder="yourname@run.edu.ng" />
+      </div>
+      <div class="modal-footer" style="border-top:1px solid var(--border);gap:0.5rem;padding:1rem 1.5rem;">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius:10px;">Cancel</button>
+        <button class="btn" id="forgotSubmitBtn"
+          style="background:var(--ink);color:#fff;border-radius:10px;padding:0.6rem 1.4rem;font-weight:600;">
+          <span id="forgotBtnText"><i class="bi bi-send me-1"></i>Send Reset Link</span>
+          <span id="forgotBtnSpin" class="spinner-border spinner-border-sm d-none" role="status"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  function showAlert(msg, type = 'danger') {
+    const box = document.getElementById('alertBox');
+    box.className = `alert alert-${type}`;
+    box.innerHTML = `<i class="bi bi-${type==='danger'?'exclamation-triangle':'check-circle'}-fill me-2"></i>${msg}`;
+    box.classList.remove('d-none');
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Redirect if already logged in
+  const existingToken = localStorage.getItem('token');
+  if (existingToken) {
+    try {
+      const role = JSON.parse(atob(existingToken.split('.')[1])).role;
+      if (role === 'admin') window.location.href = '/admin';
+      else window.location.href = '/voter';
+    } catch (e) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+  }
+
+  // Show email-verified success banner if redirected from verification link
+  (function() {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get('verified') === '1') {
+      const email = p.get('email') || '';
+      showAlert(
+        '<strong>Email verified!</strong> Your account is active and your Voter ID has been sent to <strong>' + email + '</strong>. Sign in below.',
+        'success'
+      );
+      if (email) document.getElementById('email').value = email;
+      history.replaceState({}, '', '/login');
+    }
+  })();
+
+  // Toggle password visibility
+  document.getElementById('togglePwd').addEventListener('click', () => {
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    if (pwd.type === 'password') { pwd.type = 'text'; icon.className = 'bi bi-eye-slash'; }
+    else { pwd.type = 'password'; icon.className = 'bi bi-eye'; }
+  });
+
+  // ── Forgot Password ──
+  const forgotModal = new bootstrap.Modal(document.getElementById('forgotModal'));
+
+  document.getElementById('forgotPwdLink').addEventListener('click', e => {
+    e.preventDefault();
+    // Pre-fill email if already typed
+    const typed = document.getElementById('email').value.trim();
+    if (typed) document.getElementById('forgotEmail').value = typed;
+    document.getElementById('forgotAlertBox').classList.add('d-none');
+    document.getElementById('forgotSubmitBtn').disabled = false;
+    forgotModal.show();
+  });
+
+  document.getElementById('forgotSubmitBtn').addEventListener('click', async () => {
+    const email    = document.getElementById('forgotEmail').value.trim();
+    const alertBox = document.getElementById('forgotAlertBox');
+    const btn      = document.getElementById('forgotSubmitBtn');
+    const txt      = document.getElementById('forgotBtnText');
+    const spin     = document.getElementById('forgotBtnSpin');
+
+    if (!email) {
+      alertBox.className = 'alert alert-danger mb-3';
+      alertBox.textContent = 'Please enter your email address.';
+      alertBox.classList.remove('d-none');
+      return;
+    }
+
+    btn.disabled = true; txt.classList.add('d-none'); spin.classList.remove('d-none');
+    try {
+      const res  = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      alertBox.className = 'alert alert-success mb-3';
+      alertBox.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${data.message || 'Check your email for the reset link.'}`;
+      alertBox.classList.remove('d-none');
+      // Keep button disabled after success so they don't spam
+    } catch {
+      alertBox.className = 'alert alert-danger mb-3';
+      alertBox.textContent = 'Network error — please try again.';
+      alertBox.classList.remove('d-none');
+      btn.disabled = false;
+    } finally {
+      txt.classList.remove('d-none'); spin.classList.add('d-none');
+    }
+  });
+
+
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('loginBtn');
+    const txt      = document.getElementById('loginText');
+    const spin     = document.getElementById('loginSpinner');
+
+    if (!email || !password) return showAlert('Please fill in all fields.');
+
+    btn.disabled = true; txt.classList.add('d-none'); spin.classList.remove('d-none');
+
+    try {
+      const res  = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) return showAlert(data.error || 'Login failed.');
+
+      // Block admin BEFORE storing token
+      if (data.user.role === 'admin') {
+        showAlert('Administrators must use the <a href="/admin/login" style="color:inherit;font-weight:700;">Admin Login portal</a>.');
+        return;
+      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user',  JSON.stringify(data.user));
+      showAlert('Login successful! Redirecting…', 'success');
+      setTimeout(() => { window.location.href = '/voter'; }, 900);
+    } catch {
+      showAlert('Network error — please try again.');
+    } finally {
+      btn.disabled = false; txt.classList.remove('d-none'); spin.classList.add('d-none');
+    }
+  });
+</script>
+</body>
+</html>

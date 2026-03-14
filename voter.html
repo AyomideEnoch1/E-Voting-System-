@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureVote — Voter Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0d1117; --ivory: #f5f0e8; --gold: #c9a84c;
+      --gold-lt: #e8d49a; --crimson: #9b1c1c; --slate: #3a4556;
+      --muted: #6c7a8d; --border: #ddd8ce; --success: #1a6b3a;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: #f0eee8; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 260px; min-height: 100vh;
+      background: var(--ink); position: fixed; top: 0; left: 0;
+      display: flex; flex-direction: column; z-index: 100;
+      padding: 0 0 2rem 0;
+    }
+    .sidebar-brand {
+      padding: 1.6rem 1.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-brand i { color: var(--gold); font-size: 1.3rem; }
+    .sidebar-brand span { font-family: 'Playfair Display', serif; color: #fff; font-size: 1.15rem; font-weight: 700; }
+    .sidebar-user {
+      padding: 1.2rem 1.8rem; margin: 0.8rem 0;
+      background: rgba(255,255,255,0.04);
+      border-radius: 0;
+    }
+    .sidebar-user .user-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--crimson));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .sidebar-user .user-info { overflow: hidden; }
+    .sidebar-user .user-name { color: #fff; font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user .user-role { color: var(--gold-lt); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    .nav-section-label {
+      padding: 0.6rem 1.8rem 0.3rem;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: rgba(255,255,255,0.3);
+    }
+    .sidebar-nav .nav-item { margin: 1px 0.8rem; }
+    .sidebar-nav .nav-link {
+      color: rgba(255,255,255,0.6); border-radius: 10px;
+      padding: 0.65rem 1rem; font-size: 0.88rem; font-weight: 500;
+      display: flex; align-items: center; gap: 10px;
+      transition: all 0.2s;
+    }
+    .sidebar-nav .nav-link i { font-size: 1rem; width: 20px; }
+    .sidebar-nav .nav-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .sidebar-nav .nav-link.active { color: var(--gold); background: rgba(201,168,76,0.12); }
+    .sidebar-logout {
+      margin-top: auto; padding: 0 0.8rem;
+    }
+    .sidebar-logout .nav-link { color: rgba(255,100,100,0.7); }
+    .sidebar-logout .nav-link:hover { color: #ff6b6b; background: rgba(255,100,100,0.08); }
+
+    /* ── Main Content ── */
+    .main-content { margin-left: 260px; padding: 2rem 2.5rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem; font-weight: 700; color: var(--ink); margin: 0;
+    }
+    .page-header p { color: var(--muted); font-size: 0.92rem; margin: 0.3rem 0 0; }
+
+    /* ── Stat Cards ── */
+    .stat-card {
+      background: #fff; border-radius: 16px; padding: 1.4rem 1.6rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; margin-bottom: 0.8rem;
+    }
+    .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--ink); line-height: 1; }
+    .stat-card .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* ── Election Cards ── */
+    .election-card {
+      background: #fff; border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      overflow: hidden; transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .election-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .election-card-header {
+      background: var(--ink); padding: 1.2rem 1.5rem;
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .election-card-header .title {
+      font-family: 'Playfair Display', serif;
+      color: #fff; font-size: 1.05rem; font-weight: 700; margin: 0; flex: 1;
+    }
+    .status-badge {
+      padding: 3px 10px; border-radius: 50px;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      flex-shrink: 0; margin-left: 10px; margin-top: 2px;
+    }
+    .badge-active { background: rgba(26,107,58,0.9); color: #90ffbb; }
+    .badge-draft  { background: rgba(108,122,141,0.5); color: #c8d0da; }
+    .badge-closed { background: rgba(155,28,28,0.6); color: #ffb0b0; }
+    .badge-tallied{ background: rgba(201,168,76,0.4); color: #ffe08a; }
+    .election-card-body { padding: 1.3rem 1.5rem; }
+    .election-meta { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .election-meta span { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .election-meta i { color: var(--gold); }
+    .btn-vote {
+      background: var(--ink); color: #fff; border: none;
+      border-radius: 8px; padding: 0.55rem 1.3rem;
+      font-size: 0.85rem; font-weight: 600; transition: background 0.2s;
+    }
+    .btn-vote:hover { background: var(--slate); }
+    .btn-voted {
+      background: rgba(26,107,58,0.1); color: var(--success);
+      border: 1.5px solid rgba(26,107,58,0.2);
+      border-radius: 8px; padding: 0.55rem 1.3rem;
+      font-size: 0.85rem; font-weight: 600; cursor: default;
+    }
+    .btn-results {
+      background: rgba(201,168,76,0.1); color: #8a6d1a;
+      border: 1.5px solid rgba(201,168,76,0.3);
+      border-radius: 8px; padding: 0.55rem 1.3rem;
+      font-size: 0.85rem; font-weight: 600; transition: background 0.2s;
+    }
+    .btn-results:hover { background: rgba(201,168,76,0.2); }
+
+    /* ── Candidate Selection Modal ── */
+    .candidate-card {
+      border: 2px solid var(--border); border-radius: 14px;
+      padding: 1rem; cursor: pointer; transition: all 0.2s; background: #fff;
+      position: relative;
+    }
+    .candidate-card:hover { border-color: var(--gold); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .candidate-card.selected { border-color: var(--ink); background: #f8f6f0; }
+    .candidate-card .check-mark {
+      position: absolute; top: 10px; right: 12px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--ink); display: none; align-items: center; justify-content: center;
+    }
+    .candidate-card.selected .check-mark { display: flex; }
+    .candidate-card .check-mark i { color: #fff; font-size: 0.7rem; }
+    .candidate-photo {
+      width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+      background: linear-gradient(135deg, var(--gold-lt), var(--border));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: var(--muted); flex-shrink: 0;
+    }
+    .candidate-photo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .candidate-name { font-weight: 700; color: var(--ink); font-size: 0.95rem; }
+    .candidate-party { font-size: 0.78rem; color: var(--muted); }
+    .candidate-position { font-size: 0.78rem; color: var(--gold); font-weight: 600; }
+
+    /* ── Receipt Modal ── */
+    .receipt-box {
+      background: var(--ivory); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.2rem; font-family: 'Courier New', monospace;
+      font-size: 0.78rem; word-break: break-all; color: var(--ink);
+    }
+    .receipt-hash { font-size: 0.72rem; color: var(--muted); margin-top: 0.5rem; }
+    .security-notice {
+      background: rgba(26,107,58,0.07); border: 1px solid rgba(26,107,58,0.2);
+      border-radius: 10px; padding: 0.8rem 1rem; font-size: 0.82rem; color: var(--success);
+    }
+    .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    .modal-header { border-bottom: 1px solid var(--border); padding: 1.3rem 1.5rem; }
+    .modal-footer { border-top: 1px solid var(--border); }
+
+    /* ── Verify Receipt ── */
+    .verify-result {
+      border-radius: 12px; padding: 1rem 1.2rem; font-size: 0.88rem;
+    }
+    .verify-result.success { background: rgba(26,107,58,0.08); border: 1px solid rgba(26,107,58,0.2); color: var(--success); }
+    .verify-result.fail    { background: rgba(155,28,28,0.08); border: 1px solid rgba(155,28,28,0.2); color: var(--crimson); }
+
+    /* ── Results Chart ── */
+    .result-bar-wrap { margin-bottom: 1rem; }
+    .result-bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+    .result-bar-label .name { font-weight: 600; color: var(--ink); }
+    .result-bar-label .pct  { color: var(--muted); font-size: 0.8rem; }
+    .result-bar { height: 10px; border-radius: 6px; background: var(--border); overflow: hidden; }
+    .result-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--ink), var(--slate)); transition: width 0.8s ease; }
+    .result-bar-fill.winner { background: linear-gradient(90deg, var(--crimson), #c0392b); }
+
+    /* ── Section label ── */
+    .section-label { font-size:0.7rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); border-bottom:1px solid var(--border); padding-bottom:0.5rem; margin-bottom:1rem; display:block; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; min-height: auto; position: relative; flex-direction: row; flex-wrap: wrap; }
+      .main-content { margin-left: 0; padding: 1.5rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <i class="bi bi-shield-lock-fill"></i>
+    <span>SecureVote</span>
+  </div>
+  <div class="sidebar-user d-flex align-items-center gap-3">
+    <div class="user-avatar" id="avatarInitial">?</div>
+    <div class="user-info">
+      <div class="user-name" id="sidebarName">Loading…</div>
+      <div class="user-role">Voter</div>
+    </div>
+  </div>
+  <p class="nav-section-label">Navigation</p>
+  <ul class="nav flex-column sidebar-nav">
+    <li class="nav-item"><a class="nav-link active" href="#" data-section="elections"><i class="bi bi-card-list"></i> Elections</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-section="voted"><i class="bi bi-check2-square"></i> My Votes</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-section="verify"><i class="bi bi-shield-check"></i> Verify Receipt</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-section="account"><i class="bi bi-person-circle"></i> My Account</a></li>
+  </ul>
+  <div class="sidebar-logout mt-auto">
+    <p class="nav-section-label">Account</p>
+    <ul class="nav flex-column sidebar-nav">
+      <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Sign Out</a></li>
+    </ul>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+  <!-- ELECTIONS SECTION -->
+  <div id="section-elections">
+    <div class="page-header">
+      <h1>Active Elections</h1>
+      <p>Select an election below to view candidates and cast your ballot.</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(201,168,76,0.12);color:var(--gold)"><i class="bi bi-card-list"></i></div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-label">Total Elections</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(26,107,58,0.1);color:var(--success)"><i class="bi bi-lightning-fill"></i></div>
+          <div class="stat-value" id="statActive">—</div>
+          <div class="stat-label">Currently Active</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(155,28,28,0.1);color:var(--crimson)"><i class="bi bi-check-circle-fill"></i></div>
+          <div class="stat-value" id="statVoted">—</div>
+          <div class="stat-label">Votes Cast by Me</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="electionsGrid" class="row g-3">
+      <div class="col-12 text-center py-5 text-muted"><span class="spinner-border me-2"></span>Loading elections…</div>
+    </div>
+  </div>
+
+  <!-- MY VOTES SECTION -->
+  <div id="section-voted" class="d-none">
+    <div class="page-header">
+      <h1>My Vote History</h1>
+      <p>Elections you have participated in.</p>
+    </div>
+    <div id="votedList" class="row g-3">
+      <div class="col-12 text-center py-5 text-muted"><span class="spinner-border me-2"></span>Loading…</div>
+    </div>
+  </div>
+
+  <!-- VERIFY RECEIPT SECTION -->
+  <div id="section-verify" class="d-none">
+    <div class="page-header">
+      <h1>Verify Vote Receipt</h1>
+      <p>Enter your receipt hash to confirm your ballot was counted.</p>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-md-7">
+        <div class="stat-card p-4">
+          <label class="form-label" for="receiptHash">Receipt Hash</label>
+          <input type="text" class="form-control mb-2" id="receiptHash" placeholder="Paste your receipt hash here…" />
+          <label class="form-label" for="verifyElectionId">Election ID</label>
+          <input type="text" class="form-control mb-3" id="verifyElectionId" placeholder="Election ID from your receipt" />
+          <button class="btn btn-vote w-100" id="verifyBtn">
+            <i class="bi bi-search me-2"></i>Verify Receipt
+          </button>
+          <div id="verifyResult" class="mt-3 d-none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- MY ACCOUNT SECTION -->
+  <div id="section-account" class="d-none">
+    <div class="page-header">
+      <h1>My Account</h1>
+      <p>View your profile, manage your Voter ID and update your password.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-8">
+
+        <!-- Profile Info Card -->
+        <div class="stat-card mb-4">
+          <span class="section-label"><i class="bi bi-person-fill me-2"></i>Profile Information</span>
+          <div id="accountProfileBody">
+            <div class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>
+          </div>
+        </div>
+
+        <!-- Voter ID Card -->
+        <div class="stat-card mb-4">
+          <span class="section-label"><i class="bi bi-person-badge-fill me-2"></i>Your Voter ID</span>
+          <div id="voterIdDisplay" style="font-family:'Courier New',monospace;font-size:1.8rem;font-weight:700;letter-spacing:0.15em;color:var(--ink);text-align:center;padding:1rem;background:var(--ivory);border-radius:10px;border:1px solid var(--border);margin-bottom:0.75rem;">—</div>
+          <p class="text-muted mb-4" style="font-size:0.78rem;text-align:center;"><i class="bi bi-info-circle me-1"></i>This ID was emailed to you after email verification. You need it to cast a vote.</p>
+
+          <span class="section-label"><i class="bi bi-arrow-repeat me-2"></i>Request a Voter ID Reset</span>
+          <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">Lost your Voter ID? Submit a reset request and an administrator will issue a new one.</p>
+
+          <div id="voterIdRequestAlert" class="d-none alert mb-3" style="font-size:0.85rem;border-radius:10px;"></div>
+          <label class="form-label" for="resetReason">Reason for request <span style="color:var(--crimson)">*</span></label>
+          <textarea class="form-control mb-3" id="resetReason" rows="3" placeholder="e.g. I lost the email that contained my Voter ID…" maxlength="500"></textarea>
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted" style="font-size:0.75rem;"><i class="bi bi-clock me-1"></i>Reviewed by an administrator</small>
+            <button class="btn btn-vote" id="submitResetBtn" onclick="submitVoterIdRequest()">
+              <i class="bi bi-send me-2"></i>Submit Request
+            </button>
+          </div>
+        </div>
+
+        <!-- Change Password Card -->
+        <div class="stat-card">
+          <span class="section-label"><i class="bi bi-key-fill me-2"></i>Change Password</span>
+          <div id="passwordAlert" class="d-none alert mb-3" style="font-size:0.85rem;border-radius:10px;"></div>
+
+          <div class="mb-3">
+            <label class="form-label" for="currentPassword">Current Password <span style="color:var(--crimson)">*</span></label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="currentPassword" placeholder="Enter your current password" autocomplete="current-password" />
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('currentPassword',this)" tabindex="-1"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="newPassword">New Password <span style="color:var(--crimson)">*</span></label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="newPassword" placeholder="At least 8 characters" autocomplete="new-password" />
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('newPassword',this)" tabindex="-1"><i class="bi bi-eye"></i></button>
+            </div>
+            <div class="mt-2" id="pwdStrengthWrap" style="display:none;">
+              <div style="height:4px;border-radius:4px;background:var(--border);overflow:hidden;"><div id="pwdStrengthBar" style="height:100%;width:0;border-radius:4px;transition:width 0.3s,background 0.3s;"></div></div>
+              <small id="pwdStrengthLabel" class="text-muted" style="font-size:0.72rem;"></small>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="confirmPassword">Confirm New Password <span style="color:var(--crimson)">*</span></label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="confirmPassword" placeholder="Repeat new password" autocomplete="new-password" />
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('confirmPassword',this)" tabindex="-1"><i class="bi bi-eye"></i></button>
+            </div>
+            <small id="confirmMismatch" class="d-none" style="color:var(--crimson);font-size:0.75rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Passwords do not match.</small>
+          </div>
+          <button class="btn btn-vote w-100" id="changePasswordBtn" onclick="changePassword()">
+            <i class="bi bi-key-fill me-2"></i>Update Password
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="modal fade" id="voteModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title fw-bold" id="voteModalTitle">Select a Candidate</h5>
+          <small class="text-muted" id="voteModalSubtitle"></small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.82rem;">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          Your vote is <strong>encrypted with AES-256-GCM</strong> and cannot be changed once submitted.
+        </div>
+
+        <!-- Voter ID Confirmation -->
+        <div class="mb-4 p-3" style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.25);border-radius:12px;">
+          <label class="form-label fw-bold mb-1" style="font-size:0.82rem;color:var(--slate);">
+            <i class="bi bi-person-badge-fill me-1" style="color:var(--gold);"></i>
+            Confirm Your Voter ID <span style="color:var(--crimson);">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-control"
+            id="voterIdInput"
+            placeholder="e.g. VTR-123456"
+            maxlength="10"
+            autocomplete="off"
+            style="font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;"
+          />
+          <small class="text-muted mt-2 d-block" style="font-size:0.75rem;">
+            <i class="bi bi-envelope me-1"></i>Your Voter ID was emailed to you after email verification. It starts with <strong>VTR-</strong>.
+          </small>
+          <div id="voterIdError" class="d-none mt-2" style="font-size:0.78rem;color:var(--crimson);">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i><span id="voterIdErrorText"></span>
+          </div>
+        </div>
+
+        <div id="candidatesList" class="row g-3"></div>
+      </div>
+      <div class="modal-footer gap-2">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-vote" id="submitVoteBtn" disabled>
+          <i class="bi bi-lock-fill me-2"></i>Cast Encrypted Vote
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RECEIPT MODAL ── -->
+<div class="modal fade" id="receiptModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--ink);">
+        <h5 class="modal-title text-white fw-bold"><i class="bi bi-receipt-cutoff me-2 text-warning"></i>Vote Receipt</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="security-notice mb-3">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          Your vote has been <strong>securely recorded</strong> and digitally signed.
+        </div>
+        <p class="form-label">Receipt Hash (save this to verify your vote)</p>
+        <div class="receipt-box" id="receiptHashDisplay"></div>
+        <p class="form-label mt-3">Vote Hash</p>
+        <div class="receipt-box" id="voteHashDisplay"></div>
+        <p class="receipt-hash mt-2 text-muted" style="font-size:0.78rem;">
+          <i class="bi bi-info-circle me-1"></i>Use the receipt hash in "Verify Receipt" to confirm your ballot was counted.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" id="copyReceiptBtn">
+          <i class="bi bi-clipboard me-1"></i>Copy Receipt
+        </button>
+        <button class="btn btn-vote" data-bs-dismiss="modal">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESULTS MODAL ── -->
+<div class="modal fade" id="resultsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--ink);">
+        <h5 class="modal-title text-white fw-bold"><i class="bi bi-bar-chart-fill me-2 text-warning"></i>Election Results</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4" id="resultsBody"></div>
+      <div class="modal-footer">
+        <span class="text-muted" style="font-size:0.78rem;"><i class="bi bi-shield-check me-1"></i>Results are digitally signed</span>
+        <button class="btn btn-vote" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ── Auth Guard ──
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!token) { window.location.href = '/'; }
+
+  // ── Init UI ──
+  document.getElementById('sidebarName').textContent = user.name || 'Voter';
+  document.getElementById('avatarInitial').textContent = (user.name || 'V')[0].toUpperCase();
+
+  const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+  // ── Section Nav ──
+  let activeSection = 'elections';
+  document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      const sec = link.dataset.section;
+      document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('d-none'));
+      document.getElementById(`section-${sec}`).classList.remove('d-none');
+      activeSection = sec;
+      if (sec === 'elections') loadElections();
+      if (sec === 'voted') loadMyVotes();
+      if (sec === 'account') loadAccount();
+    });
+  });
+
+  // ── Logout ──
+  document.getElementById('logoutBtn').addEventListener('click', async e => {
+    e.preventDefault();
+    try { await fetch('/api/auth/logout', { method: 'POST', headers }); } catch {}
+    localStorage.clear();
+    window.location.href = '/';
+  });
+
+  // ── State ──
+  let currentElectionId = null;
+  let selectedCandidateId = null;
+  let elections = [];
+
+  // ── Load Elections ──
+  async function loadElections() {
+    const grid = document.getElementById('electionsGrid');
+    grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><span class="spinner-border me-2"></span>Loading elections…</div>';
+    try {
+      const res = await fetch('/api/elections', { headers });
+      elections = await res.json();
+
+      let active = 0, myVoted = 0;
+      for (const el of elections) {
+        if (el.status === 'active') active++;
+      }
+
+      // Check voting status for each active election
+      const statusChecks = await Promise.all(
+        elections.filter(e => e.status === 'active').map(e =>
+          fetch(`/api/votes/status/${e.id}`, { headers })
+            .then(r => r.json())
+            .then(d => ({ id: e.id, ...d }))
+            .catch(() => ({ id: e.id, has_voted: false, voted_at: null }))
+        )
+      );
+      const votedMap = {};
+      statusChecks.forEach(s => { votedMap[s.id] = s.has_voted; if (s.has_voted) myVoted++; });
+
+      document.getElementById('statTotal').textContent  = elections.length;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statVoted').textContent  = myVoted;
+
+      if (!elections.length) {
+        grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No elections available.</div>';
+        return;
+      }
+
+      grid.innerHTML = elections.map(el => {
+        const hasVoted = votedMap[el.id] || false;
+        const isTallied = el.status === 'tallied';
+        let actionBtn = '';
+        if (el.status === 'active' && !hasVoted)
+          actionBtn = `<button class="btn btn-vote" onclick="openVoteModal('${el.id}')"><i class="bi bi-ballot me-1"></i>Vote Now</button>`;
+        else if (el.status === 'active' && hasVoted)
+          actionBtn = `<span class="btn-voted"><i class="bi bi-check-circle-fill me-1"></i>Voted</span>`;
+        else if (isTallied)
+          actionBtn = `<button class="btn btn-results" onclick="openResults('${el.id}')"><i class="bi bi-bar-chart me-1"></i>View Results</button>`;
+
+        return `<div class="col-md-6">
+          <div class="election-card">
+            <div class="election-card-header">
+              <p class="title">${el.title}</p>
+              <span class="status-badge badge-${el.status}">${el.status}</span>
+            </div>
+            <div class="election-card-body">
+              <p class="text-muted" style="font-size:0.85rem;margin-bottom:0.8rem;">${el.description || 'No description provided.'}</p>
+              <div class="election-meta">
+                <span><i class="bi bi-people-fill"></i> ${el.candidate_count} Candidates</span>
+                <span><i class="bi bi-bar-chart-fill"></i> ${el.vote_count} Votes</span>
+                <span><i class="bi bi-calendar-event"></i> Ends ${new Date(el.end_time).toLocaleDateString()}</span>
+              </div>
+              <div class="d-flex gap-2">
+                ${actionBtn}
+                <a href="#" class="btn btn-outline-secondary btn-sm" onclick="viewCandidates('${el.id}'); return false;">
+                  <i class="bi bi-person-lines-fill me-1"></i>Candidates
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="col-12"><div class="alert alert-danger">Failed to load elections.</div></div>';
+    }
+  }
+
+  // ── Open Vote Modal ──
+  async function openVoteModal(electionId) {
+    currentElectionId = electionId;
+    selectedCandidateId = null;
+    document.getElementById('submitVoteBtn').disabled = true;
+
+    const el = elections.find(e => e.id === electionId);
+    document.getElementById('voteModalTitle').textContent = el?.title || 'Cast Your Vote';
+    document.getElementById('voteModalSubtitle').textContent = `${el?.candidate_count || 0} candidates running`;
+
+    const container = document.getElementById('candidatesList');
+    container.innerHTML = '<div class="col-12 text-center py-4"><span class="spinner-border"></span></div>';
+
+    const modal = new bootstrap.Modal(document.getElementById('voteModal'));
+    modal.show();
+
+    document.getElementById('voterIdInput').value = '';
+    document.getElementById('voterIdError').classList.add('d-none');
+
+    try {
+      const res = await fetch(`/api/candidates/${electionId}`, { headers });
+      if (!res.ok) throw new Error('Failed to load candidates');
+      const candidates = await res.json();
+      if (!Array.isArray(candidates) || !candidates.length) {
+        container.innerHTML = '<div class="col-12 text-center py-4 text-muted"><i class="bi bi-people fs-2 d-block mb-2"></i>No candidates for this election.</div>';
+        return;
+      }
+      container.innerHTML = candidates.map(c => `
+        <div class="col-md-6">
+          <div class="candidate-card" onclick="selectCandidate('${c.id}', this)">
+            <div class="check-mark"><i class="bi bi-check-lg"></i></div>
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <div class="candidate-photo">
+                ${c.photo_url ? `<img src="${c.photo_url}" alt="${c.name}" />` : `<i class="bi bi-person-fill"></i>`}
+              </div>
+              <div>
+                <div class="candidate-name">${c.name}</div>
+                <div class="candidate-party">${c.party || 'Independent'}</div>
+                <div class="candidate-position">${c.position || ''}</div>
+              </div>
+            </div>
+            ${c.bio ? `<p style="font-size:0.8rem;color:var(--muted);margin:0;">${c.bio.substring(0,100)}${c.bio.length>100?'…':''}</p>` : ''}
+            <a href="/candidate/${c.id}" target="_blank" class="d-block mt-2" style="font-size:0.78rem;color:var(--gold);">View full profile →</a>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      console.error('[openVoteModal]', err);
+      container.innerHTML = '<div class="col-12"><div class="alert alert-danger">Failed to load candidates. Please close and try again.</div></div>';
+    }
+  }
+
+  function selectCandidate(id, el) {
+    document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedCandidateId = id;
+    document.getElementById('submitVoteBtn').disabled = false;
+  }
+
+  // ── Submit Vote ──
+  document.getElementById('submitVoteBtn').addEventListener('click', async () => {
+    if (!selectedCandidateId) return;
+
+    // Validate Voter ID input
+    const voterId = document.getElementById('voterIdInput').value.trim().toUpperCase();
+    const voterIdError    = document.getElementById('voterIdError');
+    const voterIdErrorTxt = document.getElementById('voterIdErrorText');
+
+    if (!voterId) {
+      voterIdErrorTxt.textContent = 'Please enter your Voter ID before casting your vote.';
+      voterIdError.classList.remove('d-none');
+      document.getElementById('voterIdInput').focus();
+      return;
+    }
+    if (!/^VTR-\d{6}$/.test(voterId)) {
+      voterIdErrorTxt.textContent = 'Voter ID format is invalid. It should look like VTR-123456.';
+      voterIdError.classList.remove('d-none');
+      document.getElementById('voterIdInput').focus();
+      return;
+    }
+    voterIdError.classList.add('d-none');
+
+    const btn = document.getElementById('submitVoteBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Encrypting…';
+
+    try {
+      const res  = await fetch('/api/votes/cast', {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          election_id:  currentElectionId,
+          candidate_id: selectedCandidateId,
+          voter_id:     voterId
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Keep modal open and show error inline so voter can correct it
+        if (res.status === 403) {
+          voterIdErrorTxt.textContent = data.error || 'Invalid Voter ID.';
+          voterIdError.classList.remove('d-none');
+          document.getElementById('voterIdInput').focus();
+          return;
+        }
+        // For other errors, show alert (modal stays open)
+        const errMsg = data.error || 'Vote failed. Please try again.';
+        voterIdErrorTxt.textContent = errMsg;
+        voterIdError.classList.remove('d-none');
+        return;
+      }
+
+      // Only hide modal on success
+      bootstrap.Modal.getInstance(document.getElementById('voteModal')).hide();
+
+      // Show receipt
+      document.getElementById('receiptHashDisplay').textContent = data.receipt_hash;
+      document.getElementById('voteHashDisplay').textContent    = data.vote_hash;
+      new bootstrap.Modal(document.getElementById('receiptModal')).show();
+      loadElections();
+    } catch {
+      alert('Network error casting vote.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-lock-fill me-2"></i>Cast Encrypted Vote';
+    }
+  });
+
+  // ── Copy Receipt ──
+  document.getElementById('copyReceiptBtn').addEventListener('click', () => {
+    const hash = document.getElementById('receiptHashDisplay').textContent;
+    navigator.clipboard.writeText(hash).then(() => {
+      document.getElementById('copyReceiptBtn').innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+      setTimeout(() => {
+        document.getElementById('copyReceiptBtn').innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy Receipt';
+      }, 2000);
+    });
+  });
+
+  // ── View Candidates (profile list) ──
+  function viewCandidates(electionId) {
+    window.open(`/candidate/${electionId}?list=true`, '_blank');
+  }
+
+  // ── Open Results ──
+  async function openResults(electionId) {
+    const body = document.getElementById('resultsBody');
+    body.innerHTML = '<div class="text-center py-4"><span class="spinner-border"></span></div>';
+    new bootstrap.Modal(document.getElementById('resultsModal')).show();
+    try {
+      const res  = await fetch(`/api/elections/${electionId}/results`, { headers });
+      if (!res.ok) { body.innerHTML = '<div class="alert alert-warning m-3">Results not yet available for this election.</div>'; return; }
+      const data = await res.json();
+      const r    = data.results;
+
+    body.innerHTML = `
+      <p class="text-muted" style="font-size:0.82rem;margin-bottom:1.5rem;">
+        <i class="bi bi-calendar-check me-1"></i>Tallied on ${new Date(r.talliedAt).toLocaleString()}
+        &nbsp;·&nbsp; <i class="bi bi-people me-1"></i>${r.totalVotes} total votes
+        &nbsp;·&nbsp; <i class="bi bi-${data.signature_valid?'shield-check text-success':'exclamation-triangle text-danger'} me-1"></i>
+        Signature ${data.signature_valid ? 'Valid ✓' : 'INVALID ✗'}
+      </p>
+      ${r.candidates.map((c, i) => `
+        <div class="result-bar-wrap">
+          <div class="result-bar-label">
+            <span class="name">${i===0?'🏆 ':''}${c.name} <span class="text-muted fw-normal">(${c.party||'Ind.'})</span></span>
+            <span class="pct">${c.votes} votes · ${c.percentage}%</span>
+          </div>
+          <div class="result-bar">
+            <div class="result-bar-fill ${i===0?'winner':''}" style="width:${c.percentage}%"></div>
+          </div>
+        </div>
+      `).join('')}
+    `;
+    } catch (err) {
+      console.error('[openResults]', err);
+      body.innerHTML = '<div class="alert alert-danger m-3">Failed to load results. Please try again.</div>';
+    }
+  }
+
+  // ── My Votes ──
+  async function loadMyVotes() {
+    const list = document.getElementById('votedList');
+    list.innerHTML = '<div class="col-12 text-center py-5 text-muted"><span class="spinner-border me-2"></span>Loading…</div>';
+    try {
+      const res = await fetch('/api/elections', { headers });
+      if (!res.ok) throw new Error('Failed to load elections');
+      const els = await res.json();
+      if (!Array.isArray(els) || !els.length) {
+        list.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-ballot fs-2 d-block mb-2"></i>You haven\'t voted in any elections yet.</div>';
+        return;
+      }
+      const checks = await Promise.all(
+        els.map(e => fetch(`/api/votes/status/${e.id}`, { headers })
+          .then(r => r.json())
+          .then(d => ({ ...e, ...d }))
+          .catch(() => ({ ...e, has_voted: false, voted_at: null })))
+      );
+      const voted = checks.filter(e => e.has_voted);
+      if (!voted.length) {
+        list.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-ballot fs-2 d-block mb-2"></i>You haven\'t voted in any elections yet.</div>';
+        return;
+      }
+      list.innerHTML = voted.map(e => `
+        <div class="col-md-6">
+          <div class="election-card">
+            <div class="election-card-header">
+              <p class="title">${e.title}</p>
+              <span class="status-badge badge-${e.status}">${e.status}</span>
+            </div>
+            <div class="election-card-body">
+              <p class="text-muted" style="font-size:0.82rem;"><i class="bi bi-check-circle-fill text-success me-1"></i>
+                Voted on ${e.voted_at ? new Date(e.voted_at).toLocaleString() : 'Date unavailable'}</p>
+              ${e.status === 'tallied' ? `<button class="btn btn-results btn-sm" data-election-id="${e.id}"><i class="bi bi-bar-chart me-1"></i>View Results</button>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      console.error('[loadMyVotes]', err);
+      list.innerHTML = '<div class="col-12"><div class="alert alert-danger">Failed to load vote history. Please try again.</div></div>';
+    }
+  }
+
+  // ── My Votes Results button delegation ──
+  document.getElementById('votedList').addEventListener('click', e => {
+    const btn = e.target.closest('[data-election-id]');
+    if (btn) openResults(btn.dataset.electionId);
+  });
+
+  // ── Verify Receipt ──
+  document.getElementById('verifyBtn').addEventListener('click', async () => {
+    const hash   = document.getElementById('receiptHash').value.trim();
+    const elId   = document.getElementById('verifyElectionId').value.trim();
+    const result = document.getElementById('verifyResult');
+    const btn    = document.getElementById('verifyBtn');
+    if (!hash || !elId) {
+      result.className = 'verify-result fail';
+      result.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>Please enter both receipt hash and election ID.';
+      result.classList.remove('d-none');
+      return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying…';
+    try {
+      const res  = await fetch('/api/votes/verify-receipt', { method: 'POST', headers, body: JSON.stringify({ receipt_hash: hash, election_id: elId }) });
+      const data = await res.json();
+      result.className = `verify-result ${data.verified ? 'success' : 'fail'}`;
+      result.innerHTML = `<i class="bi bi-${data.verified ? 'check-circle-fill' : 'x-circle-fill'} me-2"></i>${data.message}`;
+      result.classList.remove('d-none');
+    } catch {
+      result.className = 'verify-result fail';
+      result.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>Network error. Please try again.';
+      result.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-search me-2"></i>Verify Receipt';
+    }
+  });
+
+  // ── Voter ID input — live format & uppercase ──
+  document.getElementById('voterIdInput').addEventListener('input', function () {
+    let val = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+    // Auto-insert hyphen after VTR if user types without it
+    if (val.startsWith('VTR') && val.length === 3) val = 'VTR-';
+    this.value = val;
+    // Hide error as user corrects
+    if (val.length > 0) document.getElementById('voterIdError').classList.add('d-none');
+  });
+
+  // ── My Account — loads profile, voter ID display, and attaches password listeners ──
+  let _acctInit = false;
+  async function loadAccount() {
+    // Show voter ID immediately from localStorage while server fetch runs
+    document.getElementById('voterIdDisplay').textContent = user.voter_id || '—';
+
+    // Attach password listeners once
+    if (!_acctInit) {
+      _acctInit = true;
+      document.getElementById('newPassword').addEventListener('input', function () {
+        const val = this.value;
+        const wrap = document.getElementById('pwdStrengthWrap');
+        const bar  = document.getElementById('pwdStrengthBar');
+        const lbl  = document.getElementById('pwdStrengthLabel');
+        if (!val) { wrap.style.display = 'none'; return; }
+        wrap.style.display = '';
+        let s = 0;
+        if (val.length >= 8)          s++;
+        if (val.length >= 12)         s++;
+        if (/[A-Z]/.test(val))        s++;
+        if (/[0-9]/.test(val))        s++;
+        if (/[^A-Za-z0-9]/.test(val)) s++;
+        const lvls = [
+          {p:'20%',c:'#e74c3c',t:'Very weak'},
+          {p:'40%',c:'#e67e22',t:'Weak'},
+          {p:'60%',c:'#f1c40f',t:'Fair'},
+          {p:'80%',c:'#2ecc71',t:'Strong'},
+          {p:'100%',c:'#27ae60',t:'Very strong'}
+        ];
+        const lvl = lvls[Math.min(s,4)];
+        bar.style.width = lvl.p; bar.style.background = lvl.c;
+        lbl.textContent = lvl.t; lbl.style.color = lvl.c;
+      });
+      document.getElementById('confirmPassword').addEventListener('input', function () {
+        const mm = document.getElementById('confirmMismatch');
+        if (this.value && this.value !== document.getElementById('newPassword').value)
+          mm.classList.remove('d-none');
+        else mm.classList.add('d-none');
+      });
+    }
+
+    // Load profile from server
+    const body = document.getElementById('accountProfileBody');
+    body.innerHTML = '<div class="text-center py-3 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>';
+    try {
+      const res  = await fetch('/api/auth/me', { headers });
+      const data = await res.json();
+      if (!res.ok) { body.innerHTML = `<p class="text-danger">${data.error || 'Failed to load.'}</p>`; return; }
+      // Update voter ID display with fresh server value
+      document.getElementById('voterIdDisplay').textContent = data.voter_id || 'Not assigned yet';
+      body.innerHTML = `
+        <div class="row g-3">
+          <div class="col-12 d-flex align-items-center gap-3 mb-1">
+            <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--crimson));display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:#fff;flex-shrink:0;">${(data.full_name||'?')[0].toUpperCase()}</div>
+            <div>
+              <div style="font-size:1rem;font-weight:700;color:var(--ink);">${data.full_name}</div>
+              <div style="font-size:0.75rem;color:var(--muted);">${data.role.charAt(0).toUpperCase()+data.role.slice(1)}</div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:3px;">Full Name</div>
+            <div style="font-size:0.9rem;color:var(--ink);">${data.full_name}</div>
+          </div>
+          <div class="col-sm-6">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:3px;">Email</div>
+            <div style="font-size:0.9rem;color:var(--ink);">${data.email}</div>
+          </div>
+          <div class="col-sm-6">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:3px;">Account Status</div>
+            <span style="font-size:0.82rem;font-weight:600;color:var(--success);"><i class="bi bi-check-circle-fill me-1"></i>Verified &amp; Active</span>
+          </div>
+          <div class="col-sm-6">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:3px;">Member Since</div>
+            <div style="font-size:0.9rem;color:var(--ink);">${new Date(data.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+          </div>
+        </div>`;
+    } catch {
+      body.innerHTML = '<p class="text-danger">Network error loading profile.</p>';
+    }
+  }
+
+  // ── Submit Voter ID Reset Request ──
+  async function submitVoterIdRequest() {
+    const reason  = document.getElementById('resetReason').value.trim();
+    const alertEl = document.getElementById('voterIdRequestAlert');
+    const btn     = document.getElementById('submitResetBtn');
+
+    alertEl.classList.add('d-none');
+
+    if (!reason) {
+      alertEl.className = 'alert alert-warning mb-3';
+      alertEl.textContent = 'Please provide a reason for your request.';
+      alertEl.classList.remove('d-none');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting…';
+
+    try {
+      const res  = await fetch('/api/votes/request-voter-id-reset', {
+        method: 'POST', headers,
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alertEl.className = 'alert alert-danger mb-3';
+        alertEl.textContent = data.error || 'Failed to submit request.';
+      } else {
+        alertEl.className = 'alert alert-success mb-3';
+        alertEl.textContent = data.message || 'Request submitted successfully.';
+        document.getElementById('resetReason').value = '';
+      }
+      alertEl.classList.remove('d-none');
+    } catch {
+      alertEl.className = 'alert alert-danger mb-3';
+      alertEl.textContent = 'Network error. Please try again.';
+      alertEl.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-send me-2"></i>Submit Request';
+    }
+  }
+
+  // ── Toggle password visibility ──
+  function togglePwd(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    btn.innerHTML = hidden ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+  }
+
+  // ── Change Password ──
+  async function changePassword() {
+    const current = document.getElementById('currentPassword').value;
+    const newPwd  = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+    const alertEl = document.getElementById('passwordAlert');
+    const btn     = document.getElementById('changePasswordBtn');
+
+    const show = (msg, type) => {
+      alertEl.className = `alert alert-${type} mb-3`;
+      alertEl.innerHTML = `<i class="bi bi-${type==='danger'?'exclamation-triangle-fill':'check-circle-fill'} me-2"></i>${msg}`;
+      alertEl.classList.remove('d-none');
+    };
+    alertEl.classList.add('d-none');
+
+    if (!current || !newPwd || !confirm) return show('All fields are required.', 'danger');
+    if (newPwd.length < 8)              return show('New password must be at least 8 characters.', 'danger');
+    if (newPwd !== confirm)             return show('New passwords do not match.', 'danger');
+    if (current === newPwd)             return show('New password must be different from your current password.', 'danger');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating…';
+
+    try {
+      const res  = await fetch('/api/auth/change-password', {
+        method: 'PUT', headers,
+        body: JSON.stringify({ current_password: current, new_password: newPwd })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        show(data.error || 'Failed to update password.', 'danger');
+      } else {
+        show('Password updated successfully.', 'success');
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value     = '';
+        document.getElementById('confirmPassword').value = '';
+        document.getElementById('pwdStrengthWrap').style.display = 'none';
+      }
+    } catch {
+      show('Network error. Please try again.', 'danger');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-key-fill me-2"></i>Update Password';
+    }
+  }
+
+  // ── Init ──
+  loadElections();
+</script>
+</body>
+</html>

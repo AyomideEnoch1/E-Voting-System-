@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureVote — Trusted Digital Elections</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:      #0d1117;
+      --ink2:     #131c28;
+      --ivory:    #f5f0e8;
+      --ivory2:   #ede8df;
+      --gold:     #c9a84c;
+      --gold-lt:  #e8d49a;
+      --gold-dim: rgba(201,168,76,0.15);
+      --crimson:  #9b1c1c;
+      --slate:    #3a4556;
+      --muted:    #6c7a8d;
+      --border:   #ddd8ce;
+      --success:  #1a6b3a;
+      --white:    #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════
+       NAVBAR
+    ══════════════════════════════════════ */
+    .nav-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+      background: rgba(13,17,23,0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .nav-brand i { color: var(--gold); font-size: 1.25rem; }
+    .nav-brand span {
+      font-family: 'Playfair Display', serif;
+      color: #fff; font-size: 1.15rem; font-weight: 700;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 0.25rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none; font-size: 0.88rem; font-weight: 500;
+      padding: 0.45rem 0.9rem; border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .nav-cta {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .btn-nav-login {
+      background: transparent;
+      color: rgba(255,255,255,0.75);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px; padding: 0.45rem 1.1rem;
+      font-size: 0.85rem; font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-nav-login:hover { color: #fff; border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.05); }
+    .btn-nav-register {
+      background: var(--gold);
+      color: var(--ink);
+      border: none; border-radius: 8px; padding: 0.45rem 1.1rem;
+      font-size: 0.85rem; font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-nav-register:hover { background: var(--gold-lt); transform: translateY(-1px); }
+    .nav-mobile-toggle {
+      display: none;
+      background: none; border: none;
+      color: rgba(255,255,255,0.7);
+      font-size: 1.4rem; cursor: pointer;
+      padding: 0.3rem;
+    }
+    .nav-mobile-menu {
+      display: none;
+      position: fixed; top: 64px; left: 0; right: 0;
+      background: rgba(13,17,23,0.98);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 1rem 1.5rem 1.5rem;
+      z-index: 899;
+      flex-direction: column; gap: 0.5rem;
+    }
+    .nav-mobile-menu.open { display: flex; }
+    .nav-mobile-menu a {
+      color: rgba(255,255,255,0.7); text-decoration: none;
+      font-size: 0.95rem; font-weight: 500;
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .nav-mobile-menu a:last-child { border-bottom: none; }
+    .nav-mobile-menu .btn-nav-register {
+      text-align: center; margin-top: 0.5rem;
+      padding: 0.7rem; font-size: 0.95rem;
+    }
+
+    /* ══════════════════════════════════════
+       HERO
+    ══════════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(150deg, var(--ink) 0%, #12213a 55%, #0d1117 100%);
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 6rem 0 5rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+      background-size: 52px 52px;
+      pointer-events: none;
+    }
+    .hero-glow-top {
+      position: absolute; top: -180px; right: -100px;
+      width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-glow-bottom {
+      position: absolute; bottom: -200px; left: -100px;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(155,28,28,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 50px; padding: 6px 16px;
+      margin-bottom: 2rem;
+    }
+    .hero-badge i { color: var(--gold); font-size: 0.85rem; }
+    .hero-badge span {
+      color: var(--gold-lt); font-size: 0.78rem;
+      font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title .accent { color: var(--gold); }
+    .hero-title .accent-crimson { color: #e05252; }
+    .hero-sub {
+      color: rgba(255,255,255,0.55);
+      font-size: clamp(1rem, 1.5vw, 1.15rem);
+      line-height: 1.75;
+      max-width: 520px;
+      margin-bottom: 2.5rem;
+    }
+    .hero-actions {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 3.5rem;
+    }
+    .btn-hero-primary {
+      background: var(--gold);
+      color: var(--ink);
+      border: none; border-radius: 12px;
+      padding: 0.9rem 2rem;
+      font-size: 1rem; font-weight: 700;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+    }
+    .btn-hero-primary:hover {
+      background: var(--gold-lt); transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(201,168,76,0.35);
+      color: var(--ink);
+    }
+    .btn-hero-secondary {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.8);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px; padding: 0.9rem 2rem;
+      font-size: 1rem; font-weight: 600;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-hero-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff; border-color: rgba(255,255,255,0.3);
+    }
+    .hero-trust-row {
+      display: flex; gap: 2rem; flex-wrap: wrap; align-items: center;
+    }
+    .trust-item {
+      display: flex; align-items: center; gap: 8px;
+      color: rgba(255,255,255,0.4); font-size: 0.82rem;
+    }
+    .trust-item i { color: var(--gold); font-size: 0.85rem; }
+
+    /* Hero visual panel */
+    .hero-visual {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 1.8rem;
+      backdrop-filter: blur(8px);
+      position: relative;
+    }
+    .hero-visual::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .visual-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .visual-header .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .visual-header span { color: rgba(255,255,255,0.3); font-size: 0.78rem; margin-left: auto; font-family: 'DM Mono', monospace; }
+    .vote-step {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .vote-step:last-child { border-bottom: none; }
+    .step-num-badge {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 0.72rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step-text { color: rgba(255,255,255,0.6); font-size: 0.85rem; line-height: 1.5; }
+    .step-text strong { color: rgba(255,255,255,0.9); }
+    .step-check {
+      margin-left: auto; flex-shrink: 0;
+      color: #22c55e; font-size: 0.9rem;
+    }
+    .crypto-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 6px; padding: 3px 9px;
+      color: var(--gold-lt); font-size: 0.7rem;
+      font-family: 'DM Mono', monospace;
+      margin-top: 0.5rem;
+    }
+    .receipt-preview {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px; padding: 0.9rem 1rem;
+      margin-top: 1.2rem;
+    }
+    .receipt-preview .label { color: rgba(255,255,255,0.3); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; }
+    .receipt-preview .hash { color: #22c55e; font-family: 'DM Mono', monospace; font-size: 0.72rem; word-break: break-all; line-height: 1.6; }
+
+    /* ══════════════════════════════════════
+       HOW IT WORKS
+    ══════════════════════════════════════ */
+    .section-how {
+      background: var(--ivory);
+      padding: 6rem 0;
+    }
+    .section-eyebrow {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 0.8rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+      font-weight: 900; color: var(--ink);
+      line-height: 1.1; margin-bottom: 1rem;
+    }
+    .section-sub {
+      color: var(--muted); font-size: 1rem; line-height: 1.7;
+      max-width: 520px;
+    }
+    .step-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2rem 1.8rem;
+      height: 100%;
+      transition: box-shadow 0.25s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .step-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      opacity: 0; transition: opacity 0.25s;
+    }
+    .step-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.09); transform: translateY(-3px); }
+    .step-card:hover::before { opacity: 1; }
+    .step-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 1.2rem;
+    }
+    .step-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 0.5rem;
+    }
+    .step-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--ink); margin-bottom: 0.7rem;
+    }
+    .step-card p { color: var(--muted); font-size: 0.88rem; line-height: 1.65; }
+
+    /* ══════════════════════════════════════
+       SECURITY SECTION
+    ══════════════════════════════════════ */
+    .section-security {
+      background: var(--ink);
+      padding: 6rem 0;
+      position: relative; overflow: hidden;
+    }
+    .section-security::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+    }
+    .section-security .section-title { color: #fff; }
+    .section-security .section-sub { color: rgba(255,255,255,0.5); }
+    .security-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 1.8rem;
+      height: 100%;
+      transition: background 0.25s, border-color 0.25s;
+    }
+    .security-card:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(201,168,76,0.25);
+    }
+    .security-card .icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; margin-bottom: 1.2rem;
+      background: var(--gold-dim);
+    }
+    .security-card .icon i { color: var(--gold); }
+    .security-card h5 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.6rem;
+    }
+    .security-card p { color: rgba(255,255,255,0.5); font-size: 0.85rem; line-height: 1.65; }
+    .security-card .tech-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 6px; padding: 3px 9px;
+      color: var(--gold-lt); font-size: 0.7rem;
+      font-family: 'DM Mono', monospace; margin-top: 0.9rem;
+    }
+
+    /* ══════════════════════════════════════
+       VOTER GUIDE
+    ══════════════════════════════════════ */
+    .section-guide {
+      background: var(--ivory2);
+      padding: 6rem 0;
+    }
+    .guide-timeline {
+      position: relative; padding-left: 2.5rem;
+    }
+    .guide-timeline::before {
+      content: '';
+      position: absolute; left: 13px; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--gold) 0%, var(--border) 100%);
+    }
+    .guide-item {
+      position: relative; padding-bottom: 2.2rem;
+    }
+    .guide-item:last-child { padding-bottom: 0; }
+    .guide-item::before {
+      content: '';
+      position: absolute; left: -2.5rem; top: 4px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--gold);
+      border: 3px solid var(--ivory2);
+      box-shadow: 0 0 0 2px var(--gold);
+    }
+    .guide-item h5 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 0.4rem;
+    }
+    .guide-item p { color: var(--muted); font-size: 0.88rem; line-height: 1.65; }
+    .guide-item .tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 20px; padding: 3px 12px;
+      color: #8a6d1a; font-size: 0.72rem; font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .info-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.8rem;
+      height: 100%;
+    }
+    .info-box h5 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--ink); margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .info-box h5 i { color: var(--gold); }
+    .info-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      font-size: 0.85rem; color: var(--slate);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row i { color: var(--gold); margin-top: 2px; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════
+       FAQ
+    ══════════════════════════════════════ */
+    .section-faq {
+      background: var(--ivory);
+      padding: 6rem 0;
+    }
+    .faq-item {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+    .faq-question {
+      width: 100%; text-align: left;
+      background: none; border: none;
+      padding: 1.2rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem; font-weight: 600; color: var(--ink);
+      transition: background 0.2s;
+    }
+    .faq-question:hover { background: rgba(0,0,0,0.015); }
+    .faq-question .chevron {
+      color: var(--muted); transition: transform 0.25s; flex-shrink: 0; margin-left: 1rem;
+    }
+    .faq-question.open .chevron { transform: rotate(180deg); color: var(--gold); }
+    .faq-answer {
+      display: none;
+      padding: 0 1.5rem 1.2rem;
+      font-size: 0.88rem; color: var(--muted); line-height: 1.7;
+    }
+    .faq-answer.open { display: block; }
+
+    /* ══════════════════════════════════════
+       CTA BANNER
+    ══════════════════════════════════════ */
+    .section-cta {
+      background: linear-gradient(135deg, var(--ink) 0%, #1e2c3d 60%, var(--ink) 100%);
+      padding: 5rem 0;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .section-cta::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(201,168,76,0.08) 0%, transparent 55%),
+        radial-gradient(circle at 80% 50%, rgba(155,28,28,0.06) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .section-cta .title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 900; color: #fff;
+      margin-bottom: 1rem;
+    }
+    .section-cta .title span { color: var(--gold); }
+    .section-cta .sub {
+      color: rgba(255,255,255,0.5);
+      font-size: 1rem; line-height: 1.7;
+      max-width: 480px; margin: 0 auto 2.5rem;
+    }
+    .cta-actions {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    .footer {
+      background: #080c12;
+      padding: 3rem 0 2rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .footer-brand {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 0.75rem;
+    }
+    .footer-brand i { color: var(--gold); font-size: 1.1rem; }
+    .footer-brand span {
+      font-family: 'Playfair Display', serif;
+      color: #fff; font-size: 1rem; font-weight: 700;
+    }
+    .footer-desc { color: rgba(255,255,255,0.3); font-size: 0.82rem; line-height: 1.65; max-width: 280px; }
+    .footer-heading { color: rgba(255,255,255,0.5); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem; }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 0.55rem; }
+    .footer-links a { color: rgba(255,255,255,0.35); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
+    .footer-divider { border-color: rgba(255,255,255,0.06); margin: 2rem 0 1.5rem; }
+    .footer-bottom {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;
+      font-size: 0.78rem; color: rgba(255,255,255,0.2);
+    }
+    .footer-bottom .secure-badge {
+      display: flex; align-items: center; gap: 6px;
+      color: rgba(255,255,255,0.25);
+    }
+    .footer-bottom .secure-badge i { color: var(--gold); font-size: 0.8rem; }
+
+    /* ══════════════════════════════════════
+       UTILITIES
+    ══════════════════════════════════════ */
+    .text-gold  { color: var(--gold); }
+    .bg-ink     { background: var(--ink); }
+    .divider-gold {
+      width: 48px; height: 3px; border-radius: 3px;
+      background: var(--gold); margin: 1.2rem 0 1.8rem;
+    }
+
+    /* ══════════════════════════════════════
+       ANIMATIONS
+    ══════════════════════════════════════ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-8px); }
+    }
+    .fade-up { animation: fadeUp 0.7s ease both; }
+    .fade-up-1 { animation-delay: 0.1s; }
+    .fade-up-2 { animation-delay: 0.22s; }
+    .fade-up-3 { animation-delay: 0.34s; }
+    .fade-up-4 { animation-delay: 0.46s; }
+    .hero-visual { animation: floatSlow 5s ease-in-out infinite; }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 991px) {
+      .hero { padding: 5rem 0 4rem; }
+      .hero-title { font-size: clamp(2.2rem, 6vw, 3.2rem); }
+      .hero-visual { margin-top: 3rem; }
+      .nav-links, .nav-cta { display: none; }
+      .nav-mobile-toggle { display: block; }
+    }
+    @media (max-width: 767px) {
+      .hero { padding: 5rem 0 3.5rem; min-height: auto; }
+      .hero-trust-row { gap: 1.2rem; }
+      .section-how, .section-security, .section-guide, .section-faq, .section-cta { padding: 4rem 0; }
+      .guide-timeline { padding-left: 2rem; }
+      .cta-actions { flex-direction: column; align-items: center; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .hero-actions { flex-direction: column; }
+      .btn-hero-primary, .btn-hero-secondary { justify-content: center; text-align: center; }
+      .hero-badge { font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="nav-bar">
+  <a href="/landing" class="nav-brand">
+    <i class="bi bi-shield-lock-fill"></i>
+    <span>SecureVote</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#security">Security</a></li>
+    <li><a href="#voter-guide">Voter Guide</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="/login" class="btn-nav-login">Sign In</a>
+    <a href="/register" class="btn-nav-register">Register to Vote</a>
+  </div>
+  <button class="nav-mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <i class="bi bi-list"></i>
+  </button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="nav-mobile-menu" id="mobileMenu">
+  <a href="#how-it-works" onclick="closeMobileMenu()">How It Works</a>
+  <a href="#security" onclick="closeMobileMenu()">Security</a>
+  <a href="#voter-guide" onclick="closeMobileMenu()">Voter Guide</a>
+  <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
+  <a href="/login" class="btn-nav-login" style="text-align:center;margin-top:0.3rem;">Sign In</a>
+  <a href="/register" class="btn-nav-register">Register to Vote →</a>
+</div>
+
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-glow-top"></div>
+  <div class="hero-glow-bottom"></div>
+  <div class="container">
+    <div class="row align-items-center g-5">
+
+      <div class="col-lg-6">
+        <div class="hero-badge fade-up">
+          <i class="bi bi-shield-check"></i>
+          <span>Cryptographically Secured · RUN 2025</span>
+        </div>
+        <h1 class="hero-title fade-up fade-up-1">
+          Your vote.<br/>
+          Your <span class="accent">voice</span>.<br/>
+          <span class="accent-crimson">Protected.</span>
+        </h1>
+        <p class="hero-sub fade-up fade-up-2">
+          SecureVote is Redeemer's University's official e-voting platform. Every ballot is encrypted with AES-256-GCM, every result is digitally signed, and your identity is fully protected throughout the process.
+        </p>
+        <div class="hero-actions fade-up fade-up-3">
+          <a href="/register" class="btn-hero-primary">
+            <i class="bi bi-person-plus-fill"></i> Register to Vote
+          </a>
+          <a href="/login" class="btn-hero-secondary">
+            <i class="bi bi-box-arrow-in-right"></i> Sign In
+          </a>
+        </div>
+        <div class="hero-trust-row fade-up fade-up-4">
+          <div class="trust-item"><i class="bi bi-lock-fill"></i> AES-256-GCM Encrypted</div>
+          <div class="trust-item"><i class="bi bi-key-fill"></i> RSA-4096 Signed</div>
+          <div class="trust-item"><i class="bi bi-incognito"></i> Anonymous Ballots</div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 fade-up fade-up-2">
+        <div class="hero-visual">
+          <div class="visual-header">
+            <div class="dot" style="background:#ff5f57;"></div>
+            <div class="dot" style="background:#febc2e;"></div>
+            <div class="dot" style="background:#28c840;"></div>
+            <span>securevote · ballot-session</span>
+          </div>
+
+          <div class="vote-step">
+            <div class="step-num-badge">1</div>
+            <div class="step-text">
+              <strong>Identity Verified</strong><br/>
+              Email confirmed · Voter ID <code style="color:var(--gold);font-size:0.78rem;background:rgba(201,168,76,0.1);padding:1px 6px;border-radius:4px;">VTR-482901</code> issued
+            </div>
+            <i class="bi bi-check-circle-fill step-check"></i>
+          </div>
+
+          <div class="vote-step">
+            <div class="step-num-badge">2</div>
+            <div class="step-text">
+              <strong>Candidate Selected</strong><br/>
+              SUG President — Adewale O.
+              <div><span class="crypto-tag"><i class="bi bi-lock-fill"></i> AES-256-GCM encrypting…</span></div>
+            </div>
+            <i class="bi bi-check-circle-fill step-check"></i>
+          </div>
+
+          <div class="vote-step">
+            <div class="step-num-badge">3</div>
+            <div class="step-text">
+              <strong>Ballot Submitted</strong><br/>
+              Vote recorded · Receipt generated
+            </div>
+            <i class="bi bi-check-circle-fill step-check"></i>
+          </div>
+
+          <div class="receipt-preview">
+            <div class="label"><i class="bi bi-receipt me-1"></i>Vote Receipt Hash</div>
+            <div class="hash">a3f7c2e1d09b4a82f1c6e0d3b7a9f2c8<br/>e1d4b0a7c3f9e2d1b8a0c5f7e3d2b9a1</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="section-how" id="how-it-works">
+  <div class="container">
+    <div class="row justify-content-center text-center mb-5">
+      <div class="col-lg-6">
+        <p class="section-eyebrow">Process Overview</p>
+        <h2 class="section-title">How voting works</h2>
+        <div class="divider-gold mx-auto"></div>
+        <p class="section-sub mx-auto">From registration to receipt — here's everything you need to know about casting your secure ballot.</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="step-card">
+          <div class="step-icon" style="background:rgba(201,168,76,0.1);">
+            <i class="bi bi-person-plus-fill" style="color:var(--gold);"></i>
+          </div>
+          <p class="step-number">Step 01</p>
+          <h4>Register</h4>
+          <p>Create an account using your official <strong>@run.edu.ng</strong> school email. Only RUN students and staff are eligible to participate.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="step-card">
+          <div class="step-icon" style="background:rgba(26,107,58,0.1);">
+            <i class="bi bi-envelope-check-fill" style="color:var(--success);"></i>
+          </div>
+          <p class="step-number">Step 02</p>
+          <h4>Verify Email</h4>
+          <p>Click the verification link sent to your inbox. Once verified, your unique <strong>Voter ID (VTR-XXXXXX)</strong> is emailed to you automatically — keep it safe.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="step-card">
+          <div class="step-icon" style="background:rgba(58,69,86,0.1);">
+            <i class="bi bi-ballot-fill" style="color:var(--slate);"></i>
+          </div>
+          <p class="step-number">Step 03</p>
+          <h4>Cast Your Vote</h4>
+          <p>Sign in during an active election window. Browse the candidates, make your selection, enter your Voter ID, and submit your encrypted ballot.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="step-card">
+          <div class="step-icon" style="background:rgba(155,28,28,0.08);">
+            <i class="bi bi-receipt-cutoff" style="color:var(--crimson);"></i>
+          </div>
+          <p class="step-number">Step 04</p>
+          <h4>Get Your Receipt</h4>
+          <p>Immediately receive a cryptographic receipt hash. Save it — you can use it at any time to verify that your ballot was counted in the final tally.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voter ID explainer -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:18px;padding:2rem 2.5rem;display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap;">
+          <div style="width:52px;height:52px;background:rgba(201,168,76,0.1);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-person-badge-fill" style="color:var(--gold);font-size:1.3rem;"></i>
+          </div>
+          <div style="flex:1;min-width:260px;">
+            <h5 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:0.5rem;">About Your Voter ID</h5>
+            <p style="color:var(--muted);font-size:0.88rem;line-height:1.7;margin:0;">
+              Your <strong style="color:var(--ink);">Voter ID</strong> (format: <code style="background:rgba(201,168,76,0.1);color:#7a5c1e;padding:1px 7px;border-radius:5px;font-size:0.85em;">VTR-XXXXXX</code>) is sent to your school email once you verify your account. It acts as a second authentication factor when submitting your ballot — preventing impersonation even if your login credentials are compromised. <strong style="color:var(--ink);">Do not share your Voter ID with anyone.</strong> If you lose it, go to <em>My Account → Request Voter ID Reset</em> and an administrator will issue a new one.
+            </p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(26,107,58,0.07);border:1px solid rgba(26,107,58,0.18);border-radius:10px;padding:0.7rem 1rem;flex-shrink:0;">
+            <i class="bi bi-shield-check" style="color:var(--success);font-size:1rem;"></i>
+            <span style="font-size:0.8rem;color:var(--success);font-weight:600;">Two-factor verified</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ SECURITY ══ -->
+<section class="section-security" id="security">
+  <div class="container">
+    <div class="row justify-content-center text-center mb-5">
+      <div class="col-lg-6">
+        <p class="section-eyebrow">Trust Architecture</p>
+        <h2 class="section-title">Built on cryptographic trust</h2>
+        <div class="divider-gold mx-auto"></div>
+        <p class="section-sub mx-auto" style="color:rgba(255,255,255,0.45);">Every component of SecureVote is designed to ensure that votes are secret, tamper-proof, and publicly verifiable.</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="security-card">
+          <div class="icon"><i class="bi bi-lock-fill"></i></div>
+          <h5>Ballot Encryption</h5>
+          <p>Every vote is encrypted client-side before transmission using industry-standard symmetric encryption. Your choice is never sent in plaintext.</p>
+          <span class="tech-badge"><i class="bi bi-cpu"></i> AES-256-GCM</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="security-card">
+          <div class="icon"><i class="bi bi-pen-fill"></i></div>
+          <h5>Digital Signatures</h5>
+          <p>Election results are digitally signed with the administrator's private key after tallying. Any tampering with results is cryptographically detectable.</p>
+          <span class="tech-badge"><i class="bi bi-cpu"></i> RSA-4096 / ECDSA</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="security-card">
+          <div class="icon"><i class="bi bi-fingerprint"></i></div>
+          <h5>Password Hashing</h5>
+          <p>Passwords are never stored in plaintext. We use adaptive hashing with a high work factor so that even in a data breach, passwords cannot be easily recovered.</p>
+          <span class="tech-badge"><i class="bi bi-cpu"></i> bcrypt · high cost</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="security-card">
+          <div class="icon"><i class="bi bi-incognito"></i></div>
+          <h5>Voter Anonymity</h5>
+          <p>Votes are stored detached from voter identity. The link between a voter and their ballot is severed at submission — ensuring your choice remains private.</p>
+          <span class="tech-badge"><i class="bi bi-cpu"></i> Anonymous ballots</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="security-card">
+          <div class="icon"><i class="bi bi-receipt-cutoff"></i></div>
+          <h5>Verifiable Receipts</h5>
+          <p>After voting you receive a unique cryptographic hash. At any time you can submit this hash to verify your vote was included — without revealing who you voted for.</p>
+          <span class="tech-badge"><i class="bi bi-cpu"></i> SHA-256 receipt hash</span>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="security-card">
+          <div class="icon"><i class="bi bi-journal-text"></i></div>
+          <h5>Audit Log</h5>
+          <p>Every system action — logins, votes, admin operations — is recorded in an immutable audit trail with hashed IP addresses. Full accountability at every level.</p>
+          <span class="tech-badge"><i class="bi bi-cpu"></i> Immutable audit log</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ VOTER GUIDE ══ -->
+<section class="section-guide" id="voter-guide">
+  <div class="container">
+    <div class="row mb-5">
+      <div class="col-lg-5">
+        <p class="section-eyebrow">Voter Guide</p>
+        <h2 class="section-title">Everything you need to vote</h2>
+        <div class="divider-gold"></div>
+        <p class="section-sub">A complete walkthrough of the voting experience from registration to verifying your receipt.</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="guide-timeline">
+          <div class="guide-item">
+            <span class="tag"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> Before Election</span>
+            <h5>Register with your school email</h5>
+            <p>Visit <strong>/register</strong> and fill in your full name and @run.edu.ng email. No other accounts or logins are accepted. You'll need access to your school inbox throughout this process.</p>
+          </div>
+          <div class="guide-item">
+            <span class="tag"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> Within Minutes</span>
+            <h5>Verify your email address</h5>
+            <p>Check your school inbox for a verification email from SecureVote. Click the link inside — it expires in 24 hours. If it doesn't arrive, check your spam folder.</p>
+          </div>
+          <div class="guide-item">
+            <span class="tag"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> After Verification</span>
+            <h5>Receive and save your Voter ID</h5>
+            <p>A second email will deliver your unique <strong>Voter ID</strong> (e.g. VTR-482901). Save this somewhere safe — you will need it every time you cast a vote. It does not expire.</p>
+          </div>
+          <div class="guide-item">
+            <span class="tag"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> During Election Window</span>
+            <h5>Sign in and cast your ballot</h5>
+            <p>Go to <strong>/login</strong>, enter your credentials, then visit the Elections tab. Click <em>Vote Now</em>, read each candidate's profile, make your selection, and confirm with your Voter ID.</p>
+          </div>
+          <div class="guide-item">
+            <span class="tag"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> After Voting</span>
+            <h5>Copy your receipt hash</h5>
+            <p>A receipt modal will appear after your vote is accepted. Copy the hash string — you can use it in the <em>Verify Receipt</em> tab at any time to confirm your ballot was counted.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="info-box">
+              <h5><i class="bi bi-question-circle-fill"></i> What you need to vote</h5>
+              <div class="info-row"><i class="bi bi-check-circle-fill"></i>A valid @run.edu.ng email address</div>
+              <div class="info-row"><i class="bi bi-check-circle-fill"></i>A verified SecureVote account</div>
+              <div class="info-row"><i class="bi bi-check-circle-fill"></i>Your Voter ID (emailed after verification)</div>
+              <div class="info-row"><i class="bi bi-check-circle-fill"></i>An active election in the voting window</div>
+              <div class="info-row"><i class="bi bi-check-circle-fill"></i>An internet-connected device (desktop, phone, tablet)</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="info-box">
+              <h5><i class="bi bi-exclamation-triangle-fill"></i> Rules &amp; restrictions</h5>
+              <div class="info-row"><i class="bi bi-x-circle-fill" style="color:var(--crimson);"></i>Each voter may vote <strong>once per election</strong> — no exceptions</div>
+              <div class="info-row"><i class="bi bi-x-circle-fill" style="color:var(--crimson);"></i>Votes cannot be changed or retracted after submission</div>
+              <div class="info-row"><i class="bi bi-x-circle-fill" style="color:var(--crimson);"></i>Do not share your Voter ID or login credentials</div>
+              <div class="info-row"><i class="bi bi-x-circle-fill" style="color:var(--crimson);"></i>Only @run.edu.ng accounts are accepted</div>
+              <div class="info-row"><i class="bi bi-x-circle-fill" style="color:var(--crimson);"></i>Attempting to vote multiple times will be flagged in the audit log</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="info-box">
+              <h5><i class="bi bi-life-preserver"></i> Need help?</h5>
+              <div class="info-row"><i class="bi bi-arrow-right-circle-fill"></i>Lost your Voter ID? Go to <em>My Account → Request Voter ID Reset</em></div>
+              <div class="info-row"><i class="bi bi-arrow-right-circle-fill"></i>Forgot your password? Use <em>Forgot Password</em> on the sign-in page</div>
+              <div class="info-row"><i class="bi bi-arrow-right-circle-fill"></i>Email not verified? Check spam, or re-request verification</div>
+              <div class="info-row"><i class="bi bi-arrow-right-circle-fill"></i>Technical issues? Contact the election administrator via the official RUN channels</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ FAQ ══ -->
+<section class="section-faq" id="faq">
+  <div class="container">
+    <div class="row justify-content-center mb-5">
+      <div class="col-lg-6 text-center">
+        <p class="section-eyebrow">FAQ</p>
+        <h2 class="section-title">Common questions</h2>
+        <div class="divider-gold mx-auto"></div>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Who is eligible to vote on SecureVote?
+            <i class="bi bi-chevron-down chevron"></i>
+          </button>
+          <div class="faq-answer">
+            SecureVote is exclusively for Redeemer's University (RUN) students and staff. You must register using an official <strong>@run.edu.ng</strong> email address. External or personal email addresses will be rejected at registration.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            How do I get my Voter ID?
+            <i class="bi bi-chevron-down chevron"></i>
+          </button>
+          <div class="faq-answer">
+            After you register and verify your email address, a second automated email is sent to your school inbox containing your unique Voter ID in the format <strong>VTR-XXXXXX</strong>. This happens automatically within seconds of verification. If you don't see it, check your spam/junk folder. If it still hasn't arrived after a few minutes, contact the system administrator.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Can I change my vote after submitting?
+            <i class="bi bi-chevron-down chevron"></i>
+          </button>
+          <div class="faq-answer">
+            No. Once a vote is submitted and encrypted on the system, it is final and cannot be changed or retracted. This is by design — the integrity of the election depends on the immutability of each ballot. Make sure you've reviewed your candidate selection carefully before confirming.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Is my vote truly anonymous?
+            <i class="bi bi-chevron-down chevron"></i>
+          </button>
+          <div class="faq-answer">
+            Yes. SecureVote is designed so that once your vote is submitted, the link between your identity and your ballot choice is severed. Votes are stored in an anonymised form — even administrators cannot see which candidate a specific voter chose. You can verify your vote was <em>counted</em> using your receipt hash, but no one can identify how you voted.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            What is the receipt hash and why should I save it?
+            <i class="bi bi-chevron-down chevron"></i>
+          </button>
+          <div class="faq-answer">
+            After submitting your vote you'll receive a receipt hash — a long string of characters unique to your ballot. You can paste this into the <strong>Verify Receipt</strong> section of the voter portal at any time to confirm your ballot was included in the election tally. It does not reveal who you voted for, only that your vote was recorded and counted.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            I lost my Voter ID. What do I do?
+            <i class="bi bi-chevron-down chevron"></i>
+          </button>
+          <div class="faq-answer">
+            Sign in to the voter portal, go to <strong>My Account</strong>, and scroll to the <em>Request a Voter ID Reset</em> section. Fill in a brief reason and submit the request. An administrator will review it and issue a new Voter ID — your old one will be invalidated automatically.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            When can I vote?
+            <i class="bi bi-chevron-down chevron"></i>
+          </button>
+          <div class="faq-answer">
+            You can vote during an election's active window — the specific start and end dates are shown on each election card in the voter portal. Elections are managed by university administrators. You'll be able to see upcoming, active, and past elections from your dashboard once you're logged in.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            How are results published and can I trust them?
+            <i class="bi bi-chevron-down chevron"></i>
+          </button>
+          <div class="faq-answer">
+            After an election closes, administrators trigger the tally process. All votes are decrypted, counted, and the final results are <strong>digitally signed</strong> with a cryptographic key. The voter portal displays whether the signature is valid — any tampering with results after signing would break the signature and be immediately visible to all voters.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ CTA ══ -->
+<section class="section-cta">
+  <div class="container" style="position:relative;z-index:1;">
+    <p class="section-eyebrow" style="color:var(--gold);margin-bottom:0.6rem;">Get Started</p>
+    <h2 class="title">Ready to make your<br/><span>voice heard?</span></h2>
+    <p class="sub">Registration takes under two minutes. Your school email is all you need to get started.</p>
+    <div class="cta-actions">
+      <a href="/register" class="btn-hero-primary" style="font-size:1rem;padding:0.9rem 2.2rem;">
+        <i class="bi bi-person-plus-fill"></i> Create Your Voter Account
+      </a>
+      <a href="/login" class="btn-hero-secondary" style="font-size:1rem;padding:0.9rem 2.2rem;">
+        Already registered? Sign In
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6">
+        <div class="footer-brand">
+          <i class="bi bi-shield-lock-fill"></i>
+          <span>SecureVote</span>
+        </div>
+        <p class="footer-desc">The official cryptographically secured e-voting platform of Redeemer's University, Nigeria.</p>
+      </div>
+      <div class="col-lg-2 col-md-3 col-6">
+        <p class="footer-heading">Voters</p>
+        <ul class="footer-links">
+          <li><a href="/register">Register</a></li>
+          <li><a href="/login">Sign In</a></li>
+          <li><a href="#voter-guide">Voter Guide</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-md-3 col-6">
+        <p class="footer-heading">Platform</p>
+        <ul class="footer-links">
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#security">Security</a></li>
+          <li><a href="/admin/login">Admin Portal</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <p class="footer-heading">Security Stack</p>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.25);line-height:1.8;">
+            AES-256-GCM · RSA-4096 · ECDSA<br/>
+            bcrypt · SHA-256 · JWT · HTTPS<br/>
+            Helmet CSP · Rate Limiting · Audit Log
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="footer-divider" />
+
+    <div class="footer-bottom">
+      <span>© 2025 SecureVote · Redeemer's University · All rights reserved.</span>
+      <div class="secure-badge">
+        <i class="bi bi-shield-lock-fill"></i>
+        <span>End-to-end encrypted · Cryptographically auditable</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ── Mobile Nav ──
+  const mobileToggle = document.getElementById('mobileToggle');
+  const mobileMenu   = document.getElementById('mobileMenu');
+  let menuOpen = false;
+
+  mobileToggle.addEventListener('click', () => {
+    menuOpen = !menuOpen;
+    mobileMenu.classList.toggle('open', menuOpen);
+    mobileToggle.innerHTML = menuOpen
+      ? '<i class="bi bi-x-lg"></i>'
+      : '<i class="bi bi-list"></i>';
+  });
+
+  function closeMobileMenu() {
+    menuOpen = false;
+    mobileMenu.classList.remove('open');
+    mobileToggle.innerHTML = '<i class="bi bi-list"></i>';
+  }
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (menuOpen && !mobileMenu.contains(e.target) && !mobileToggle.contains(e.target)) {
+      closeMobileMenu();
+    }
+  });
+
+  // ── FAQ accordion ──
+  function toggleFaq(btn) {
+    const answer = btn.nextElementSibling;
+    const isOpen = answer.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+    document.querySelectorAll('.faq-question').forEach(b => b.classList.remove('open'));
+
+    // Toggle current
+    if (!isOpen) {
+      answer.classList.add('open');
+      btn.classList.add('open');
+    }
+  }
+
+  // ── Redirect if already logged in ──
+  try {
+    const t = localStorage.getItem('token');
+    if (t) {
+      const payload = JSON.parse(atob(t.split('.')[1]));
+      if (payload.role === 'admin') window.location.href = '/admin';
+      else window.location.href = '/voter';
+    }
+  } catch(e) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
+
+  // ── Smooth scroll for anchor links ──
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        closeMobileMenu();
+        const offset = 72;
+        window.scrollTo({ top: target.offsetTop - offset, behavior: 'smooth' });
+      }
+    });
+  });
+
+  // ── Navbar scroll effect ──
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('.nav-bar');
+    if (window.scrollY > 40) {
+      nav.style.borderBottomColor = 'rgba(255,255,255,0.1)';
+    } else {
+      nav.style.borderBottomColor = 'rgba(255,255,255,0.06)';
+    }
+  });
+</script>
+</body>
+</html>
