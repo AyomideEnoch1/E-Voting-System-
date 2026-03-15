@@ -109,10 +109,127 @@
     .election-mini-card { background:var(--ivory);border-radius:12px;padding:1rem 1.2rem;border:1px solid var(--border);margin-bottom:0.8rem; }
     .election-mini-card:last-child { margin-bottom:0; }
 
-    @media (max-width:768px) { .main-content { margin-left:0;padding:1.5rem 1rem; } }
+    /* ── Mobile Top Bar ── */
+    .mobile-topbar {
+      display:none; position:fixed; top:0; left:0; right:0; z-index:200;
+      background:var(--ink); height:56px;
+      align-items:center; justify-content:space-between; padding:0 1rem;
+      box-shadow:0 2px 12px rgba(0,0,0,0.2);
+    }
+    .mobile-topbar .brand { font-family:'Playfair Display',serif; color:#fff; font-size:1rem; font-weight:700; display:flex; align-items:center; gap:8px; }
+    .mobile-topbar .brand i { color:var(--gold); }
+    .mobile-topbar .brand .admin-badge { font-size:0.6rem; }
+    .mobile-topbar .user-chip { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--crimson),#7d1515); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; color:#fff; }
+
+    /* ── Mobile Bottom Nav ── */
+    .mobile-bottom-nav {
+      display:none; position:fixed; bottom:0; left:0; right:0; z-index:200;
+      background:var(--ink); border-top:1px solid rgba(255,255,255,0.08);
+      padding:0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom));
+    }
+    .mobile-bottom-nav ul { display:flex; list-style:none; margin:0; padding:0; justify-content:space-around; }
+    .mob-nav-link {
+      display:flex; flex-direction:column; align-items:center; gap:2px;
+      color:rgba(255,255,255,0.45); text-decoration:none;
+      font-size:0.58rem; font-weight:600; letter-spacing:0.04em;
+      padding:0.3rem 0.5rem; border-radius:8px; transition:color 0.2s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .mob-nav-link i { font-size:1.2rem; }
+    .mob-nav-link.active { color:var(--gold); }
+    .mob-nav-link.logout-mob { color:rgba(255,100,100,0.6); }
+    .mob-nav-link.logout-mob:hover { color:#ff6b6b; }
+
+    /* ── Tables: horizontally scrollable on mobile ── */
+    .table-responsive-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+    @media (max-width:991px) {
+      .sidebar { display:none !important; }
+      .mobile-topbar { display:flex; }
+      .mobile-bottom-nav { display:block; }
+      .main-content {
+        margin-left:0; padding:1.2rem 1rem;
+        padding-top:calc(56px + 1.2rem);
+        padding-bottom:calc(68px + env(safe-area-inset-bottom) + 1rem);
+      }
+      .page-header h1 { font-size:1.45rem; }
+      .page-header { flex-direction:column !important; align-items:flex-start !important; gap:0.8rem; }
+      .page-header > div:last-child { width:100%; }
+      .page-header button, .page-header .d-flex { width:100%; }
+
+      /* Stat cards: 2-col grid on tablet, scroll strip on phone */
+      #section-dashboard .row.g-3.mb-4 .col-md-3 { width:50%; }
+      .stat-card { padding:1rem 1.1rem; }
+      .stat-value { font-size:1.5rem; }
+
+      /* Dashboard two-col becomes single col */
+      #section-dashboard .col-md-7,
+      #section-dashboard .col-md-5 { width:100%; }
+
+      /* Card section headers wrap */
+      .card-section-header { flex-direction:column; align-items:flex-start !important; }
+      .card-section-header .d-flex { width:100%; }
+
+      /* All tables scroll horizontally */
+      .card-section .card-section-body.p-0 { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .table { min-width:600px; }
+
+      /* Modals: bottom sheet */
+      .modal-dialog { margin:0; max-width:100%; }
+      .modal-content { border-radius:20px 20px 0 0; max-height:92vh; overflow-y:auto; }
+      .modal-dialog-centered { align-items:flex-end; }
+      .modal-dialog-scrollable .modal-content { max-height:92vh; }
+
+      /* Results filter stacks */
+      #section-results .page-header .d-flex { flex-direction:column; width:100%; }
+      #section-results .page-header .form-select { width:100% !important; }
+      #section-results .page-header .btn { width:100%; }
+
+      /* User management search row */
+      #section-users .d-flex.gap-2 { flex-wrap:wrap; }
+      #section-users .form-control,
+      #section-users .form-select { width:100% !important; flex:1 1 auto; }
+    }
+
+    @media (max-width:575px) {
+      .main-content { padding:1rem 0.75rem; padding-top:calc(56px + 1rem); padding-bottom:calc(68px + env(safe-area-inset-bottom) + 1rem); }
+      #section-dashboard .row.g-3.mb-4 .col-md-3 { width:100%; }
+      .stat-card { padding:0.9rem 1rem; display:flex; align-items:center; gap:1rem; }
+      .stat-icon { margin-bottom:0; flex-shrink:0; }
+      .modal-footer { flex-direction:column; }
+      .modal-footer .btn { width:100%; }
+      .card-section-header h5 { font-size:0.92rem; }
+      .upload-zone { padding:1.2rem; }
+      .preview-img { width:60px; height:60px; }
+    }
+
+    @media (min-width:992px) and (max-width:1199px) {
+      .sidebar { width:220px; }
+      .main-content { margin-left:220px; padding:1.8rem; }
+    }
   </style>
 </head>
 <body>
+
+<!-- Mobile Top Bar -->
+<div class="mobile-topbar">
+  <div class="brand"><i class="bi bi-shield-lock-fill"></i> SecureVote <span class="admin-badge ms-1">ADMIN</span></div>
+  <div class="user-chip" id="mobileAvatarInitial">A</div>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-bottom-nav">
+  <ul>
+    <li><a class="mob-nav-link active" href="#" data-section="dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="elections"><i class="bi bi-card-list"></i>Elections</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="results"><i class="bi bi-bar-chart-fill"></i>Results</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="candidates"><i class="bi bi-people-fill"></i>Candidates</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="users"><i class="bi bi-person-lines-fill"></i>Voters</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="voter-id-requests"><i class="bi bi-person-badge"></i>ID Req.</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="audit"><i class="bi bi-journal-text"></i>Audit</a></li>
+    <li><a class="mob-nav-link logout-mob" href="#" id="mobileLogoutBtn"><i class="bi bi-box-arrow-right"></i>Out</a></li>
+  </ul>
+</nav>
 
 <!-- ── SIDEBAR ── -->
 <div class="sidebar">
@@ -135,7 +252,7 @@
     <li class="nav-item"><a class="nav-link" href="#" data-section="results"><i class="bi bi-bar-chart-fill"></i>Live Results</a></li>
     <li class="nav-item"><a class="nav-link" href="#" data-section="candidates"><i class="bi bi-people-fill"></i>Candidates</a></li>
     <li class="nav-item"><a class="nav-link" href="#" data-section="users"><i class="bi bi-person-lines-fill"></i>Voters</a></li>
-    <li class="nav-item"><a class="nav-link" href="#" data-section="voterid-requests"><i class="bi bi-person-badge"></i>ID Requests <span id="pendingRequestsBadge" class="badge rounded-pill ms-1" style="background:var(--crimson);font-size:0.65rem;display:none;"></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-section="voter-id-requests"><i class="bi bi-person-badge"></i>ID Requests <span id="pendingIdBadge" class="badge ms-1 d-none" style="background:var(--crimson);font-size:0.65rem;"></span></a></li>
     <li class="nav-item"><a class="nav-link" href="#" data-section="audit"><i class="bi bi-journal-text"></i>Audit Log</a></li>
   </ul>
   <div class="sidebar-logout mt-auto">
@@ -178,7 +295,7 @@
   <div id="section-elections" class="d-none">
     <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div><h1>Elections</h1><p>Create and manage elections, set dates and open/close voting.</p></div>
-      <button class="btn btn-primary-dark" data-bs-toggle="modal" data-bs-target="#electionModal" onclick="openElectionModal()">
+      <button class="btn btn-primary-dark" data-bs-toggle="modal" data-bs-target="#electionModal" id="newElectionBtn">
         <i class="bi bi-plus-lg me-2"></i>New Election
       </button>
     </div>
@@ -200,10 +317,10 @@
         <p><span class="live-dot"></span>Real-time vote counts. Auto-refreshes every 30 seconds.</p>
       </div>
       <div class="d-flex gap-2 align-items-center">
-        <select class="form-select w-auto" id="resultsElectionFilter" onchange="loadResults()">
+        <select class="form-select w-auto" id="resultsElectionFilter">
           <option value="">— Select Election —</option>
         </select>
-        <button class="btn btn-primary-dark" onclick="loadResults()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+        <button class="btn btn-primary-dark" id="refreshResultsBtn"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
       </div>
     </div>
     <div id="resultsContent">
@@ -219,12 +336,12 @@
   <div id="section-candidates" class="d-none">
     <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div><h1>Candidates</h1><p>Manage candidate profiles, photos and manifestos.</p></div>
-      <button class="btn btn-primary-dark" data-bs-toggle="modal" data-bs-target="#candidateModal" onclick="openCandidateModal()">
+      <button class="btn btn-primary-dark" data-bs-toggle="modal" data-bs-target="#candidateModal" id="newCandidateBtn">
         <i class="bi bi-person-plus me-2"></i>Add Candidate
       </button>
     </div>
     <div class="mb-3">
-      <select class="form-select w-auto" id="candidateElectionFilter" onchange="loadCandidates()">
+      <select class="form-select w-auto" id="candidateElectionFilter">
         <option value="">— Select Election —</option>
       </select>
     </div>
@@ -243,13 +360,13 @@
     <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div><h1>Voters</h1><p>Manage voter accounts — verify, suspend, unlock and resend Voter IDs.</p></div>
       <div class="d-flex gap-2 flex-wrap">
-        <select class="form-select w-auto" id="userStatusFilter" onchange="loadUsers()" style="font-size:0.85rem;padding:0.5rem 0.9rem;">
+        <select class="form-select w-auto" id="userStatusFilter" style="font-size:0.85rem;padding:0.5rem 0.9rem;">
           <option value="">All Users</option>
           <option value="unverified">Unverified Only</option>
           <option value="verified">Verified Only</option>
           <option value="suspended">Suspended Only</option>
         </select>
-        <input type="search" class="form-control" style="max-width:240px;border-radius:8px;padding:0.5rem 0.9rem;font-size:0.85rem;" placeholder="Search name or email…" id="userSearch" oninput="loadUsers()" />
+        <input type="search" class="form-control" style="max-width:240px;border-radius:8px;padding:0.5rem 0.9rem;font-size:0.85rem;" placeholder="Search name or email…" id="userSearch" />
       </div>
     </div>
     <div class="card-section">
@@ -266,34 +383,11 @@
     </div>
   </div>
 
-  <!-- VOTER ID REQUESTS -->
-  <div id="section-voterid-requests" class="d-none">
-    <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <div><h1>Voter ID Requests</h1><p>Review and action voter Voter ID reset requests.</p></div>
-      <div class="d-flex gap-2">
-        <select class="form-select w-auto" id="idRequestFilter" onchange="loadVoterIdRequests()" style="font-size:0.85rem;padding:0.5rem 0.9rem;">
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
-        <button class="btn btn-primary-dark" onclick="loadVoterIdRequests()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
-      </div>
-    </div>
-    <div class="card-section">
-      <div class="card-section-body p-0">
-        <table class="table mb-0">
-          <thead><tr><th>Voter</th><th>Email</th><th>Current Voter ID</th><th>Reason</th><th>Submitted</th><th>Actions</th></tr></thead>
-          <tbody id="idRequestsBody"><tr><td colspan="6" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
   <!-- AUDIT LOG -->
   <div id="section-audit" class="d-none">
     <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div><h1>Audit Log</h1><p>Full cryptographic audit trail of all system actions.</p></div>
-      <select class="form-select w-auto" id="auditFilter" onchange="loadAudit()" style="font-size:0.85rem;padding:0.5rem 0.9rem;">
+      <select class="form-select w-auto" id="auditFilter" style="font-size:0.85rem;padding:0.5rem 0.9rem;">
         <option value="">All Actions</option>
         <option value="VOTE">Votes</option>
         <option value="LOGIN">Logins</option>
@@ -310,6 +404,49 @@
       </div>
     </div>
   </div>
+
+  <!-- VOTER ID REQUESTS SECTION -->
+  <div id="section-voter-id-requests" class="d-none">
+    <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <h1>Voter ID Reset Requests</h1>
+        <p>Review and action voter requests to reissue their Voter ID.</p>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <select class="form-select w-auto" id="idRequestFilter" style="font-size:0.85rem;padding:0.5rem 0.9rem;">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn btn-sm" id="refreshVoterIdBtn" style="background:var(--ink);color:#fff;border-radius:8px;padding:0.5rem 1rem;">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+    </div>
+    <div id="voterIdRequestsAlert" class="alert d-none mb-3" style="border-radius:10px;font-size:0.85rem;"></div>
+    <div class="card-section">
+      <div class="card-section-body p-0">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>Voter</th>
+              <th>Current ID</th>
+              <th>Reason</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="voterIdRequestsBody">
+            <tr><td colspan="6" class="text-center text-muted py-4">
+              <span class="spinner-border spinner-border-sm me-2"></span>Loading…
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ── ELECTION MODAL ── -->
@@ -329,7 +466,7 @@
       </div>
       <div class="modal-footer gap-2">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary-dark" id="saveElectionBtn" onclick="saveElection()">
+        <button type="button" class="btn btn-primary-dark" id="saveElectionBtn">
           <span id="elBtnText">Create Election</span>
           <span id="elBtnSpin" class="spinner-border spinner-border-sm d-none"></span>
         </button>
@@ -354,7 +491,7 @@
       </div>
       <div class="modal-footer gap-2">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-gold" id="confirmTallyBtn" onclick="doTally()">
+        <button type="button" class="btn btn-gold" id="confirmTallyBtn">
           <span id="tallyBtnText"><i class="bi bi-calculator me-2"></i>Tally & Publish</span>
           <span id="tallyBtnSpin" class="spinner-border spinner-border-sm d-none"></span>
         </button>
@@ -408,7 +545,7 @@
       </div>
       <div class="modal-footer gap-2">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary-dark" id="saveCandidateBtn" onclick="saveCandidate()">
+        <button type="button" class="btn btn-primary-dark" id="saveCandidateBtn">
           <span id="candBtnText">Save Candidate</span>
           <span id="candBtnSpin" class="spinner-border spinner-border-sm d-none"></span>
         </button>
@@ -430,7 +567,7 @@
       </div>
       <div class="modal-footer gap-2">
         <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary-dark" onclick="doUploadPhoto()">
+        <button class="btn btn-primary-dark" id="photoUploadBtn">
           <span id="photoUploadText">Upload Photo</span>
           <span id="photoUploadSpin" class="spinner-border spinner-border-sm d-none"></span>
         </button>
@@ -451,9 +588,34 @@
       </div>
       <div class="modal-footer gap-2">
         <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary-dark" onclick="doUploadManifesto()">
+        <button class="btn btn-primary-dark" id="manifestoUploadBtn">
           <span id="manifestoUploadText">Upload PDF</span>
           <span id="manifestoUploadSpin" class="spinner-border spinner-border-sm d-none"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE ELECTION CONFIRM MODAL ── -->
+<div class="modal fade" id="deleteElectionModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" style="color:#9b1c1c;"><i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Election</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="deleteElectionAlert" class="alert alert-danger d-none mb-3"></div>
+        <p style="font-size:0.9rem;color:#3a4556;">You are about to permanently delete:</p>
+        <p style="font-weight:700;color:#0d1117;margin:0.5rem 0 1rem;" id="deleteElectionTitle"></p>
+        <p style="font-size:0.85rem;color:#6c7a8d;">This will remove all votes, candidates and results. <strong>This cannot be undone.</strong></p>
+      </div>
+      <div class="modal-footer gap-2">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn" id="confirmDeleteElectionBtn"
+          style="background:#9b1c1c;color:#fff;border-radius:10px;padding:0.6rem 1.4rem;font-weight:600;">
+          <i class="bi bi-trash me-1"></i>Yes, Delete
         </button>
       </div>
     </div>
@@ -466,59 +628,648 @@
 const token = localStorage.getItem('token');
 const user  = JSON.parse(localStorage.getItem('user') || '{}');
 if (!token || user.role !== 'admin') window.location.href = '/';
-document.getElementById('sidebarName').textContent   = user.name || 'Admin';
-document.getElementById('avatarInitial').textContent = (user.name || 'A')[0].toUpperCase();
+document.getElementById('sidebarName').textContent    = user.name || 'Admin';
+document.getElementById('avatarInitial').textContent  = (user.name||'A')[0].toUpperCase();
+document.getElementById('mobileAvatarInitial').textContent = (user.name||'A')[0].toUpperCase();
 const H = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+// XSS-safe HTML escaping — used whenever injecting user-supplied text into innerHTML
+const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
-// ── allElections cache ──
-let allElections = [];
-
-// ── Safe modal helper — never crashes if getInstance returns null ──
-function safeHideModal(id) {
-  const el = document.getElementById(id);
-  const m  = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
-  m.hide();
-}
-
-// ── Navigate to a section programmatically ──
-function goToSection(sec) {
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  const link = document.querySelector(`.nav-link[data-section="${sec}"]`);
-  if (link) link.classList.add('active');
+// ── Section Switch ──
+function switchSection(sec) {
+  document.querySelectorAll('.nav-link[data-section]').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll(`.nav-link[data-section="${sec}"]`).forEach(l => l.classList.add('active'));
+  document.querySelectorAll('.mob-nav-link[data-section]').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll(`.mob-nav-link[data-section="${sec}"]`).forEach(l => l.classList.add('active'));
   document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('d-none'));
   document.getElementById(`section-${sec}`).classList.remove('d-none');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (sec === 'dashboard')          loadDashboard();
+  if (sec === 'elections')          loadElections();
+  if (sec === 'results')            loadResultsDropdown();
+  if (sec === 'candidates')         loadElectionsDropdowns();
+  if (sec === 'users')              loadUsers();
+  if (sec === 'audit')              loadAudit();
+  if (sec === 'voter-id-requests')  loadVoterIdRequests();
 }
 
-// ── Section Nav ──
-let resultsTimer;
 document.querySelectorAll('.nav-link[data-section]').forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    clearInterval(resultsTimer);
-    const sec = link.dataset.section;
-    goToSection(sec);
-    if (sec === 'dashboard')        loadDashboard();
-    if (sec === 'elections')        loadElections();
-    if (sec === 'results')          { loadResultsDropdown(); resultsTimer = setInterval(() => { if (document.getElementById('resultsElectionFilter').value) loadResults(); }, 30000); }
-    if (sec === 'candidates')       loadElectionsDropdowns();
-    if (sec === 'users')            loadUsers();
-    if (sec === 'voterid-requests') loadVoterIdRequests();
-    if (sec === 'audit')            loadAudit();
-  });
+  link.addEventListener('click', e => { e.preventDefault(); switchSection(link.dataset.section); });
+});
+document.querySelectorAll('.mob-nav-link[data-section]').forEach(link => {
+  link.addEventListener('click', e => { e.preventDefault(); switchSection(link.dataset.section); });
 });
 
 // ── Logout ──
-document.getElementById('logoutBtn').addEventListener('click', async e => {
+async function doLogout(e) {
   e.preventDefault();
   try { await fetch('/api/auth/logout', { method: 'POST', headers: H }); } catch {}
-  localStorage.clear();
-  window.location.href = '/';
+  localStorage.clear(); window.location.href = '/';
+}
+document.getElementById('logoutBtn').addEventListener('click', doLogout);
+document.getElementById('mobileLogoutBtn').addEventListener('click', doLogout);
+
+// ─────────────────────────────────────────────
+//  DASHBOARD
+// ─────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const res = await fetch('/api/admin/stats', { headers: H });
+    const d   = await res.json();
+    document.getElementById('dashUsers').textContent     = d.totalUsers     ?? '—';
+    document.getElementById('dashElections').textContent = d.totalElections  ?? '—';
+    document.getElementById('dashActive').textContent    = d.activeElections ?? '—';
+    document.getElementById('dashVotes').textContent     = d.totalVotes      ?? '—';
+
+    const actionClass = a => a.includes('LOGIN_SUCCESS')?'action-login':a.includes('VOTE')?'action-vote':a.includes('ADMIN')?'action-admin':a.includes('FAIL')?'action-fail':'action-other';
+    document.getElementById('recentActivityBody').innerHTML = (d.recentLogs||[]).map(l => `
+      <tr>
+        <td><span class="audit-action ${actionClass(l.action)}">${esc(l.action.replace(/_/g,' '))}</span></td>
+        <td>${l.user_name||'—'}</td>
+        <td class="text-muted">${new Date(l.created_at).toLocaleString()}</td>
+      </tr>`).join('') || '<tr><td colspan="3" class="text-center text-muted py-3">No activity yet.</td></tr>';
+
+    // Active elections mini panel
+    const elRes = await fetch('/api/elections', { headers: H });
+    const els   = await elRes.json();
+    const active = els.filter(e => e.status === 'active');
+    const box = document.getElementById('dashActiveElections');
+    if (!active.length) {
+      box.innerHTML = '<p class="text-muted text-center py-3" style="font-size:0.85rem;"><i class="bi bi-info-circle me-1"></i>No active elections.</p>';
+    } else {
+      box.innerHTML = active.map(e => `
+        <div class="election-mini-card">
+          <div class="d-flex justify-content-between align-items-start">
+            <strong style="font-size:0.9rem;">${esc(e.title)}</strong>
+            <span class="status-pill pill-active">Active</span>
+          </div>
+          <div class="d-flex justify-content-between mt-2" style="font-size:0.78rem;color:var(--muted);">
+            <span><i class="bi bi-ballot me-1"></i>${e.vote_count} votes</span>
+            <span><i class="bi bi-people me-1"></i>${e.candidate_count} candidates</span>
+          </div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">
+            Ends: ${new Date(e.end_time).toLocaleString()}
+          </div>
+        </div>`).join('');
+    }
+  } catch(err) { console.error('Dashboard error:', err); }
+}
+
+// ─────────────────────────────────────────────
+//  ELECTIONS
+// ─────────────────────────────────────────────
+async function loadElections() {
+  const tbody = document.getElementById('electionsBody');
+  let els;
+  try {
+    const res = await fetch('/api/elections', { headers: H });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    els = await res.json();
+  } catch (err) {
+    console.error('[loadElections]', err);
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>Failed to load elections. Please refresh.</td></tr>';
+    return;
+  }
+  if (!els.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No elections yet.</td></tr>'; return; }
+  tbody.innerHTML = els.map(e => `
+    <tr>
+      <td>
+        <strong>${esc(e.title)}</strong>
+        ${e.description ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${esc(e.description.substring(0,60))}${e.description.length>60?'…':''}</div>` : ''}
+      </td>
+      <td><span class="status-pill pill-${e.status}">${e.status}</span></td>
+      <td>${e.candidate_count}</td>
+      <td><strong>${e.vote_count}</strong></td>
+      <td class="text-muted" style="font-size:0.78rem;">${new Date(e.start_time).toLocaleDateString()} → ${new Date(e.end_time).toLocaleDateString()}</td>
+      <td>
+        <div class="d-flex gap-1 flex-wrap">
+          ${e.status==='draft'   ? `<button class="btn btn-success-soft btn-sm" data-action="open" data-id="${e.id}"><i class="bi bi-play-fill me-1"></i>Open</button>` : ''}
+          ${e.status==='draft'   ? `<button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#electionModal" data-action="edit" data-election="${esc(JSON.stringify({id:e.id,title:e.title,description:e.description||'',start_time:e.start_time,end_time:e.end_time}))}"><i class="bi bi-pencil me-1"></i>Edit</button>` : ''}
+          ${e.status==='active'  ? `<button class="btn btn-danger-soft btn-sm" data-action="close" data-id="${e.id}"><i class="bi bi-stop-fill me-1"></i>Close</button>` : ''}
+          ${e.status==='active'  ? `<button class="btn btn-outline-secondary btn-sm" data-action="live" data-id="${e.id}"><i class="bi bi-eye me-1"></i>Live</button>` : ''}
+          ${e.status==='closed'  ? `<button class="btn btn-gold btn-sm" data-id="${e.id}" data-title="${esc(e.title)}" data-votes="${e.vote_count}" data-action="tally"><i class="bi bi-calculator me-1"></i>Tally</button>` : ''}
+          ${e.status==='tallied' ? `<button class="btn btn-outline-secondary btn-sm" data-action="results" data-id="${e.id}"><i class="bi bi-bar-chart me-1"></i>Results</button>` : ''}
+          ${e.status!=='active'  ? `<button class="btn btn-danger-soft btn-sm" data-id="${e.id}" data-title="${esc(e.title)}" data-action="delete-election"><i class="bi bi-trash me-1"></i>Delete</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openElectionModal(id, elData) {
+  document.getElementById('editingElectionId').value = id || '';
+  document.getElementById('electionModalTitle').textContent = id ? 'Edit Election' : 'New Election';
+  document.getElementById('elBtnText').textContent = id ? 'Save Changes' : 'Create Election';
+  document.getElementById('electionAlert').className = 'alert d-none';
+  if (id && elData) {
+    document.getElementById('elTitle').value = elData.title || '';
+    document.getElementById('elDesc').value  = elData.description || '';
+    // Strip timezone offset and seconds for datetime-local input (needs "YYYY-MM-DDTHH:mm")
+    const toLocal = (iso) => iso ? iso.substring(0, 16) : '';
+    document.getElementById('elStart').value = toLocal(elData.start_time);
+    document.getElementById('elEnd').value   = toLocal(elData.end_time);
+  } else {
+    ['elTitle','elDesc','elStart','elEnd'].forEach(f => document.getElementById(f).value = '');
+  }
+}
+
+// FIXED: safe alternative to inline JSON in onclick — reads data-election attribute
+// Prevents JS syntax errors when election title/description contains apostrophes or quotes
+function openElectionFromAttr(btn) {
+  try {
+    const d = JSON.parse(btn.dataset.election);
+    openElectionModal(d.id, d);
+  } catch(e) {
+    console.error('[openElectionFromAttr] Failed to parse election data', e);
+  }
+}
+
+async function saveElection() {
+  const title      = document.getElementById('elTitle').value.trim();
+  const description= document.getElementById('elDesc').value.trim();
+  const start_time = document.getElementById('elStart').value;
+  const end_time   = document.getElementById('elEnd').value;
+  const editId     = document.getElementById('editingElectionId').value;
+  if (!title || !start_time || !end_time) return showModalAlert('electionAlert','Please fill in all required fields.','danger');
+  if (new Date(start_time) >= new Date(end_time)) return showModalAlert('electionAlert','End date/time must be after start date/time.','danger');
+
+  // Attach browser timezone offset so the server receives the correct wall-clock time
+  const toISOWithTZ = (localStr) => {
+    const d = new Date(localStr);
+    const off = -d.getTimezoneOffset();
+    const sign = off >= 0 ? '+' : '-';
+    const pad = n => String(Math.floor(Math.abs(n))).padStart(2,'0');
+    return `${localStr}:00${sign}${pad(off/60)}:${pad(off%60)}`;
+  };
+  const start_time_tz = toISOWithTZ(start_time);
+  const end_time_tz   = toISOWithTZ(end_time);
+
+  toggleBtnLoad('saveElectionBtn','elBtnText','elBtnSpin',true);
+  try {
+    const url    = editId ? `/api/elections/${editId}` : '/api/elections';
+    const method = editId ? 'PUT' : 'POST';
+    const res    = await fetch(url, { method, headers:H, body:JSON.stringify({title,description,start_time:start_time_tz,end_time:end_time_tz}) });
+    const data   = await res.json();
+    if (!res.ok) return showModalAlert('electionAlert', data.error || 'Failed to save election.', 'danger');
+    const m = bootstrap.Modal.getInstance(document.getElementById('electionModal'));
+    if (m) m.hide();
+    loadElections();
+  } catch (err) {
+    console.error('[saveElection]', err);
+    showModalAlert('electionAlert', 'Network error. Check your connection and try again.', 'danger');
+  } finally {
+    toggleBtnLoad('saveElectionBtn','elBtnText','elBtnSpin',false);
+  }
+}
+
+async function setElectionStatus(id, action) {
+  if (!confirm(`Are you sure you want to ${action} this election?`)) return;
+  const res = await fetch(`/api/elections/${id}/${action}`, { method:'POST', headers:H });
+  const d   = await res.json();
+  if (!res.ok) return alert(d.error);
+  loadElections();
+}
+
+async function deleteElection(id, title) {
+  // Use inline modal instead of confirm() — browsers block confirm() on localhost
+  document.getElementById('deleteElectionTitle').textContent = title;
+  document.getElementById('confirmDeleteElectionBtn').dataset.id = id;
+  document.getElementById('deleteElectionAlert').classList.add('d-none');
+  new bootstrap.Modal(document.getElementById('deleteElectionModal')).show();
+}
+
+async function doDeleteElection(id) {
+  const btn = document.getElementById('confirmDeleteElectionBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting…';
+  try {
+    const res = await fetch(`/api/elections/${id}`, { method: 'DELETE', headers: H });
+    const d   = await res.json();
+    const m   = bootstrap.Modal.getInstance(document.getElementById('deleteElectionModal'));
+    if (m) m.hide();
+    if (!res.ok) return alert(d.error || 'Delete failed');
+    loadElections();
+    loadDashboard();
+  } catch (err) {
+    console.error('[doDeleteElection]', err);
+    alert('Network error — delete failed.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-trash me-1"></i>Yes, Delete';
+  }
+}
+
+// ── Tally ──
+function openTallyModal(id, title, voteCount) {
+  document.getElementById('tallyElectionId').value    = id;
+  document.getElementById('tallyElectionName').textContent = title;
+  document.getElementById('tallyVoteCount').textContent    = voteCount;
+  new bootstrap.Modal(document.getElementById('tallyModal')).show();
+}
+
+async function doTally() {
+  const id = document.getElementById('tallyElectionId').value;
+  toggleBtnLoad('confirmTallyBtn','tallyBtnText','tallyBtnSpin',true);
+  try {
+    const res = await fetch(`/api/elections/${id}/tally`, { method:'POST', headers:H });
+    const d   = await res.json();
+    const m   = bootstrap.Modal.getInstance(document.getElementById('tallyModal'));
+    if (m) m.hide();
+    if (!res.ok) return alert(d.error || 'Tally failed');
+    loadElections();
+    quickViewResults(id);
+  } catch (err) {
+    console.error('[doTally]', err);
+    alert('Network error — tally could not be completed. Please try again.');
+  } finally {
+    toggleBtnLoad('confirmTallyBtn','tallyBtnText','tallyBtnSpin',false);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  LIVE RESULTS
+// ─────────────────────────────────────────────
+async function loadResultsDropdown() {
+  const res = await fetch('/api/elections', { headers: H });
+  const els = await res.json();
+  const sel = document.getElementById('resultsElectionFilter');
+  sel.innerHTML = '<option value="">— Select Election —</option>' +
+    els.map(e => `<option value="${e.id}">${e.title} (${e.status})</option>`).join('');
+}
+
+async function loadResults() {
+  const id = document.getElementById('resultsElectionFilter').value;
+  const box = document.getElementById('resultsContent');
+  if (!id) {
+    box.innerHTML = '<div class="card-section"><div class="card-section-body text-center text-muted py-5"><i class="bi bi-bar-chart fs-2 d-block mb-2"></i>Select an election above.</div></div>';
+    return;
+  }
+  box.innerHTML = '<div class="card-section"><div class="card-section-body text-center py-5"><span class="spinner-border"></span></div></div>';
+  box.innerHTML = await buildResultsHTML(id);
+}
+
+async function quickViewResults(id) {
+  document.getElementById('resultsModalBody').innerHTML = '<div class="text-center py-4"><span class="spinner-border"></span></div>';
+  new bootstrap.Modal(document.getElementById('resultsModal')).show();
+  document.getElementById('resultsModalBody').innerHTML = await buildResultsHTML(id, true);
+}
+
+async function buildResultsHTML(id, compact = false) {
+  try {
+    // Try tallied results first
+    const res = await fetch(`/api/elections/${id}/results`, { headers: H });
+    if (res.ok) {
+      const d = await res.json();
+      const r = d.results;
+      document.getElementById('resultsModalTitle') && (document.getElementById('resultsModalTitle').textContent = r.electionTitle);
+      const maxVotes = Math.max(...r.candidates.map(c => c.votes), 1);
+      return `
+        <div class="card-section">
+          <div class="card-section-header">
+            <h5>${esc(r.electionTitle)}</h5>
+            <div class="d-flex align-items-center gap-2">
+              <span class="status-pill pill-tallied">Tallied</span>
+              <span style="font-size:0.8rem;color:var(--muted);">${r.totalVotes} total votes</span>
+              ${d.signature_valid ? '<span style="font-size:0.78rem;color:var(--success);"><i class="bi bi-patch-check-fill me-1"></i>Signature Valid</span>' : '<span style="color:var(--crimson);font-size:0.78rem;"><i class="bi bi-x-circle me-1"></i>Signature Invalid</span>'}
+            </div>
+          </div>
+          <div class="card-section-body">
+            ${r.candidates.map((c,i) => `
+              <div class="vote-bar-wrap">
+                <div class="vote-bar-label">
+                  <strong>${i===0?'<i class="bi bi-trophy-fill winner-crown"></i>':''} ${esc(c.name)} <span style="font-size:0.75rem;color:var(--muted);">${esc(c.party||'Independent')}</span></strong>
+                  <span>${c.votes} votes &nbsp;·&nbsp; ${c.percentage}%</span>
+                </div>
+                <div class="vote-bar-track">
+                  <div class="vote-bar-fill" style="width:${(c.votes/maxVotes*100).toFixed(1)}%;${i===0?'background:linear-gradient(90deg,var(--gold),#e8c96a)':'background:linear-gradient(90deg,var(--slate),#5a6a7e)'}"></div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    // Only fall through to live view when the election genuinely isn't tallied yet (404)
+    // — any other error (500, 503 etc.) surfaces as an explicit error message
+    if (res.status !== 404) {
+      const errData = await res.json().catch(() => ({}));
+      return `<div class="alert alert-danger" style="border-radius:10px;"><i class="bi bi-exclamation-triangle-fill me-2"></i>${esc(errData.error || `Server error (${res.status}) loading results.`)}</div>`;
+    }
+    const elRes   = await fetch(`/api/elections/${id}`, { headers: H });
+    const el      = await elRes.json();
+    const candRes = await fetch(`/api/candidates/${id}`, { headers: H });
+    const cands   = await candRes.json();
+    return `
+      <div class="card-section">
+        <div class="card-section-header">
+          <h5>${esc(el.title)}</h5>
+          <div class="d-flex align-items-center gap-2">
+            <span class="status-pill pill-${el.status}">${el.status}</span>
+            <span style="font-size:0.8rem;color:var(--muted);"><span class="live-dot"></span>${el.vote_count} votes cast</span>
+          </div>
+        </div>
+        <div class="card-section-body">
+          <div class="alert alert-info py-2" style="font-size:0.82rem;border-radius:10px;">
+            <i class="bi bi-info-circle me-2"></i>Detailed vote counts are only available after the election is tallied. Showing candidate list below.
+          </div>
+          ${cands.map(c => `
+            <div class="d-flex align-items-center gap-3 py-2 border-bottom" style="border-color:var(--border)!important;">
+              <div class="candidate-thumb">${c.photo_url?`<img src="${esc(c.photo_url)}" alt="${esc(c.name)}"/>`:'<i class="bi bi-person-fill"></i>'}</div>
+              <div><strong style="font-size:0.9rem;">${esc(c.name)}</strong><div style="font-size:0.78rem;color:var(--muted);">${esc(c.party||'Independent')} · ${esc(c.position||'')}</div></div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  } catch(e) {
+    return '<div class="alert alert-danger" style="border-radius:10px;">Failed to load results.</div>';
+  }
+}
+
+// Auto-refresh live results every 30s
+let resultsTimer;
+document.querySelectorAll('[data-section]').forEach(link => {
+  link.addEventListener('click', () => {
+    clearInterval(resultsTimer);
+    if (link.dataset.section === 'results') {
+      resultsTimer = setInterval(() => {
+        if (document.getElementById('resultsElectionFilter').value) loadResults();
+      }, 30000);
+    }
+  });
 });
+
+// ─────────────────────────────────────────────
+//  CANDIDATES
+// ─────────────────────────────────────────────
+let allElections = [];
+async function loadElectionsDropdowns() {
+  const res = await fetch('/api/elections', { headers: H });
+  allElections = await res.json();
+
+  // The filter/results dropdown shows all elections
+  const filterSel = document.getElementById('candidateElectionFilter');
+  if (filterSel) {
+    filterSel.innerHTML = '<option value="">— Select Election —</option>' +
+      allElections.map(e => `<option value="${e.id}">${esc(e.title)} (${e.status})</option>`).join('');
+  }
+
+  // The "Add Candidate" modal dropdown only shows draft elections
+  // — backend rejects candidates on active/closed/tallied elections
+  const candSel = document.getElementById('candElectionSel');
+  if (candSel) {
+    const drafts = allElections.filter(e => e.status === 'draft');
+    candSel.innerHTML = '<option value="">— Select Election —</option>' +
+      (drafts.length
+        ? drafts.map(e => `<option value="${e.id}">${esc(e.title)}</option>`).join('')
+        : '<option value="" disabled>No draft elections — create one first</option>');
+  }
+}
+
+async function loadCandidates() {
+  const elId = document.getElementById('candidateElectionFilter').value;
+  const tbody = document.getElementById('candidatesBody');
+  if (!elId) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Select an election above.</td></tr>'; return; }
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3"><span class="spinner-border spinner-border-sm"></span></td></tr>';
+  let candidates;
+  try {
+    const res = await fetch(`/api/candidates/${elId}`, { headers: H });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    candidates = await res.json();
+  } catch (err) {
+    console.error('[loadCandidates]', err);
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>Failed to load candidates. Please refresh.</td></tr>';
+    return;
+  }
+  if (!candidates.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No candidates yet.</td></tr>'; return; }
+  tbody.innerHTML = candidates.map(c => `
+    <tr>
+      <td><div class="candidate-thumb">${c.photo_url?`<img src="${esc(c.photo_url)}" alt="${esc(c.name)}"/>`:'<i class="bi bi-person-fill"></i>'}</div></td>
+      <td><strong>${esc(c.name)}</strong></td>
+      <td>${esc(c.party||'—')}</td>
+      <td>${esc(c.position||'—')}</td>
+      <td>${c.manifesto_doc?`<a href="${esc(c.manifesto_doc)}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-pdf me-1"></i>PDF</a>`:'<span class="text-muted">—</span>'}</td>
+      <td>
+        <div class="d-flex gap-1 flex-wrap">
+          <button class="btn btn-outline-secondary btn-sm" data-action="upload-photo" data-id="${c.id}" data-url="${esc(c.photo_url||'')}"><i class="bi bi-camera"></i></button>
+          <button class="btn btn-outline-secondary btn-sm" data-action="upload-manifesto" data-id="${c.id}"><i class="bi bi-file-earmark-pdf"></i></button>
+          <a href="/candidate/${c.id}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i></a>
+          <button class="btn btn-danger-soft btn-sm" data-action="delete-candidate" data-id="${c.id}"><i class="bi bi-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openCandidateModal() {
+  document.getElementById('candidateModalTitle').textContent = 'Add Candidate';
+  document.getElementById('editingCandidateId').value = '';
+  ['candName','candParty','candPosition','candAge','candState','candEdu','candExp','candBio','candManifesto'].forEach(f => document.getElementById(f).value = '');
+  document.getElementById('candGender').value = '';
+  document.getElementById('candidateAlert').className = 'alert d-none';
+  loadElectionsDropdowns();
+}
+
+async function saveCandidate() {
+  const elId = document.getElementById('candElectionSel').value;
+  const name = document.getElementById('candName').value.trim();
+  if (!elId || !name) return showModalAlert('candidateAlert','Election and candidate name are required.','danger');
+  const body = {
+    name, party: document.getElementById('candParty').value,
+    position: document.getElementById('candPosition').value,
+    age: document.getElementById('candAge').value,
+    gender: document.getElementById('candGender').value,
+    state_of_origin: document.getElementById('candState').value,
+    education: document.getElementById('candEdu').value,
+    experience: document.getElementById('candExp').value,
+    bio: document.getElementById('candBio').value,
+    manifesto: document.getElementById('candManifesto').value
+  };
+  toggleBtnLoad('saveCandidateBtn','candBtnText','candBtnSpin',true);
+  try {
+    const res  = await fetch(`/api/candidates/${elId}`, { method:'POST', headers:H, body:JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) return showModalAlert('candidateAlert', data.error || 'Failed to save candidate.', 'danger');
+    const m = bootstrap.Modal.getInstance(document.getElementById('candidateModal'));
+    if (m) m.hide();
+    document.getElementById('candidateElectionFilter').value = elId;
+    loadCandidates();
+  } catch (err) {
+    console.error('[saveCandidate]', err);
+    showModalAlert('candidateAlert', 'Network error. Check your connection and try again.', 'danger');
+  } finally {
+    toggleBtnLoad('saveCandidateBtn','candBtnText','candBtnSpin',false);
+  }
+}
+
+async function deleteCandidate(id) {
+  if (!confirm('Delete this candidate? This cannot be undone.')) return;
+  const res = await fetch(`/api/candidates/profile/${id}`, { method:'DELETE', headers:H });
+  const d   = await res.json();
+  if (!res.ok) return alert(d.error);
+  loadCandidates();
+}
+
+function openUploadPhoto(candId, currentUrl) {
+  document.getElementById('uploadPhotoCandId').value = candId;
+  const prev = document.getElementById('photoUploadPreview');
+  prev.innerHTML = currentUrl ? `<img src="${currentUrl}" class="preview-img mb-2" /><br/><small class="text-muted">Current photo</small>` : '';
+  document.getElementById('photoFileInput').value = '';
+  new bootstrap.Modal(document.getElementById('uploadPhotoModal')).show();
+}
+
+async function doUploadPhoto() {
+  const candId = document.getElementById('uploadPhotoCandId').value;
+  const file   = document.getElementById('photoFileInput').files[0];
+  if (!file) return alert('Please select a photo.');
+  const form = new FormData(); form.append('photo', file);
+  toggleBtnLoad('photoUploadBtn','photoUploadText','photoUploadSpin',true);
+  try {
+    const res = await fetch(`/api/candidates/profile/${candId}/photo`, { method:'POST', headers:{'Authorization':`Bearer ${token}`}, body:form });
+    const d   = await res.json();
+    if (!res.ok) return alert(d.error || 'Photo upload failed.');
+    const m = bootstrap.Modal.getInstance(document.getElementById('uploadPhotoModal'));
+    if (m) m.hide();
+    loadCandidates();
+  } catch (err) {
+    console.error('[doUploadPhoto]', err);
+    alert('Network error — photo upload failed. Please try again.');
+  } finally {
+    toggleBtnLoad('photoUploadBtn','photoUploadText','photoUploadSpin',false);
+  }
+}
+
+function openUploadManifesto(candId) {
+  document.getElementById('uploadManifestoCandId').value = candId;
+  document.getElementById('manifestoFileInput').value = '';
+  new bootstrap.Modal(document.getElementById('uploadManifestoModal')).show();
+}
+
+async function doUploadManifesto() {
+  const candId = document.getElementById('uploadManifestoCandId').value;
+  const file   = document.getElementById('manifestoFileInput').files[0];
+  if (!file) return alert('Please select a PDF file.');
+  const form = new FormData(); form.append('manifesto_doc', file);
+  toggleBtnLoad('manifestoUploadBtn','manifestoUploadText','manifestoUploadSpin',true);
+  try {
+    const res = await fetch(`/api/candidates/profile/${candId}/manifesto`, { method:'POST', headers:{'Authorization':`Bearer ${token}`}, body:form });
+    const d   = await res.json();
+    if (!res.ok) return alert(d.error || 'Manifesto upload failed.');
+    const m = bootstrap.Modal.getInstance(document.getElementById('uploadManifestoModal'));
+    if (m) m.hide();
+    loadCandidates();
+  } catch (err) {
+    console.error('[doUploadManifesto]', err);
+    alert('Network error — manifesto upload failed. Please try again.');
+  } finally {
+    toggleBtnLoad('manifestoUploadBtn','manifestoUploadText','manifestoUploadSpin',false);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  USERS / VOTERS
+// ─────────────────────────────────────────────
+async function loadUsers() {
+  const search    = document.getElementById('userSearch')?.value || '';
+  const filter    = document.getElementById('userStatusFilter')?.value || '';
+
+  // FIXED: pass filter to server so it works across all pages, not just first 20 results.
+  // Previously: fetched 20 users then sliced in JS — missed users on page 2+.
+  const filterParam = filter === 'unverified' ? '&is_verified=0'
+                    : filter === 'verified'   ? '&is_verified=1'
+                    : filter === 'suspended'  ? '&is_active=0'
+                    : '';
+
+  const tbody = document.getElementById('usersBody');
+  let data;
+  try {
+    const res = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}${filterParam}`, { headers: H });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    data = await res.json();
+  } catch (err) {
+    console.error('[loadUsers]', err);
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>Failed to load users. Please refresh.</td></tr>';
+    return;
+  }
+  const users = data.users || [];
+
+  document.getElementById('userCount').textContent = `${data.total ?? users.length} user(s)`;
+
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No users found.</td></tr>'; return; }
+
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td><strong>${esc(u.full_name)}</strong></td>
+      <td class="text-muted" style="font-size:0.82rem;">${esc(u.email)}</td>
+      <td>
+        ${u.voter_id
+          ? '<span class="status-pill" style="background:rgba(26,107,58,0.1);color:#1a6b3a;"><i class="bi bi-person-badge-fill me-1"></i>Assigned</span>'
+          : '<span class="status-pill" style="background:rgba(108,122,141,0.12);color:#6c7a8d;"><i class="bi bi-hourglass me-1"></i>Not Assigned</span>'}
+      </td>
+      <td>
+        ${u.is_verified
+          ? '<span class="status-pill pill-verified"><i class="bi bi-check-circle-fill me-1"></i>Verified</span>'
+          : '<span class="status-pill pill-unverified"><i class="bi bi-hourglass me-1"></i>Unverified</span>'}
+      </td>
+      <td>${u.is_active
+          ? '<span class="text-success" style="font-size:0.82rem;"><i class="bi bi-check-circle-fill me-1"></i>Active</span>'
+          : '<span class="text-danger" style="font-size:0.82rem;"><i class="bi bi-x-circle-fill me-1"></i>Suspended</span>'}</td>
+      <td class="text-muted" style="font-size:0.78rem;">${new Date(u.created_at).toLocaleDateString()}</td>
+      <td>
+        <div class="d-flex gap-1 flex-wrap">
+          ${u.is_active
+            ? `<button class="btn btn-danger-soft btn-sm" data-action="suspend" data-id="${u.id}" data-role="${u.role}" data-verified="${u.is_verified}">Suspend</button>`
+            : `<button class="btn btn-success-soft btn-sm" data-action="activate" data-id="${u.id}" data-role="${u.role}" data-verified="${u.is_verified}">Activate</button>`}
+          ${!u.is_verified
+            ? `<button class="btn btn-outline-secondary btn-sm" data-action="verify" data-id="${u.id}" title="Manually verify this voter"><i class="bi bi-patch-check"></i></button>`
+            : ''}
+          ${u.login_attempts > 0
+            ? `<button class="btn btn-outline-secondary btn-sm" data-action="unlock" data-id="${u.id}" title="Unlock account"><i class="bi bi-unlock"></i></button>`
+            : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function toggleUser(id, active, role, verified) {
+  const res = await fetch(`/api/admin/users/${id}`, { method:'PUT', headers:H, body:JSON.stringify({ is_active: active, role, is_verified: verified }) });
+  if (!res.ok) { const d = await res.json(); return alert(d.error || 'Failed to update user.'); }
+  loadUsers();
+}
+
+async function unlockUser(id) {
+  const res = await fetch(`/api/admin/users/${id}/unlock`, { method:'POST', headers:H });
+  if (!res.ok) { const d = await res.json(); return alert(d.error || 'Failed to unlock user.'); }
+  loadUsers();
+}
+
+async function manualVerify(id) {
+  if (!confirm('Manually verify this voter? A Voter ID will be generated and emailed to them.')) return;
+  const res = await fetch(`/api/admin/users/${id}/verify`, { method:'POST', headers:H });
+  const d   = await res.json();
+  if (!res.ok) return alert(d.error || 'Verification failed');
+  alert(`Voter verified! Voter ID: ${d.voter_id}`);
+  loadUsers();
+}
+
+// ─────────────────────────────────────────────
+//  AUDIT LOG
+// ─────────────────────────────────────────────
+async function loadAudit() {
+  const filter = document.getElementById('auditFilter')?.value || '';
+  const url    = `/api/admin/audit-log?limit=200${filter ? `&action=${encodeURIComponent(filter)}` : ''}`;
+  const res    = await fetch(url, { headers: H });
+  const data   = await res.json();
+  const actionClass = a => a.includes('LOGIN_SUCCESS')?'action-login':a.includes('VOTE')?'action-vote':a.includes('ADMIN')?'action-admin':a.includes('FAIL')?'action-fail':'action-other';
+  const logs = data.logs || [];
+  document.getElementById('auditBody').innerHTML = logs.map(l => `
+    <tr>
+      <td><span class="audit-action ${actionClass(l.action)}">${esc(l.action.replace(/_/g,' '))}</span></td>
+      <td>${esc(l.user_name)||'<span class="text-muted">System</span>'}</td>
+      <td class="text-muted">${new Date(l.created_at).toLocaleString()}</td>
+      <td><code style="font-size:0.72rem;color:var(--muted);">${esc(l.meta||'')}</code></td>
+    </tr>`).join('') || '<tr><td colspan="4" class="text-center text-muted py-4">No audit records.</td></tr>';
+}
 
 // ─────────────────────────────────────────────
 //  HELPERS
 // ─────────────────────────────────────────────
-function showModalAlert(id, msg, type = 'danger') {
+function showModalAlert(id, msg, type='danger') {
   const box = document.getElementById(id);
   box.className = `alert alert-${type}`;
   box.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i>${msg}`;
@@ -533,680 +1284,264 @@ function toggleBtnLoad(btnId, textId, spinId, loading) {
 }
 
 // ─────────────────────────────────────────────
-//  DASHBOARD
-// ─────────────────────────────────────────────
-async function loadDashboard() {
-  try {
-    const res = await fetch('/api/admin/stats', { headers: H });
-    const d   = await res.json();
-    if (!res.ok) { console.error('[loadDashboard]', d.error); return; }
-    document.getElementById('dashUsers').textContent     = d.totalUsers     ?? '—';
-    document.getElementById('dashElections').textContent = d.totalElections  ?? '—';
-    document.getElementById('dashActive').textContent    = d.activeElections ?? '—';
-    document.getElementById('dashVotes').textContent     = d.totalVotes      ?? '—';
-
-    const actionClass = a => a.includes('LOGIN_SUCCESS') ? 'action-login' : a.includes('VOTE') ? 'action-vote' : a.includes('ADMIN') ? 'action-admin' : a.includes('FAIL') ? 'action-fail' : 'action-other';
-    const logs = d.recentLogs || [];
-    document.getElementById('recentActivityBody').innerHTML = logs.length
-      ? logs.map(l => `<tr><td><span class="audit-action ${actionClass(l.action)}">${l.action.replace(/_/g, ' ')}</span></td><td>${l.user_name || '—'}</td><td class="text-muted">${new Date(l.created_at).toLocaleString()}</td></tr>`).join('')
-      : '<tr><td colspan="3" class="text-center text-muted py-3">No activity yet.</td></tr>';
-
-    const elRes  = await fetch('/api/elections', { headers: H });
-    const elsRaw = await elRes.json();
-    const els    = Array.isArray(elsRaw) ? elsRaw : [];
-    allElections = els;
-    const active = els.filter(e => e.status === 'active');
-    const box    = document.getElementById('dashActiveElections');
-    box.innerHTML = active.length
-      ? active.map(e => `
-        <div class="election-mini-card">
-          <div class="d-flex justify-content-between align-items-start">
-            <strong style="font-size:0.9rem;">${e.title}</strong>
-            <span class="status-pill pill-active">Active</span>
-          </div>
-          <div class="d-flex justify-content-between mt-2" style="font-size:0.78rem;color:var(--muted);">
-            <span><i class="bi bi-ballot me-1"></i>${e.vote_count} votes</span>
-            <span><i class="bi bi-people me-1"></i>${e.candidate_count} candidates</span>
-          </div>
-          <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">Ends: ${new Date(e.end_time).toLocaleString()}</div>
-        </div>`).join('')
-      : '<p class="text-muted text-center py-3" style="font-size:0.85rem;"><i class="bi bi-info-circle me-1"></i>No active elections.</p>';
-  } catch (err) { console.error('[loadDashboard]', err); }
-}
-
-// ─────────────────────────────────────────────
-//  ELECTIONS
-// ─────────────────────────────────────────────
-async function loadElections() {
-  const tbody = document.getElementById('electionsBody');
-  tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
-  try {
-    const res = await fetch('/api/elections', { headers: H });
-    const els = await res.json();
-    if (!res.ok) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${els.error || 'Failed to load elections'}</td></tr>`; return; }
-    if (!Array.isArray(els) || !els.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No elections yet.</td></tr>'; return; }
-    allElections = els;
-    // Use data-id on each row; buttons use data-action — no inline JS strings with election data
-    tbody.innerHTML = els.map(e => `
-      <tr data-id="${e.id}">
-        <td>
-          <strong>${e.title}</strong>
-          ${e.description ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${e.description.substring(0, 60)}${e.description.length > 60 ? '...' : ''}</div>` : ''}
-        </td>
-        <td><span class="status-pill pill-${e.status}">${e.status}</span></td>
-        <td>${e.candidate_count}</td>
-        <td><strong>${e.vote_count}</strong></td>
-        <td class="text-muted" style="font-size:0.78rem;">${new Date(e.start_time).toLocaleDateString()} - ${new Date(e.end_time).toLocaleDateString()}</td>
-        <td>
-          <div class="d-flex gap-1 flex-wrap">
-            ${e.status === 'draft'   ? `<button class="btn btn-success-soft btn-sm" data-action="open"><i class="bi bi-play-fill me-1"></i>Open</button>` : ''}
-            ${e.status === 'draft'   ? `<button class="btn btn-outline-secondary btn-sm" data-action="edit"><i class="bi bi-pencil me-1"></i>Edit</button>` : ''}
-            ${e.status === 'draft'   ? `<button class="btn btn-danger-soft btn-sm" data-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>` : ''}
-            ${e.status === 'active'  ? `<button class="btn btn-danger-soft btn-sm" data-action="close"><i class="bi bi-stop-fill me-1"></i>Close</button>` : ''}
-            ${e.status === 'active'  ? `<button class="btn btn-outline-secondary btn-sm" data-action="live"><i class="bi bi-eye me-1"></i>Live</button>` : ''}
-            ${e.status === 'closed'  ? `<button class="btn btn-gold btn-sm" data-action="tally"><i class="bi bi-calculator me-1"></i>Tally</button>` : ''}
-            ${e.status === 'tallied' ? `<button class="btn btn-outline-secondary btn-sm" data-action="results"><i class="bi bi-bar-chart me-1"></i>Results</button>` : ''}
-          </div>
-        </td>
-      </tr>`).join('');
-  } catch (err) {
-    console.error('[loadElections]', err);
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Network error loading elections.</td></tr>';
-  }
-}
-
-// ── Election table event delegation — all buttons handled here ──
-// Using data-action + tr[data-id] avoids embedding election titles/data in onclick strings
-document.getElementById('electionsBody').addEventListener('click', function(e) {
-  const btn = e.target.closest('[data-action]');
-  if (!btn) return;
-  const row = btn.closest('tr[data-id]');
-  if (!row) return;
-  const id = row.dataset.id;
-  const el = allElections.find(x => x.id === id);
-  if (!el) return;
-  const action = btn.dataset.action;
-  if (action === 'open')    setElectionStatus(id, 'open');
-  if (action === 'close')   setElectionStatus(id, 'close');
-  if (action === 'edit')    editElection(id);
-  if (action === 'delete')  deleteElection(id, el.title);
-  if (action === 'live')    quickViewResults(id);
-  if (action === 'results') quickViewResults(id);
-  if (action === 'tally')   openTallyModal(id, el.title, el.vote_count);
-});
-
-function openElectionModal(id) {
-  document.getElementById('editingElectionId').value = id || '';
-  document.getElementById('electionModalTitle').textContent = id ? 'Edit Election' : 'New Election';
-  document.getElementById('elBtnText').textContent = id ? 'Save Changes' : 'Create Election';
-  document.getElementById('electionAlert').className = 'alert d-none';
-  if (!id) { ['elTitle', 'elDesc', 'elStart', 'elEnd'].forEach(f => document.getElementById(f).value = ''); }
-}
-
-async function editElection(id) {
-  try {
-    let el = allElections.find(e => e.id === id);
-    if (!el) {
-      const r = await fetch(`/api/elections/${id}`, { headers: H });
-      if (!r.ok) return alert('Could not load election details.');
-      el = await r.json();
-    }
-    document.getElementById('editingElectionId').value = id;
-    document.getElementById('electionModalTitle').textContent = 'Edit Election';
-    document.getElementById('elBtnText').textContent = 'Save Changes';
-    document.getElementById('electionAlert').className = 'alert d-none';
-    document.getElementById('elTitle').value = el.title || '';
-    document.getElementById('elDesc').value  = el.description || '';
-    const toLocal = iso => iso ? new Date(iso).toISOString().slice(0, 16) : '';
-    document.getElementById('elStart').value = toLocal(el.start_time);
-    document.getElementById('elEnd').value   = toLocal(el.end_time);
-    new bootstrap.Modal(document.getElementById('electionModal')).show();
-  } catch (err) {
-    console.error('[editElection]', err);
-    alert('Failed to load election for editing.');
-  }
-}
-
-async function saveElection() {
-  const editId      = document.getElementById('editingElectionId').value;
-  const title       = document.getElementById('elTitle').value.trim();
-  const description = document.getElementById('elDesc').value.trim();
-  const start_time  = document.getElementById('elStart').value;
-  const end_time    = document.getElementById('elEnd').value;
-  if (!title || !start_time || !end_time)
-    return showModalAlert('electionAlert', 'Please fill in all required fields.', 'danger');
-
-  // Safely slice datetime-local to 16 chars before appending WAT offset
-  const toWATiso = s => { if (!s) return s; const b = s.length >= 16 ? s.slice(0, 16) : s; return `${b}:00+01:00`; };
-
-  toggleBtnLoad('saveElectionBtn', 'elBtnText', 'elBtnSpin', true);
-  try {
-    const url    = editId ? `/api/elections/${editId}` : '/api/elections';
-    const method = editId ? 'PUT' : 'POST';
-    const res    = await fetch(url, { method, headers: H, body: JSON.stringify({ title, description, start_time: toWATiso(start_time), end_time: toWATiso(end_time) }) });
-    const data   = await res.json();
-    if (!res.ok) { toggleBtnLoad('saveElectionBtn', 'elBtnText', 'elBtnSpin', false); return showModalAlert('electionAlert', data.error || 'Failed to save election.', 'danger'); }
-    safeHideModal('electionModal');
-    goToSection('elections');
-    loadElections();
-  } catch (err) {
-    console.error('[saveElection]', err);
-    showModalAlert('electionAlert', 'Network error. Please try again.', 'danger');
-  } finally {
-    toggleBtnLoad('saveElectionBtn', 'elBtnText', 'elBtnSpin', false);
-  }
-}
-
-async function setElectionStatus(id, action) {
-  if (!confirm(`Are you sure you want to ${action} this election?`)) return;
-  try {
-    const res = await fetch(`/api/elections/${id}/${action}`, { method: 'POST', headers: H });
-    const d   = await res.json();
-    if (!res.ok) return alert(d.error || `Failed to ${action} election.`);
-    loadElections();
-  } catch (err) { console.error('[setElectionStatus]', err); alert('Network error. Please try again.'); }
-}
-
-async function deleteElection(id, title) {
-  if (!confirm(`Delete election "${title}"?\n\nThis will permanently remove all candidates and vote data. This cannot be undone.`)) return;
-  try {
-    const res = await fetch(`/api/elections/${id}`, { method: 'DELETE', headers: H });
-    const d   = await res.json();
-    if (!res.ok) return alert(d.error || 'Failed to delete election.');
-    loadElections();
-  } catch (err) { console.error('[deleteElection]', err); alert('Network error. Please try again.'); }
-}
-
-// ── Tally ──
-function openTallyModal(id, title, voteCount) {
-  document.getElementById('tallyElectionId').value         = id;
-  document.getElementById('tallyElectionName').textContent = title;
-  document.getElementById('tallyVoteCount').textContent    = voteCount;
-  new bootstrap.Modal(document.getElementById('tallyModal')).show();
-}
-
-async function doTally() {
-  const id = document.getElementById('tallyElectionId').value;
-  toggleBtnLoad('confirmTallyBtn', 'tallyBtnText', 'tallyBtnSpin', true);
-  try {
-    const res = await fetch(`/api/elections/${id}/tally`, { method: 'POST', headers: H });
-    const d   = await res.json();
-    if (!res.ok) { toggleBtnLoad('confirmTallyBtn', 'tallyBtnText', 'tallyBtnSpin', false); safeHideModal('tallyModal'); return alert(d.error || 'Tally failed'); }
-    safeHideModal('tallyModal');
-    loadElections();
-    quickViewResults(id);
-  } catch (err) {
-    console.error('[doTally]', err);
-    alert('Network error during tally. Please try again.');
-  } finally {
-    toggleBtnLoad('confirmTallyBtn', 'tallyBtnText', 'tallyBtnSpin', false);
-  }
-}
-
-// ─────────────────────────────────────────────
-//  LIVE RESULTS
-// ─────────────────────────────────────────────
-async function loadResultsDropdown() {
-  try {
-    const res  = await fetch('/api/elections', { headers: H });
-    const data = await res.json();
-    allElections = Array.isArray(data) ? data : [];
-    const sel = document.getElementById('resultsElectionFilter');
-    sel.innerHTML = '<option value="">— Select Election —</option>' +
-      allElections.map(e => `<option value="${e.id}">${e.title} (${e.status})</option>`).join('');
-  } catch (err) { console.error('[loadResultsDropdown]', err); }
-}
-
-async function loadResults() {
-  const id  = document.getElementById('resultsElectionFilter').value;
-  const box = document.getElementById('resultsContent');
-  if (!id) { box.innerHTML = '<div class="card-section"><div class="card-section-body text-center text-muted py-5"><i class="bi bi-bar-chart fs-2 d-block mb-2"></i>Select an election above.</div></div>'; return; }
-  box.innerHTML = '<div class="card-section"><div class="card-section-body text-center py-5"><span class="spinner-border"></span></div></div>';
-  box.innerHTML = await buildResultsHTML(id);
-}
-
-async function quickViewResults(id) {
-  document.getElementById('resultsModalBody').innerHTML = '<div class="text-center py-4"><span class="spinner-border"></span></div>';
-  new bootstrap.Modal(document.getElementById('resultsModal')).show();
-  document.getElementById('resultsModalBody').innerHTML = await buildResultsHTML(id, true);
-}
-
-async function buildResultsHTML(id, compact = false) {
-  try {
-    const res = await fetch(`/api/elections/${id}/results`, { headers: H });
-    if (res.ok) {
-      const d        = await res.json();
-      const r        = d.results;
-      const titleEl  = document.getElementById('resultsModalTitle');
-      if (titleEl) titleEl.textContent = r.electionTitle;
-      const maxVotes = Math.max(...r.candidates.map(c => c.votes), 1);
-      return `
-        <div class="card-section">
-          <div class="card-section-header">
-            <h5>${r.electionTitle}</h5>
-            <div class="d-flex align-items-center gap-2">
-              <span class="status-pill pill-tallied">Tallied</span>
-              <span style="font-size:0.8rem;color:var(--muted);">${r.totalVotes} total votes</span>
-              ${d.signature_valid
-                ? '<span style="font-size:0.78rem;color:var(--success);"><i class="bi bi-patch-check-fill me-1"></i>Signature Valid</span>'
-                : '<span style="color:var(--crimson);font-size:0.78rem;"><i class="bi bi-x-circle me-1"></i>Signature Invalid</span>'}
-            </div>
-          </div>
-          <div class="card-section-body">
-            ${r.candidates.map((c, i) => `
-              <div class="vote-bar-wrap">
-                <div class="vote-bar-label">
-                  <strong>${i === 0 ? '<i class="bi bi-trophy-fill winner-crown"></i> ' : ''}${c.name} <span style="font-size:0.75rem;color:var(--muted);">${c.party || 'Independent'}</span></strong>
-                  <span>${c.votes} votes &nbsp;·&nbsp; ${c.percentage}%</span>
-                </div>
-                <div class="vote-bar-track">
-                  <div class="vote-bar-fill" style="width:${(c.votes / maxVotes * 100).toFixed(1)}%;${i === 0 ? 'background:linear-gradient(90deg,var(--gold),#e8c96a)' : 'background:linear-gradient(90deg,var(--slate),#5a6a7e)'}"></div>
-                </div>
-              </div>`).join('')}
-          </div>
-        </div>`;
-    }
-    // Fallback: live candidate list
-    const elRes   = await fetch(`/api/elections/${id}`, { headers: H });
-    const el      = await elRes.json();
-    const candRes = await fetch(`/api/candidates/${id}`, { headers: H });
-    const cands   = await candRes.json();
-    const candList = Array.isArray(cands) ? cands : [];
-    return `
-      <div class="card-section">
-        <div class="card-section-header">
-          <h5>${el.title}</h5>
-          <div class="d-flex align-items-center gap-2">
-            <span class="status-pill pill-${el.status}">${el.status}</span>
-            <span style="font-size:0.8rem;color:var(--muted);"><span class="live-dot"></span>${el.vote_count} votes cast</span>
-          </div>
-        </div>
-        <div class="card-section-body">
-          <div class="alert alert-info py-2" style="font-size:0.82rem;border-radius:10px;">
-            <i class="bi bi-info-circle me-2"></i>Vote counts are only available after tallying. Showing candidate list.
-          </div>
-          ${candList.map(c => `
-            <div class="d-flex align-items-center gap-3 py-2 border-bottom" style="border-color:var(--border)!important;">
-              <div class="candidate-thumb">${c.photo_url ? `<img src="${c.photo_url}"/>` : '<i class="bi bi-person-fill"></i>'}</div>
-              <div><strong style="font-size:0.9rem;">${c.name}</strong><div style="font-size:0.78rem;color:var(--muted);">${c.party || 'Independent'} · ${c.position || ''}</div></div>
-            </div>`).join('')}
-        </div>
-      </div>`;
-  } catch (err) {
-    console.error('[buildResultsHTML]', err);
-    return '<div class="alert alert-danger" style="border-radius:10px;">Failed to load results.</div>';
-  }
-}
-
-// ─────────────────────────────────────────────
-//  CANDIDATES
-// ─────────────────────────────────────────────
-async function loadElectionsDropdowns() {
-  try {
-    const res  = await fetch('/api/elections', { headers: H });
-    const data = await res.json();
-    allElections = Array.isArray(data) ? data : [];
-
-    // All elections for filter/results dropdowns
-    const fillAll = (selId) => {
-      const sel = document.getElementById(selId);
-      if (!sel) return;
-      sel.innerHTML = '<option value="">— Select Election —</option>' +
-        allElections.map(e => `<option value="${e.id}">${e.title} (${e.status})</option>`).join('');
-    };
-    fillAll('candidateElectionFilter');
-    fillAll('resultsElectionFilter');
-
-    // Only draft elections in Add Candidate modal — can't add to active/closed/tallied
-    const drafts = allElections.filter(e => e.status === 'draft');
-    const candSel = document.getElementById('candElectionSel');
-    if (candSel) {
-      candSel.innerHTML = '<option value="">— Select Election —</option>' +
-        (drafts.length
-          ? drafts.map(e => `<option value="${e.id}">${e.title}</option>`).join('')
-          : '<option value="" disabled>No draft elections available</option>');
-    }
-  } catch (err) { console.error('[loadElectionsDropdowns]', err); }
-}
-
-async function loadCandidates() {
-  const elId  = document.getElementById('candidateElectionFilter').value;
-  const tbody = document.getElementById('candidatesBody');
-  if (!elId) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Select an election above.</td></tr>'; return; }
-  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3"><span class="spinner-border spinner-border-sm"></span></td></tr>';
-  try {
-    const res        = await fetch(`/api/candidates/${elId}`, { headers: H });
-    const candidates = await res.json();
-    if (!res.ok) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${candidates.error || 'Failed to load candidates'}</td></tr>`; return; }
-    if (!Array.isArray(candidates) || !candidates.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No candidates yet.</td></tr>'; return; }
-    tbody.innerHTML = candidates.map(c => `
-      <tr>
-        <td><div class="candidate-thumb">${c.photo_url ? `<img src="${c.photo_url}" alt="${c.name}"/>` : '<i class="bi bi-person-fill"></i>'}</div></td>
-        <td><strong>${c.name}</strong></td>
-        <td>${c.party || '—'}</td>
-        <td>${c.position || '—'}</td>
-        <td>${c.manifesto_doc ? `<a href="${c.manifesto_doc}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-pdf me-1"></i>PDF</a>` : '<span class="text-muted">—</span>'}</td>
-        <td>
-          <div class="d-flex gap-1 flex-wrap">
-            <button class="btn btn-outline-secondary btn-sm" data-cand-action="photo" data-cand-id="${c.id}"><i class="bi bi-camera"></i></button>
-            <button class="btn btn-outline-secondary btn-sm" data-cand-action="manifesto" data-cand-id="${c.id}"><i class="bi bi-file-earmark-pdf"></i></button>
-            <a href="/candidate/${c.id}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i></a>
-            <button class="btn btn-danger-soft btn-sm" data-cand-action="delete" data-cand-id="${c.id}"><i class="bi bi-trash"></i></button>
-          </div>
-        </td>
-      </tr>`).join('');
-  } catch (err) {
-    console.error('[loadCandidates]', err);
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Network error loading candidates.</td></tr>';
-  }
-}
-
-// ── Candidates table event delegation ──
-document.getElementById('candidatesBody').addEventListener('click', function(e) {
-  const btn = e.target.closest('[data-cand-action]');
-  if (!btn) return;
-  const id     = btn.dataset.candId;
-  const action = btn.dataset.candAction;
-  if (action === 'photo')    openUploadPhoto(id);
-  if (action === 'manifesto') openUploadManifesto(id);
-  if (action === 'delete')   deleteCandidate(id);
-});
-
-function openCandidateModal() {
-  document.getElementById('candidateModalTitle').textContent = 'Add Candidate';
-  document.getElementById('editingCandidateId').value = '';
-  ['candName', 'candParty', 'candPosition', 'candAge', 'candState', 'candEdu', 'candExp', 'candBio', 'candManifesto'].forEach(f => document.getElementById(f).value = '');
-  document.getElementById('candGender').value = '';
-  document.getElementById('candidateAlert').className = 'alert d-none';
-  loadElectionsDropdowns(); // always refresh so dropdown shows current draft elections
-}
-
-async function saveCandidate() {
-  const elId = document.getElementById('candElectionSel').value;
-  const name = document.getElementById('candName').value.trim();
-  if (!elId || !name) return showModalAlert('candidateAlert', 'Election and candidate name are required.', 'danger');
-  const body = {
-    name,
-    party:           document.getElementById('candParty').value,
-    position:        document.getElementById('candPosition').value,
-    age:             document.getElementById('candAge').value,
-    gender:          document.getElementById('candGender').value,
-    state_of_origin: document.getElementById('candState').value,
-    education:       document.getElementById('candEdu').value,
-    experience:      document.getElementById('candExp').value,
-    bio:             document.getElementById('candBio').value,
-    manifesto:       document.getElementById('candManifesto').value
-  };
-  toggleBtnLoad('saveCandidateBtn', 'candBtnText', 'candBtnSpin', true);
-  try {
-    const res  = await fetch(`/api/candidates/${elId}`, { method: 'POST', headers: H, body: JSON.stringify(body) });
-    const data = await res.json();
-    if (!res.ok) { toggleBtnLoad('saveCandidateBtn', 'candBtnText', 'candBtnSpin', false); return showModalAlert('candidateAlert', data.error || 'Failed to save candidate.', 'danger'); }
-    safeHideModal('candidateModal');
-    // Navigate to candidates section and show the new candidate
-    goToSection('candidates');
-    document.getElementById('candidateElectionFilter').value = elId;
-    loadCandidates();
-  } catch (err) {
-    console.error('[saveCandidate]', err);
-    showModalAlert('candidateAlert', 'Network error. Please try again.', 'danger');
-  } finally {
-    toggleBtnLoad('saveCandidateBtn', 'candBtnText', 'candBtnSpin', false);
-  }
-}
-
-async function deleteCandidate(id) {
-  if (!confirm('Delete this candidate? This cannot be undone.')) return;
-  try {
-    const res = await fetch(`/api/candidates/profile/${id}`, { method: 'DELETE', headers: H });
-    const d   = await res.json();
-    if (!res.ok) return alert(d.error || 'Failed to delete candidate.');
-    loadCandidates();
-  } catch (err) { console.error('[deleteCandidate]', err); alert('Network error. Please try again.'); }
-}
-
-function openUploadPhoto(candId) {
-  document.getElementById('uploadPhotoCandId').value = candId;
-  document.getElementById('photoUploadPreview').innerHTML = '';
-  document.getElementById('photoFileInput').value = '';
-  new bootstrap.Modal(document.getElementById('uploadPhotoModal')).show();
-}
-
-async function doUploadPhoto() {
-  const candId = document.getElementById('uploadPhotoCandId').value;
-  const file   = document.getElementById('photoFileInput').files[0];
-  if (!file) return alert('Please select a photo.');
-  const form = new FormData();
-  form.append('photo', file);
-  document.getElementById('photoUploadSpin').classList.remove('d-none');
-  document.getElementById('photoUploadText').classList.add('d-none');
-  try {
-    const res = await fetch(`/api/candidates/profile/${candId}/photo`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: form });
-    const d   = await res.json();
-    if (!res.ok) return alert(d.error || 'Photo upload failed.');
-    safeHideModal('uploadPhotoModal');
-    loadCandidates();
-  } catch (err) { console.error('[doUploadPhoto]', err); alert('Network error uploading photo.'); }
-  finally {
-    document.getElementById('photoUploadSpin').classList.add('d-none');
-    document.getElementById('photoUploadText').classList.remove('d-none');
-  }
-}
-
-function openUploadManifesto(candId) {
-  document.getElementById('uploadManifestoCandId').value = candId;
-  document.getElementById('manifestoFileInput').value = '';
-  new bootstrap.Modal(document.getElementById('uploadManifestoModal')).show();
-}
-
-async function doUploadManifesto() {
-  const candId = document.getElementById('uploadManifestoCandId').value;
-  const file   = document.getElementById('manifestoFileInput').files[0];
-  if (!file) return alert('Please select a PDF file.');
-  const form = new FormData();
-  form.append('manifesto_doc', file);
-  document.getElementById('manifestoUploadSpin').classList.remove('d-none');
-  document.getElementById('manifestoUploadText').classList.add('d-none');
-  try {
-    const res = await fetch(`/api/candidates/profile/${candId}/manifesto`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: form });
-    const d   = await res.json();
-    if (!res.ok) return alert(d.error || 'Manifesto upload failed.');
-    safeHideModal('uploadManifestoModal');
-    loadCandidates();
-  } catch (err) { console.error('[doUploadManifesto]', err); alert('Network error uploading manifesto.'); }
-  finally {
-    document.getElementById('manifestoUploadSpin').classList.add('d-none');
-    document.getElementById('manifestoUploadText').classList.remove('d-none');
-  }
-}
-
-// ─────────────────────────────────────────────
-//  USERS / VOTERS
-// ─────────────────────────────────────────────
-async function loadUsers() {
-  const search = document.getElementById('userSearch')?.value || '';
-  const filter = document.getElementById('userStatusFilter')?.value || '';
-  const tbody  = document.getElementById('usersBody');
-  tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
-  try {
-    const res  = await fetch(`/api/admin/users?limit=500&search=${encodeURIComponent(search)}`, { headers: H });
-    const data = await res.json();
-    if (!res.ok) { tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">${data.error || 'Failed to load users'}</td></tr>`; return; }
-    let users = data.users || [];
-    if (filter === 'unverified') users = users.filter(u => !u.is_verified);
-    if (filter === 'verified')   users = users.filter(u =>  u.is_verified);
-    if (filter === 'suspended')  users = users.filter(u => !u.is_active);
-    document.getElementById('userCount').textContent = `${users.length} user(s)`;
-    if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No users found.</td></tr>'; return; }
-    // user.id is a UUID (safe), user.role is always a single word (safe) — inline onclick is fine here
-    tbody.innerHTML = users.map(u => `
-      <tr>
-        <td><strong>${u.full_name}</strong></td>
-        <td class="text-muted" style="font-size:0.82rem;">${u.email}</td>
-        <td>${u.voter_id ? '<span class="status-pill" style="background:rgba(26,107,58,0.1);color:#1a6b3a;"><i class="bi bi-person-badge-fill me-1"></i>Assigned</span>' : '<span class="status-pill" style="background:rgba(108,122,141,0.12);color:#6c7a8d;"><i class="bi bi-hourglass me-1"></i>Not Assigned</span>'}</td>
-        <td>${u.is_verified ? '<span class="status-pill pill-verified"><i class="bi bi-check-circle-fill me-1"></i>Verified</span>' : '<span class="status-pill pill-unverified"><i class="bi bi-hourglass me-1"></i>Unverified</span>'}</td>
-        <td>${u.is_active ? '<span class="text-success" style="font-size:0.82rem;"><i class="bi bi-check-circle-fill me-1"></i>Active</span>' : '<span class="text-danger" style="font-size:0.82rem;"><i class="bi bi-x-circle-fill me-1"></i>Suspended</span>'}</td>
-        <td class="text-muted" style="font-size:0.78rem;">${new Date(u.created_at).toLocaleDateString()}</td>
-        <td>
-          <div class="d-flex gap-1 flex-wrap">
-            ${u.is_active
-              ? `<button class="btn btn-danger-soft btn-sm" onclick="toggleUser('${u.id}',0,'${u.role}',${u.is_verified})">Suspend</button>`
-              : `<button class="btn btn-success-soft btn-sm" onclick="toggleUser('${u.id}',1,'${u.role}',${u.is_verified})">Activate</button>`}
-            ${!u.is_verified ? `<button class="btn btn-outline-secondary btn-sm" onclick="manualVerify('${u.id}')" title="Verify voter"><i class="bi bi-patch-check"></i></button>` : ''}
-            ${u.login_attempts > 0 ? `<button class="btn btn-outline-secondary btn-sm" onclick="unlockUser('${u.id}')" title="Unlock account"><i class="bi bi-unlock"></i></button>` : ''}
-          </div>
-        </td>
-      </tr>`).join('');
-  } catch (err) { console.error('[loadUsers]', err); tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Network error loading users.</td></tr>'; }
-}
-
-async function toggleUser(id, active, role, verified) {
-  try {
-    const res = await fetch(`/api/admin/users/${id}`, { method: 'PUT', headers: H, body: JSON.stringify({ is_active: active, role, is_verified: verified }) });
-    const d   = await res.json();
-    if (!res.ok) return alert(d.error || 'Failed to update user.');
-    loadUsers();
-  } catch (err) { console.error('[toggleUser]', err); alert('Network error. Please try again.'); }
-}
-
-async function unlockUser(id) {
-  try {
-    const res = await fetch(`/api/admin/users/${id}/unlock`, { method: 'POST', headers: H });
-    const d   = await res.json();
-    if (!res.ok) return alert(d.error || 'Failed to unlock user.');
-    loadUsers();
-  } catch (err) { console.error('[unlockUser]', err); alert('Network error. Please try again.'); }
-}
-
-async function manualVerify(id) {
-  if (!confirm('Manually verify this voter? A Voter ID will be generated and emailed to them.')) return;
-  try {
-    const res = await fetch(`/api/admin/users/${id}/verify`, { method: 'POST', headers: H });
-    const d   = await res.json();
-    if (!res.ok) return alert(d.error || 'Verification failed');
-    alert(`Voter verified! Voter ID: ${d.voter_id}`);
-    loadUsers();
-  } catch (err) { console.error('[manualVerify]', err); alert('Network error. Please try again.'); }
-}
-
-// ─────────────────────────────────────────────
-//  VOTER ID REQUESTS
+//  VOTER ID RESET REQUESTS
 // ─────────────────────────────────────────────
 async function loadVoterIdRequests() {
-  const status = document.getElementById('idRequestFilter')?.value || 'pending';
-  const tbody  = document.getElementById('idRequestsBody');
+  const tbody  = document.getElementById('voterIdRequestsBody');
+  const status = document.getElementById('idRequestFilter').value;
   tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
   try {
-    const res      = await fetch(`/api/admin/voter-id-requests?status=${status}`, { headers: H });
-    const data     = await res.json();
-    if (!res.ok) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${data.error || 'Failed to load requests'}</td></tr>`; return; }
-    const requests = data.requests || [];
-    const badge    = document.getElementById('pendingRequestsBadge');
-    if (badge && status === 'pending') {
-      badge.textContent = requests.length > 0 ? requests.length : '';
-      badge.style.display = requests.length > 0 ? '' : 'none';
+    const res  = await fetch(`/api/admin/voter-id-requests?status=${status}`, { headers: H });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    // Update sidebar badge for pending count
+    if (status === 'pending') {
+      const badge = document.getElementById('pendingIdBadge');
+      if (data.length > 0) { badge.textContent = data.length; badge.classList.remove('d-none'); }
+      else badge.classList.add('d-none');
     }
-    if (!requests.length) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No ${status} requests.</td></tr>`; return; }
-    // Store request id + name safely in data attributes — NOT in inline onclick strings
-    tbody.innerHTML = requests.map(r => `
-      <tr data-req-id="${r.id}" data-req-name="${r.full_name.replace(/"/g, '&quot;')}">
-        <td><strong>${r.full_name}</strong></td>
-        <td class="text-muted" style="font-size:0.82rem;">${r.email}</td>
-        <td>${r.voter_id ? `<code style="font-size:0.82rem;">${r.voter_id}</code>` : '<span class="text-muted">Not assigned</span>'}</td>
-        <td style="max-width:200px;font-size:0.82rem;color:var(--muted);">${r.reason ? r.reason.substring(0, 100) + (r.reason.length > 100 ? '...' : '') : '<em>No reason given</em>'}</td>
-        <td class="text-muted" style="font-size:0.78rem;">${new Date(r.created_at).toLocaleString()}</td>
+
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No ${status} requests.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map(r => `
+      <tr>
         <td>
-          ${r.status === 'pending'
-            ? `<div class="d-flex gap-1">
-                <button class="btn btn-success-soft btn-sm" data-req-action="approve"><i class="bi bi-check-lg me-1"></i>Approve</button>
-                <button class="btn btn-danger-soft btn-sm" data-req-action="reject"><i class="bi bi-x-lg me-1"></i>Reject</button>
-               </div>`
-            : `<span class="status-pill ${r.status === 'approved' ? 'pill-verified' : 'pill-unverified'}" style="text-transform:capitalize;">
-                ${r.status}${r.reviewed_by_name ? ` by ${r.reviewed_by_name}` : ''}
-               </span>`}
+          <div style="font-weight:600;font-size:0.88rem;">${esc(r.full_name)}</div>
+          <div style="font-size:0.75rem;color:var(--muted);">${esc(r.email)}</div>
         </td>
-      </tr>`).join('');
-  } catch (err) { console.error('[loadVoterIdRequests]', err); tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Network error loading requests.</td></tr>'; }
+        <td><code style="font-size:0.82rem;color:var(--ink);">${esc(r.voter_id || '—')}</code></td>
+        <td style="max-width:180px;">
+          <div style="font-size:0.82rem;color:var(--muted);white-space:normal;">
+            ${r.reason ? esc(r.reason.substring(0, 80)) + (r.reason.length > 80 ? '…' : '') : '<span class="text-muted fst-italic">No reason given</span>'}
+          </div>
+        </td>
+        <td style="font-size:0.8rem;white-space:nowrap;">${new Date(r.created_at).toLocaleString()}</td>
+        <td>
+          ${r.status === 'pending'   ? '<span class="badge" style="background:rgba(201,168,76,0.15);color:#8a6500;border:1px solid rgba(201,168,76,0.4);">Pending</span>' : ''}
+          ${r.status === 'approved'  ? '<span class="badge bg-success">Approved</span>' : ''}
+          ${r.status === 'rejected'  ? '<span class="badge bg-danger">Rejected</span>' : ''}
+          ${r.reviewed_by_name ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:3px;">by ${esc(r.reviewed_by_name)}</div>` : ''}
+          ${r.reject_reason ? `<div style="font-size:0.72rem;color:var(--crimson);margin-top:2px;">${esc(r.reject_reason)}</div>` : ''}
+        </td>
+        <td>
+          ${r.status === 'pending' ? `
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-sm" data-action="approve-vid" data-id="${r.id}"
+                style="background:var(--success);color:#fff;border-radius:7px;font-size:0.78rem;padding:0.3rem 0.7rem;white-space:nowrap;">
+                <i class="bi bi-check-lg me-1"></i>Approve
+              </button>
+              <button class="btn btn-sm btn-outline-danger" data-action="reject-vid" data-id="${r.id}"
+                style="border-radius:7px;font-size:0.78rem;padding:0.3rem 0.7rem;white-space:nowrap;">
+                <i class="bi bi-x-lg me-1"></i>Reject
+              </button>
+            </div>
+          ` : '<span class="text-muted" style="font-size:0.8rem;">Reviewed</span>'}
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Failed to load requests.</td></tr>`;
+    console.error('[VOTER ID REQUESTS]', e);
+  }
 }
 
-// ── Voter ID requests table event delegation ──
-document.getElementById('idRequestsBody').addEventListener('click', function(e) {
-  const btn = e.target.closest('[data-req-action]');
-  if (!btn) return;
-  const row  = btn.closest('tr[data-req-id]');
-  if (!row) return;
-  const id   = row.dataset.reqId;
-  const name = row.dataset.reqName;
-  if (btn.dataset.reqAction === 'approve') approveVoterIdRequest(id, name);
-  if (btn.dataset.reqAction === 'reject')  rejectVoterIdRequest(id, name);
+async function approveVoterIdRequest(requestId) {
+  const alertEl = document.getElementById('voterIdRequestsAlert');
+  if (!confirm('Approve this Voter ID reset? A new ID will be generated and emailed to the voter.')) return;
+  try {
+    const res  = await fetch(`/api/admin/voter-id-requests/${requestId}/approve`, {
+      method: 'POST', headers: H
+    });
+    const data = await res.json();
+    alertEl.className = `alert alert-${res.ok ? 'success' : 'danger'} mb-3`;
+    alertEl.innerHTML = `<i class="bi bi-${res.ok ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i>${data.message || data.error}`;
+    alertEl.classList.remove('d-none');
+    if (res.ok) loadVoterIdRequests();
+  } catch {
+    alertEl.className = 'alert alert-danger mb-3';
+    alertEl.textContent = 'Network error — please try again.';
+    alertEl.classList.remove('d-none');
+  }
+}
+
+let rejectTargetId = null;
+function openRejectModal(requestId) {
+  rejectTargetId = requestId;
+  document.getElementById('rejectReasonInput').value = '';
+  document.getElementById('rejectModalAlert').classList.add('d-none');
+  new bootstrap.Modal(document.getElementById('rejectVoterIdModal')).show();
+}
+
+async function submitRejectVoterId() {
+  const reason  = document.getElementById('rejectReasonInput').value.trim();
+  const alertEl = document.getElementById('rejectModalAlert');
+  const btn     = document.getElementById('confirmRejectBtn');
+  btn.disabled  = true;
+  try {
+    const res  = await fetch(`/api/admin/voter-id-requests/${rejectTargetId}/reject`, {
+      method: 'POST', headers: H,
+      body: JSON.stringify({ reason })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alertEl.className = 'alert alert-danger mb-3';
+      alertEl.textContent = data.error;
+      alertEl.classList.remove('d-none');
+      btn.disabled = false;
+      return;
+    }
+    const m = bootstrap.Modal.getInstance(document.getElementById('rejectVoterIdModal'));
+    if (m) m.hide();
+    const pageAlert = document.getElementById('voterIdRequestsAlert');
+    pageAlert.className = 'alert alert-success mb-3';
+    pageAlert.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${data.message}`;
+    pageAlert.classList.remove('d-none');
+    loadVoterIdRequests();
+  } catch {
+    alertEl.className = 'alert alert-danger mb-3';
+    alertEl.textContent = 'Network error — please try again.';
+    alertEl.classList.remove('d-none');
+    btn.disabled = false;
+  }
+}
+
+// Fetch pending count on load for sidebar badge
+async function loadPendingIdBadge() {
+  try {
+    const res  = await fetch('/api/admin/voter-id-requests?status=pending', { headers: H });
+    const data = await res.json();
+    const badge = document.getElementById('pendingIdBadge');
+    if (res.ok && data.length > 0) { badge.textContent = data.length; badge.classList.remove('d-none'); }
+  } catch {}
+}
+
+// Init
+loadDashboard();
+loadPendingIdBadge();
+
+// ─────────────────────────────────────────────
+//  STATIC BUTTON & INPUT LISTENERS
+//  Wrapped in DOMContentLoaded to guarantee all modal
+//  elements exist before listeners attach — modals are
+//  placed after the script tag so they aren't in the DOM
+//  at script parse time.
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('newElectionBtn').addEventListener('click', () => openElectionModal());
+  document.getElementById('saveElectionBtn').addEventListener('click', saveElection);
+  document.getElementById('confirmTallyBtn').addEventListener('click', doTally);
+  document.getElementById('newCandidateBtn').addEventListener('click', openCandidateModal);
+  document.getElementById('saveCandidateBtn').addEventListener('click', saveCandidate);
+  document.getElementById('photoUploadBtn').addEventListener('click', doUploadPhoto);
+  document.getElementById('manifestoUploadBtn').addEventListener('click', doUploadManifesto);
+  document.getElementById('confirmRejectBtn').addEventListener('click', submitRejectVoterId);
+  document.getElementById('confirmDeleteElectionBtn').addEventListener('click', function() {
+    doDeleteElection(this.dataset.id);
+  });
+  document.getElementById('refreshResultsBtn').addEventListener('click', loadResults);
+  document.getElementById('refreshVoterIdBtn').addEventListener('click', loadVoterIdRequests);
+  document.getElementById('resultsElectionFilter').addEventListener('change', loadResults);
+  document.getElementById('candidateElectionFilter').addEventListener('change', loadCandidates);
+  document.getElementById('userStatusFilter').addEventListener('change', loadUsers);
+  document.getElementById('userSearch').addEventListener('input', loadUsers);
+  document.getElementById('auditFilter').addEventListener('change', loadAudit);
+  document.getElementById('idRequestFilter').addEventListener('change', loadVoterIdRequests);
 });
 
-async function approveVoterIdRequest(id, name) {
-  const note = prompt(`Approving request for ${name}.\n\nOptional note to include in the email (leave blank to skip):`);
-  if (note === null) return;
-  try {
-    const res  = await fetch(`/api/admin/voter-id-requests/${id}/approve`, { method: 'POST', headers: H, body: JSON.stringify({ admin_note: note || null }) });
-    const data = await res.json();
-    if (!res.ok) return alert(data.error || 'Failed to approve request.');
-    alert(`Approved! New Voter ID: ${data.new_voter_id}`);
-    loadVoterIdRequests();
-  } catch (err) { console.error('[approveVoterIdRequest]', err); alert('Network error. Please try again.'); }
-}
-
-async function rejectVoterIdRequest(id, name) {
-  const note = prompt(`Rejecting request for ${name}.\n\nOptional reason to include in the email (leave blank to skip):`);
-  if (note === null) return;
-  try {
-    const res  = await fetch(`/api/admin/voter-id-requests/${id}/reject`, { method: 'POST', headers: H, body: JSON.stringify({ admin_note: note || null }) });
-    const data = await res.json();
-    if (!res.ok) return alert(data.error || 'Failed to reject request.');
-    alert('Request rejected.');
-    loadVoterIdRequests();
-  } catch (err) { console.error('[rejectVoterIdRequest]', err); alert('Network error. Please try again.'); }
-}
-
 // ─────────────────────────────────────────────
-//  AUDIT LOG
+//  DELEGATED EVENT LISTENERS
+//  Handles dynamically-generated table buttons
+//  (elections, candidates, users, voter-id-requests)
+//  All data passed via data-* attributes — no inline JS needed
 // ─────────────────────────────────────────────
-async function loadAudit() {
-  const filter = document.getElementById('auditFilter')?.value || '';
-  const tbody  = document.getElementById('auditBody');
-  tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
-  try {
-    const res  = await fetch('/api/admin/audit-log?limit=200', { headers: H });
-    const data = await res.json();
-    if (!res.ok) { tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">${data.error || 'Failed to load audit log'}</td></tr>`; return; }
-    const actionClass = a => a.includes('LOGIN_SUCCESS') ? 'action-login' : a.includes('VOTE') ? 'action-vote' : a.includes('ADMIN') ? 'action-admin' : a.includes('FAIL') ? 'action-fail' : 'action-other';
-    let logs = data.logs || [];
-    if (filter) logs = logs.filter(l => l.action.includes(filter));
-    tbody.innerHTML = logs.length
-      ? logs.map(l => `
-          <tr>
-            <td><span class="audit-action ${actionClass(l.action)}">${l.action.replace(/_/g, ' ')}</span></td>
-            <td>${l.user_name || '<span class="text-muted">System</span>'}</td>
-            <td class="text-muted">${new Date(l.created_at).toLocaleString()}</td>
-            <td><code style="font-size:0.72rem;color:var(--muted);">${l.meta || ''}</code></td>
-          </tr>`).join('')
-      : '<tr><td colspan="4" class="text-center text-muted py-4">No audit records.</td></tr>';
-  } catch (err) { console.error('[loadAudit]', err); tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Network error loading audit log.</td></tr>'; }
-}
 
-// ── Init ──
-loadDashboard();
-// Pre-load elections cache for button delegation handlers
-fetch('/api/elections', { headers: H })
-  .then(r => r.json())
-  .then(data => { if (Array.isArray(data)) allElections = data; })
-  .catch(() => {});
-// Show pending requests badge
-fetch('/api/admin/voter-id-requests?status=pending', { headers: H })
-  .then(r => r.json())
-  .then(data => {
-    const count = (data.requests || []).length;
-    const badge = document.getElementById('pendingRequestsBadge');
-    if (badge && count > 0) { badge.textContent = count; badge.style.display = ''; }
-  })
-  .catch(() => {});
+// Elections table delegation
+document.getElementById('electionsBody').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = btn.dataset.id;
+  const title  = btn.dataset.title;
+  if (action === 'open')            setElectionStatus(id, 'open');
+  if (action === 'close')           setElectionStatus(id, 'close');
+  if (action === 'live')            quickViewResults(id);
+  if (action === 'results')         quickViewResults(id);
+  if (action === 'tally')           openTallyModal(btn.dataset.id, btn.dataset.title, btn.dataset.votes);
+  if (action === 'delete-election') deleteElection(id, title);
+  if (action === 'edit')            openElectionFromAttr(btn);
+});
+
+// Candidates table delegation
+document.getElementById('candidatesBody').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = btn.dataset.id;
+  if (action === 'upload-photo')     openUploadPhoto(id, btn.dataset.url);
+  if (action === 'upload-manifesto') openUploadManifesto(id);
+  if (action === 'delete-candidate') deleteCandidate(id);
+});
+
+// Users table delegation
+document.getElementById('usersBody').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action  = btn.dataset.action;
+  const id      = btn.dataset.id;
+  const role    = btn.dataset.role;
+  const verified= btn.dataset.verified;
+  if (action === 'suspend')  toggleUser(id, 0, role, verified);
+  if (action === 'activate') toggleUser(id, 1, role, verified);
+  if (action === 'verify')   manualVerify(id);
+  if (action === 'unlock')   unlockUser(id);
+});
+
+// Voter ID requests table delegation
+document.getElementById('voterIdRequestsBody').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = btn.dataset.id;
+  if (action === 'approve-vid') approveVoterIdRequest(id);
+  if (action === 'reject-vid')  openRejectModal(id);
+});
 </script>
+<!-- ── REJECT VOTER ID MODAL ── -->
+<div class="modal fade" id="rejectVoterIdModal" tabindex="-1" aria-labelledby="rejectVoterIdModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+    <div class="modal-content" style="border-radius:16px;border:none;">
+      <div class="modal-header" style="border-bottom:1px solid #e0d9ce;">
+        <h5 class="modal-title fw-bold" id="rejectVoterIdModalLabel" style="color:#0d1117;">
+          <i class="bi bi-x-circle-fill me-2" style="color:#9b1c1c;"></i>Reject ID Reset Request
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p style="font-size:0.88rem;color:#6c7a8d;margin-bottom:1rem;">
+          The voter will be notified by email. Optionally provide a reason so they understand what to do next.
+        </p>
+        <div id="rejectModalAlert" class="alert d-none mb-3" style="border-radius:10px;font-size:0.85rem;"></div>
+        <label class="form-label" for="rejectReasonInput">
+          Reason <span style="color:#6c7a8d;font-weight:400;">(optional)</span>
+        </label>
+        <textarea class="form-control" id="rejectReasonInput" rows="3"
+          placeholder="e.g. Insufficient justification. Please contact admin directly…"
+          style="border-radius:10px;resize:none;"></textarea>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid #e0d9ce;gap:0.5rem;padding:1rem 1.5rem;">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius:10px;">Cancel</button>
+        <button class="btn" id="confirmRejectBtn"
+          style="background:#9b1c1c;color:#fff;border-radius:10px;padding:0.6rem 1.4rem;font-weight:600;">
+          <i class="bi bi-x-lg me-1"></i>Confirm Rejection
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

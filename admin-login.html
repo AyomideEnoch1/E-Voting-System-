@@ -9,316 +9,328 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --ink:#0d1117; --ivory:#f5f0e8; --gold:#c9a84c; --gold-lt:#e8d49a;
-      --crimson:#9b1c1c; --slate:#3a4556; --muted:#6c7a8d; --border:#ddd8ce;
+      --ink:     #0d1117;
+      --ivory:   #f5f0e8;
+      --gold:    #c9a84c;
+      --gold-lt: #e8d49a;
+      --crimson: #9b1c1c;
+      --slate:   #3a4556;
+      --muted:   #6c7a8d;
+      --border:  #ddd8ce;
     }
-    * { box-sizing:border-box; margin:0; padding:0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family:'DM Sans',sans-serif;
-      background: linear-gradient(135deg, #0d1117 0%, #1a2332 60%, #0d1117 100%);
-      min-height:100vh;
-      display:flex; align-items:center; justify-content:center;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
     }
 
-    /* Subtle grid background */
-    body::before {
-      content:'';
-      position:fixed; inset:0;
-      background-image: linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events:none;
+    /* ── Left Panel ── */
+    .panel-left {
+      width: 55%;
+      background: linear-gradient(150deg, #0d1117 0%, #1a2332 50%, #0d1117 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 4rem 5rem;
+      position: relative;
+      overflow: hidden;
     }
+    .panel-left::before {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(155,28,28,0.15) 0%, transparent 70%);
+    }
+    .panel-left::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+    }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(155,28,28,0.15);
+      border: 1px solid rgba(155,28,28,0.4);
+      border-radius: 50px;
+      padding: 8px 18px;
+      margin-bottom: 2.5rem;
+    }
+    .brand-badge i { color: #ff9999; font-size: 1rem; }
+    .brand-badge span { color: #ffb0b0; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 4vw, 3.5rem);
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.1;
+      margin-bottom: 1.4rem;
+    }
+    .hero-title span { color: var(--gold); }
+    .hero-sub {
+      color: rgba(255,255,255,0.5);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 400px;
+      margin-bottom: 2.5rem;
+    }
+    .security-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+    .security-pill {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 50px;
+      padding: 6px 14px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.8rem;
+    }
+    .security-pill i { color: var(--gold); font-size: 0.75rem; }
 
-    .login-wrap {
-      width:100%; max-width:460px;
-      padding:1.5rem;
-      position:relative; z-index:1;
+    /* ── Right Panel ── */
+    .panel-right {
+      width: 45%;
+      background: var(--ivory);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 3.5rem;
     }
-
-    /* Top brand bar */
-    .brand-bar {
-      text-align:center; margin-bottom:2rem;
+    .form-card { max-width: 400px; width: 100%; margin: 0 auto; }
+    .form-eyebrow {
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--crimson); margin-bottom: 0.5rem;
     }
-    .brand-bar .shield-icon {
-      width:60px; height:60px; border-radius:16px;
-      background:linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05));
-      border:1px solid rgba(201,168,76,0.3);
-      display:inline-flex; align-items:center; justify-content:center;
-      font-size:1.6rem; color:var(--gold); margin-bottom:1rem;
+    .form-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700; color: var(--ink); margin-bottom: 0.4rem;
     }
-    .brand-bar h1 {
-      font-family:'Playfair Display',serif;
-      font-size:1.6rem; font-weight:700; color:#fff;
-      margin-bottom:0.3rem;
-    }
-    .brand-bar p { color:rgba(255,255,255,0.4); font-size:0.85rem; }
-
-    /* Card */
-    .login-card {
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.08);
-      border-radius:20px;
-      padding:2.2rem;
-      backdrop-filter:blur(10px);
-    }
-
-    .admin-badge-top {
-      display:inline-flex; align-items:center; gap:6px;
-      background:rgba(155,28,28,0.25); border:1px solid rgba(155,28,28,0.4);
-      color:#ffb0b0; border-radius:50px; padding:4px 14px;
-      font-size:0.72rem; font-weight:700; letter-spacing:0.1em;
-      text-transform:uppercase; margin-bottom:1.5rem;
-    }
-
-    .section-divider {
-      font-size:0.68rem; font-weight:700; letter-spacing:0.14em;
-      text-transform:uppercase; color:rgba(255,255,255,0.3);
-      margin-bottom:1rem; display:flex; align-items:center; gap:10px;
-    }
-    .section-divider::after {
-      content:''; flex:1; height:1px; background:rgba(255,255,255,0.08);
-    }
-
+    .form-subtext { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
     .form-label {
-      font-size:0.8rem; font-weight:600; color:rgba(255,255,255,0.6);
-      letter-spacing:0.04em; margin-bottom:0.4rem; display:block;
+      font-size: 0.82rem; font-weight: 600; color: var(--slate);
+      letter-spacing: 0.04em; margin-bottom: 0.4rem;
     }
     .form-control {
-      background:rgba(255,255,255,0.06);
-      border:1.5px solid rgba(255,255,255,0.1);
-      border-radius:10px; padding:0.75rem 1rem;
-      font-size:0.92rem; color:#fff;
-      transition:border-color 0.2s, box-shadow 0.2s;
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 0.72rem 1rem;
+      font-size: 0.95rem; color: var(--ink);
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .form-control::placeholder { color:rgba(255,255,255,0.25); }
     .form-control:focus {
-      border-color:rgba(201,168,76,0.5);
-      box-shadow:0 0 0 3px rgba(201,168,76,0.1);
-      background:rgba(255,255,255,0.08);
-      color:#fff; outline:none;
+      border-color: var(--crimson);
+      box-shadow: 0 0 0 3px rgba(155,28,28,0.12);
+      outline: none;
     }
-    .input-group .form-control { border-radius:10px 0 0 10px; }
-    .input-group .btn-eye {
-      background:rgba(255,255,255,0.06);
-      border:1.5px solid rgba(255,255,255,0.1); border-left:none;
-      border-radius:0 10px 10px 0; color:rgba(255,255,255,0.4);
-      padding:0 14px; transition:color 0.2s;
+    .input-group .form-control { border-radius: 10px 0 0 10px; }
+    .input-group .btn-outline-secondary {
+      border: 1.5px solid var(--border); border-left: none;
+      border-radius: 0 10px 10px 0; background: #fff;
+      color: var(--muted); padding: 0 14px;
     }
-    .input-group .btn-eye:hover { color:rgba(255,255,255,0.8); }
+    .input-group .btn-outline-secondary:hover { background: #f0ebe0; color: var(--ink); }
+    .btn-login {
+      background: var(--crimson); color: #fff; border: none;
+      border-radius: 10px; padding: 0.78rem; font-size: 0.95rem;
+      font-weight: 600; letter-spacing: 0.03em;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-login:hover { background: #7d1515; transform: translateY(-1px); color: #fff; }
+    .btn-login:active { transform: translateY(0); }
+    .btn-login .spinner-border { width: 1rem; height: 1rem; border-width: 2px; }
+    .alert { border-radius: 10px; font-size: 0.88rem; padding: 0.75rem 1rem; }
+    .back-link {
+      text-align: center; font-size: 0.85rem;
+      color: var(--muted); margin-top: 1.5rem;
+    }
+    .back-link a { color: var(--crimson); font-weight: 600; text-decoration: none; }
+    .back-link a:hover { text-decoration: underline; }
+    .warning-notice {
+      background: rgba(155,28,28,0.06);
+      border: 1px solid rgba(155,28,28,0.2);
+      border-radius: 10px; padding: 0.75rem 1rem;
+      font-size: 0.82rem; color: var(--crimson);
+      margin-bottom: 1.5rem;
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+    .warning-notice i { flex-shrink: 0; margin-top: 2px; }
 
-    /* Secret key field — highlighted differently */
-    .secret-field .form-control {
-      border-color:rgba(201,168,76,0.25);
-      background:rgba(201,168,76,0.04);
-      letter-spacing:0.08em;
-      font-family:monospace; font-size:0.9rem;
-    }
-    .secret-field .form-control:focus {
-      border-color:rgba(201,168,76,0.6);
-      box-shadow:0 0 0 3px rgba(201,168,76,0.12);
-    }
-    .secret-hint {
-      font-size:0.73rem; color:rgba(201,168,76,0.6);
-      margin-top:5px; display:flex; align-items:center; gap:5px;
-    }
-
-    .btn-admin-login {
-      background:linear-gradient(135deg, var(--crimson), #7d1515);
-      color:#fff; border:none; border-radius:10px;
-      padding:0.82rem; font-size:0.95rem; font-weight:700;
-      letter-spacing:0.04em; width:100%;
-      transition:opacity 0.2s, transform 0.15s;
-      position:relative;
-    }
-    .btn-admin-login:hover { opacity:0.9; transform:translateY(-1px); color:#fff; }
-    .btn-admin-login .spinner-border { width:1rem; height:1rem; border-width:2px; }
-
-    .alert {
-      border-radius:10px; font-size:0.85rem;
-      background:rgba(155,28,28,0.2); border:1px solid rgba(155,28,28,0.3);
-      color:#ffb0b0; padding:0.75rem 1rem;
-    }
-    .alert-success {
-      background:rgba(26,107,58,0.2); border-color:rgba(26,107,58,0.3);
-      color:#86efac;
-    }
-
-    .voter-link {
-      text-align:center; margin-top:1.5rem;
-      font-size:0.82rem; color:rgba(255,255,255,0.3);
-    }
-    .voter-link a {
-      color:rgba(255,255,255,0.5); text-decoration:none;
-      transition:color 0.2s;
-    }
-    .voter-link a:hover { color:rgba(255,255,255,0.8); }
-
-    .security-note {
-      margin-top:1.5rem; padding:0.8rem 1rem;
-      background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.15);
-      border-radius:10px;
-      font-size:0.75rem; color:rgba(201,168,76,0.6);
-      display:flex; gap:8px; align-items:flex-start;
-    }
-    .security-note i { margin-top:1px; flex-shrink:0; }
-
-    @media (max-width: 480px) {
-      body { align-items: flex-start; padding-top: 1.5rem; }
-      .login-wrap { padding: 1rem; }
-      .brand-bar { margin-bottom: 1.4rem; }
-      .brand-bar h1 { font-size: 1.35rem; }
-      .login-card { padding: 1.5rem 1.2rem; }
-      .btn-admin-login { padding: 0.9rem; font-size: 1rem; }
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .panel-left { width: 100%; padding: 2rem 1.5rem; min-height: auto; }
+      .panel-right { width: 100%; padding: 2rem 1.5rem; }
+      .hero-title { font-size: 1.9rem; margin-bottom: 0.8rem; }
+      .hero-sub { font-size: 0.9rem; margin-bottom: 1.5rem; }
+      .security-pills { display: none; }
     }
   </style>
 </head>
 <body>
 
-<div class="login-wrap">
-
-  <!-- Brand -->
-  <div class="brand-bar">
-    <div class="shield-icon"><i class="bi bi-shield-lock-fill"></i></div>
-    <h1>SecureVote</h1>
-    <p>Redeemer's University E-Voting System</p>
+  <!-- Left Panel -->
+  <div class="panel-left">
+    <div class="brand-badge">
+      <i class="bi bi-shield-lock-fill"></i>
+      <span>Admin Portal</span>
+    </div>
+    <h1 class="hero-title">Secure<br/><span>Admin</span> Access.</h1>
+    <p class="hero-sub">
+      Restricted to authorised administrators only. All login attempts are logged and audited.
+      Three-factor verification required: email, password, and admin key.
+    </p>
+    <div class="security-pills">
+      <span class="security-pill"><i class="bi bi-key-fill"></i> Admin Key Required</span>
+      <span class="security-pill"><i class="bi bi-journal-text"></i> Full Audit Trail</span>
+      <span class="security-pill"><i class="bi bi-clock-history"></i> Session Expires in 8h</span>
+      <span class="security-pill"><i class="bi bi-lock-fill"></i> Rate Limited</span>
+    </div>
   </div>
 
-  <!-- Card -->
-  <div class="login-card">
-    <div class="admin-badge-top">
-      <i class="bi bi-person-fill-gear"></i> Administrator Access
-    </div>
+  <!-- Right Panel -->
+  <div class="panel-right">
+    <div class="form-card">
+      <p class="form-eyebrow">Restricted Access</p>
+      <h2 class="form-heading">Admin Sign In</h2>
+      <p class="form-subtext">You must have an administrator account and the secret admin key to proceed.</p>
 
-    <div id="alertBox" class="alert d-none mb-3" role="alert"></div>
-
-    <form id="adminLoginForm" novalidate>
-
-      <!-- Credentials -->
-      <div class="section-divider">Credentials</div>
-
-      <div class="mb-3">
-        <label class="form-label" for="email">Admin Email</label>
-        <input type="email" class="form-control" id="email" placeholder="admin@run.edu.ng" required />
+      <div class="warning-notice">
+        <i class="bi bi-shield-exclamation"></i>
+        <span>Unauthorised access attempts are logged and may result in account suspension.</span>
       </div>
 
+      <div id="alertBox" class="alert d-none" role="alert"></div>
+
+      <div class="mb-3">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" class="form-control" id="email" placeholder="admin@run.edu.ng" autocomplete="username" />
+      </div>
       <div class="mb-3">
         <label class="form-label" for="password">Password</label>
         <div class="input-group">
-          <input type="password" class="form-control" id="password" placeholder="Enter password" required />
-          <button type="button" class="btn-eye" id="togglePwd">
+          <input type="password" class="form-control" id="password" placeholder="Enter password" autocomplete="current-password" />
+          <button type="button" class="btn btn-outline-secondary" id="togglePwd">
             <i class="bi bi-eye" id="eyeIcon"></i>
           </button>
         </div>
       </div>
-
-      <!-- Secret Key -->
-      <div class="section-divider" style="margin-top:1.5rem;">Admin Secret Key</div>
-
-      <div class="mb-4 secret-field">
-        <label class="form-label" for="adminKey">Secret Key <span style="color:var(--gold);opacity:0.7;">*</span></label>
+      <div class="mb-4">
+        <label class="form-label" for="adminKey">
+          Admin Secret Key
+          <span style="color:var(--crimson);"> *</span>
+        </label>
         <div class="input-group">
-          <input type="password" class="form-control" id="adminKey" placeholder="Enter your admin secret key" required />
-          <button type="button" class="btn-eye" id="toggleKey">
-            <i class="bi bi-eye" id="keyEyeIcon"></i>
+          <input type="password" class="form-control" id="adminKey" placeholder="Enter admin secret key" autocomplete="off" />
+          <button type="button" class="btn btn-outline-secondary" id="toggleKey">
+            <i class="bi bi-eye" id="keyIcon"></i>
           </button>
         </div>
-        <div class="secret-hint">
-          <i class="bi bi-key-fill"></i>
-          Contact the system administrator if you do not have a secret key.
-        </div>
+        <small class="text-muted" style="font-size:0.78rem;">This key is set in your server's .env file as ADMIN_SECRET_KEY.</small>
       </div>
 
-      <button type="submit" class="btn-admin-login" id="loginBtn">
-        <span id="loginText"><i class="bi bi-shield-lock me-2"></i>Access Admin Panel</span>
+      <button class="btn btn-login w-100" id="loginBtn">
+        <span id="loginText"><i class="bi bi-shield-lock-fill me-2"></i>Sign In to Admin Panel</span>
         <span id="loginSpinner" class="spinner-border d-none" role="status"></span>
       </button>
-    </form>
 
-    <div class="security-note">
-      <i class="bi bi-info-circle-fill"></i>
-      This portal is restricted to authorized administrators only. All access attempts are logged and audited.
+      <div class="back-link">
+        <a href="/"><i class="bi bi-arrow-left me-1"></i>Back to voter login</a>
+      </div>
     </div>
   </div>
 
-  <div class="voter-link">
-    Not an admin? <a href="/">Go to Voter Login →</a>
-  </div>
-
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Redirect if already logged in as admin
-  const existingToken = localStorage.getItem('token');
-  if (existingToken) {
-    try {
-      const role = JSON.parse(atob(existingToken.split('.')[1])).role;
-      if (role === 'admin') window.location.href = '/admin';
-    } catch {}
-  }
+  // ── Redirect if already logged in as admin ──
+  (function() {
+    const t = localStorage.getItem('token');
+    const u = JSON.parse(localStorage.getItem('user') || '{}');
+    if (t && u.role === 'admin') window.location.href = '/admin';
+  })();
 
-  // Toggle password visibility
+  // ── Toggle password visibility ──
   document.getElementById('togglePwd').addEventListener('click', () => {
-    const p = document.getElementById('password');
-    const i = document.getElementById('eyeIcon');
-    p.type = p.type === 'password' ? 'text' : 'password';
-    i.className = p.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+    const pwd  = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    pwd.type   = pwd.type === 'password' ? 'text' : 'password';
+    icon.className = pwd.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
   });
 
-  // Toggle secret key visibility
   document.getElementById('toggleKey').addEventListener('click', () => {
-    const k = document.getElementById('adminKey');
-    const i = document.getElementById('keyEyeIcon');
-    k.type = k.type === 'password' ? 'text' : 'password';
-    i.className = k.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+    const key  = document.getElementById('adminKey');
+    const icon = document.getElementById('keyIcon');
+    key.type   = key.type === 'password' ? 'text' : 'password';
+    icon.className = key.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
   });
 
+  // ── Alert helper ──
   function showAlert(msg, type = 'danger') {
     const box = document.getElementById('alertBox');
-    box.className = `alert${type === 'success' ? ' alert-success' : ''}`;
-    box.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}-fill me-2"></i>${msg}`;
+    box.className = `alert alert-${type}`;
+    box.innerHTML = `<i class="bi bi-${type === 'danger' ? 'exclamation-triangle' : 'check-circle'}-fill me-2"></i>${msg}`;
     box.classList.remove('d-none');
   }
 
-  document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  // ── Login submit ──
+  document.getElementById('loginBtn').addEventListener('click', async () => {
     const email    = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    const adminKey = document.getElementById('adminKey').value.trim();
+    const adminKey = document.getElementById('adminKey').value;
     const btn      = document.getElementById('loginBtn');
     const txt      = document.getElementById('loginText');
     const spin     = document.getElementById('loginSpinner');
 
-    if (!email || !password || !adminKey)
-      return showAlert('All fields are required including the Admin Secret Key.');
+    // Client-side validation
+    if (!email || !password || !adminKey) {
+      return showAlert('All three fields are required: email, password, and admin key.');
+    }
 
-    btn.disabled = true; txt.classList.add('d-none'); spin.classList.remove('d-none');
+    btn.disabled = true;
+    txt.classList.add('d-none');
+    spin.classList.remove('d-none');
 
     try {
       const res  = await fetch('/api/auth/admin-login', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, password, admin_key: adminKey })
+        body: JSON.stringify({ email, password, admin_key: adminKey })
       });
       const data = await res.json();
 
-      if (!res.ok) return showAlert(data.error || 'Login failed.');
-
-      // Must be admin role
-      if (data.user.role !== 'admin') {
-        return showAlert('Access denied. This portal is for administrators only.');
+      if (!res.ok) {
+        showAlert(data.error || 'Login failed. Check your credentials and admin key.');
+        return;
       }
 
+      // ── Store token and user — same keys admin.html reads ──
+      // admin.html reads: localStorage.getItem('token') and localStorage.getItem('user')
+      // auth_routes.js returns: { token, user: { id, name, email, voter_id, role } }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user',  JSON.stringify(data.user));
-      showAlert('Access granted. Redirecting…', 'success');
-      setTimeout(() => window.location.href = '/admin', 900);
+
+      showAlert('Login successful! Redirecting to dashboard…', 'success');
+      setTimeout(() => { window.location.href = '/admin'; }, 800);
+
     } catch {
-      showAlert('Network error — please try again.');
+      showAlert('Network error — please check your connection and try again.');
     } finally {
-      btn.disabled = false; txt.classList.remove('d-none'); spin.classList.add('d-none');
+      btn.disabled = false;
+      txt.classList.remove('d-none');
+      spin.classList.add('d-none');
     }
+  });
+
+  // ── Allow Enter key to submit ──
+  ['email', 'password', 'adminKey'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('loginBtn').click();
+    });
   });
 </script>
 </body>

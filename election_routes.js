@@ -11,6 +11,11 @@ const { q, q1, qa }  = require('./database');
 const auth    = authMiddleware.authenticate.bind(authMiddleware);
 const isAdmin = authMiddleware.authorize('admin');
 
+// Normalize any ISO 8601 string (including timezone offsets) to MySQL DATETIME format.
+// The DB pool is already set to WAT (+01:00), so we convert to UTC then let MySQL
+// store the wall-clock value correctly via the pool's timezone setting.
+const toMySQLDatetime = (iso) => new Date(iso).toISOString().slice(0, 19).replace('T', ' ');
+
 /* ── CREATE ── */
 router.post('/', auth, isAdmin, async (req, res) => {
   try {
@@ -30,7 +35,8 @@ router.post('/', auth, isAdmin, async (req, res) => {
       `INSERT INTO elections (id,title,description,start_time,end_time,status,master_key_enc,public_key,created_by)
        VALUES (?,?,?,?,?,'draft',?,?,?)`,
       [id, secUtils.sanitize(title), secUtils.sanitize(description || ''),
-       start_time, end_time, JSON.stringify({ masterKey: encMasterKey, privateKey: encPrivKey }),
+       toMySQLDatetime(start_time), toMySQLDatetime(end_time),
+       JSON.stringify({ masterKey: encMasterKey, privateKey: encPrivKey }),
        publicKey, req.user.id]
     );
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
@@ -56,7 +62,8 @@ router.put('/:id', auth, isAdmin, async (req, res) => {
 
     await q(
       'UPDATE elections SET title=?,description=?,start_time=?,end_time=? WHERE id=?',
-      [secUtils.sanitize(title), secUtils.sanitize(description || ''), start_time, end_time, req.params.id]
+      [secUtils.sanitize(title), secUtils.sanitize(description || ''),
+       toMySQLDatetime(start_time), toMySQLDatetime(end_time), req.params.id]
     );
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'ELECTION_UPDATED', req.user.id, JSON.stringify({ electionId: req.params.id }), secUtils.hashIP(req.ip)]);
@@ -210,22 +217,6 @@ router.get('/:id/results', auth, async (req, res) => {
   } catch (e) { console.error('[GET RESULTS]', e); res.status(500).json({ error: 'Failed to fetch results' }); }
 });
 
-/* ── ADD CANDIDATE (shortcut) ── */
-router.post('/:id/candidates', auth, isAdmin, async (req, res) => {
-  try {
-    const { name, party, bio, position } = req.body;
-    if (!name) return res.status(400).json({ error: 'Candidate name required' });
-    const election = await q1('SELECT status FROM elections WHERE id=?', [req.params.id]);
-    if (!election) return res.status(404).json({ error: 'Election not found' });
-    if (['active','closed','tallied'].includes(election.status))
-      return res.status(400).json({ error: 'Cannot add candidates to an active or closed election' });
-    const id = uuid();
-    await q('INSERT INTO candidates (id,election_id,name,party,bio,position) VALUES (?,?,?,?,?,?)',
-      [id, req.params.id, secUtils.sanitize(name), secUtils.sanitize(party||''), secUtils.sanitize(bio||''), secUtils.sanitize(position||'')]);
-    res.status(201).json({ message: 'Candidate added', id });
-  } catch (e) { console.error('[ADD CANDIDATE]', e); res.status(500).json({ error: 'Failed to add candidate' }); }
-});
-
 /* ── DELETE ELECTION ── */
 router.delete('/:id', auth, isAdmin, async (req, res) => {
   try {
@@ -235,6 +226,10 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
     // Block deletion of active elections — too dangerous
     if (election.status === 'active')
       return res.status(400).json({ error: 'Cannot delete an active election. Close it first.' });
+
+    // FIXED: also block tallied elections — signed results must remain for audit integrity
+    if (election.status === 'tallied')
+      return res.status(400).json({ error: 'Cannot delete a tallied election. Results are permanent records.' });
 
     // Cascade delete in correct FK order
     await q('DELETE FROM election_results WHERE election_id=?', [req.params.id]);

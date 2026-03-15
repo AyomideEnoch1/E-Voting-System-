@@ -20,11 +20,12 @@ router.post('/cast', auth, isVoter, voteLimiter, async (req, res) => {
     if (!election_id || !candidate_id)
       return res.status(400).json({ error: 'election_id and candidate_id are required' });
 
-    // Always validate voter_id if provided; require it for extra integrity
+    // Validate voter_id if submitted
     if (voter_id) {
       const me = await q1('SELECT voter_id FROM users WHERE id=?', [req.user.id]);
-      if (!me || me.voter_id !== voter_id.toUpperCase())
+      if (!me || me.voter_id !== voter_id.toUpperCase()) {
         return res.status(403).json({ error: 'Voter ID does not match your account. Please check and try again.' });
+      }
     }
 
     const election = await q1('SELECT * FROM elections WHERE id=?', [election_id]);
@@ -32,24 +33,22 @@ router.post('/cast', auth, isVoter, voteLimiter, async (req, res) => {
     if (election.status !== 'active')
       return res.status(400).json({ error: 'Election is not currently open for voting' });
 
-    // Time window is advisory — status='active' is the canonical gate.
-    // Only enforce if the election has a defined window AND it is clearly outside it.
-    const nowMs = Date.now();
-    if (election.start_time && nowMs < new Date(election.start_time).getTime())
-      return res.status(400).json({ error: 'Voting has not started yet' });
-    if (election.end_time && nowMs > new Date(election.end_time).getTime())
-      return res.status(400).json({ error: 'Voting period has ended' });
+    const now = new Date();
+    if (now < new Date(election.start_time) || now > new Date(election.end_time))
+      return res.status(400).json({ error: 'Voting period is not active' });
 
     const candidate = await q1(
       'SELECT id FROM candidates WHERE id=? AND election_id=?', [candidate_id, election_id]
     );
     if (!candidate) return res.status(400).json({ error: 'Invalid candidate for this election' });
 
+    // Fast-path duplicate check
     const already = await q1(
       'SELECT id FROM vote_registry WHERE voter_id=? AND election_id=?', [req.user.id, election_id]
     );
     if (already) return res.status(400).json({ error: 'You have already voted in this election' });
 
+    // Decrypt election master key
     const keyData   = JSON.parse(election.master_key_enc);
     const masterKey = encService.decryptWithPassword(
       keyData.masterKey.encrypted, process.env.KEY_PASSPHRASE || 'default',
@@ -61,6 +60,7 @@ router.post('/cast', auth, isVoter, voteLimiter, async (req, res) => {
     const anonymousId    = secUtils.anonymizeVoterId(req.user.id, election_id, electionSecret);
     const voteHash       = hashService.hashVoteRecord(anonymousId, candidate_id, election_id, encryptedVote.iv);
 
+    // Decrypt election private key to sign receipt
     const privKeyData = keyData.privateKey;
     const privateKey  = encService.decryptWithPassword(
       privKeyData.encrypted, process.env.KEY_PASSPHRASE || 'default',
@@ -78,6 +78,7 @@ router.post('/cast', auth, isVoter, voteLimiter, async (req, res) => {
        encryptedVote.tag, voteHash, receipt.receiptHash, receipt.signature, receipt.receiptData]
     );
 
+    // Race-condition-safe registry insert
     try {
       await q('INSERT INTO vote_registry (id,voter_id,election_id,ip_hash) VALUES (?,?,?,?)',
         [uuid(), req.user.id, election_id, secUtils.hashIP(req.ip)]);
@@ -139,7 +140,7 @@ router.post('/verify-receipt', auth, async (req, res) => {
     let sigValid = false;
     try {
       sigValid = sigService.verifySignature(vote.receipt_data, vote.receipt_sig, vote.public_key);
-    } catch (sigErr) { console.error('[RECEIPT SIG]', sigErr.message); }
+    } catch (e) { console.error('[RECEIPT SIG]', e.message); }
 
     res.json({
       verified:        sigValid,
@@ -156,19 +157,11 @@ router.post('/verify-receipt', auth, async (req, res) => {
 });
 
 /* ── REQUEST VOTER ID RESET ── */
-router.post('/request-voter-id-reset', auth, async (req, res) => {
+router.post('/request-voter-id-reset', auth, isVoter, async (req, res) => {
   try {
     const { reason } = req.body;
 
-    if (!reason || typeof reason !== 'string' || reason.trim().length < 20)
-      return res.status(400).json({ error: 'Please provide a reason of at least 20 characters.' });
-
-    // Only verified users have a Voter ID — unverified users have nothing to reset
-    const user = await q1('SELECT email, full_name, is_verified, voter_id FROM users WHERE id=?', [req.user.id]);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    if (!user.is_verified || !user.voter_id)
-      return res.status(400).json({ error: 'Your account is not yet verified. No Voter ID to reset.' });
-
+    // Block duplicate pending requests
     const existing = await q1(
       `SELECT id FROM voter_id_reset_requests WHERE user_id=? AND status='pending'`,
       [req.user.id]
@@ -176,19 +169,16 @@ router.post('/request-voter-id-reset', auth, async (req, res) => {
     if (existing)
       return res.status(400).json({ error: 'You already have a pending Voter ID reset request. Please wait for admin review.' });
 
+    const user = await q1('SELECT email, full_name FROM users WHERE id=?', [req.user.id]);
+
     await q('INSERT INTO voter_id_reset_requests (id,user_id,reason) VALUES (?,?,?)',
-      [uuid(), req.user.id, reason.trim()]);
+      [uuid(), req.user.id, reason || null]);
+
+    await sendVoterIdRequestReceived(user.email, user.full_name);
 
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'VOTER_ID_RESET_REQUESTED', req.user.id,
-       JSON.stringify({ reason: reason.trim() }), secUtils.hashIP(req.ip)]);
-
-    // Send confirmation email — non-fatal
-    try {
-      await sendVoterIdRequestReceived(user.email, user.full_name);
-    } catch (emailErr) {
-      console.error('[VOTER ID RESET] Confirmation email failed (non-fatal):', emailErr.message);
-    }
+       JSON.stringify({ reason }), secUtils.hashIP(req.ip)]);
 
     res.json({ message: 'Your Voter ID reset request has been submitted. You will be notified by email once reviewed.' });
   } catch (e) {

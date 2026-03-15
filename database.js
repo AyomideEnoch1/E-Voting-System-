@@ -1,6 +1,3 @@
-/**
- * Database — MySQL connection pool + auto table creation
- */
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 
@@ -9,24 +6,22 @@ let db;
 async function connectDB() {
   try {
     db = await mysql.createPool({
-      host:             process.env.DB_HOST || 'localhost',
-      port:             process.env.DB_PORT || 3306,
-      user:             process.env.DB_USER || 'root',
-      password:         process.env.DB_PASS || '',
-      database:         process.env.DB_NAME || 'evoting',
+      host:     process.env.DB_HOST || 'localhost',
+      port:     process.env.DB_PORT || 3306,
+      user:     process.env.DB_USER || 'root',
+      password: process.env.DB_PASS || '',
+      database: process.env.DB_NAME || 'evoting',
       waitForConnections: true,
-      connectionLimit:  10,
-      timezone:         '+01:00'
+      connectionLimit: 10,
+      timezone: '+01:00'  // WAT
     });
 
-    db.pool.on('connection', (conn) => {
-      conn.query("SET time_zone = '+01:00'");
-    });
+    // Force WAT on every connection
+    db.pool.on('connection', conn => conn.query("SET time_zone = '+01:00'"));
 
     await db.query('SELECT 1');
     console.log('✅  MySQL connected');
     await createTables();
-    await runMigrations();
   } catch (err) {
     console.error('❌  MySQL connection failed:', err.message);
     process.exit(1);
@@ -38,21 +33,21 @@ async function createTables() {
 
     /* ── USERS ── */
     `CREATE TABLE IF NOT EXISTS users (
-      id                           VARCHAR(36)  PRIMARY KEY,
-      full_name                    VARCHAR(150) NOT NULL,
-      email                        VARCHAR(150) NOT NULL UNIQUE,
-      voter_id                     VARCHAR(50)  UNIQUE,
-      password_hash                VARCHAR(255) NOT NULL,
-      role                         ENUM('voter','admin','observer') DEFAULT 'voter',
-      is_active                    TINYINT(1)   DEFAULT 1,
-      is_verified                  TINYINT(1)   DEFAULT 0,
-      public_key                   TEXT,
-      login_attempts               INT          DEFAULT 0,
-      locked_until                 DATETIME,
-      last_login                   DATETIME,
-      verification_token           VARCHAR(36),
-      verification_token_expiry    DATETIME,
-      created_at                   DATETIME     DEFAULT CURRENT_TIMESTAMP
+      id                         VARCHAR(36)  PRIMARY KEY,
+      full_name                  VARCHAR(150) NOT NULL,
+      email                      VARCHAR(150) NOT NULL UNIQUE,
+      voter_id                   VARCHAR(50)  UNIQUE,
+      password_hash              VARCHAR(255) NOT NULL,
+      role                       ENUM('voter','admin','observer') DEFAULT 'voter',
+      is_active                  TINYINT(1)   DEFAULT 1,
+      is_verified                TINYINT(1)   DEFAULT 0,
+      public_key                 TEXT,
+      login_attempts             INT          DEFAULT 0,
+      locked_until               DATETIME,
+      last_login                 DATETIME,
+      verification_token         VARCHAR(36),
+      verification_token_expiry  DATETIME,
+      created_at                 DATETIME     DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
     /* ── ELECTIONS ── */
@@ -94,24 +89,24 @@ async function createTables() {
       FOREIGN KEY (election_id) REFERENCES elections(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    /* ── VOTES (encrypted, anonymous) ── */
+    /* ── VOTES ── receipt_data stores the JSON receipt for verification */
     `CREATE TABLE IF NOT EXISTS votes (
-      id             VARCHAR(36) PRIMARY KEY,
-      election_id    VARCHAR(36) NOT NULL,
-      anonymous_id   VARCHAR(64) NOT NULL,
-      encrypted_vote TEXT        NOT NULL,
-      vote_iv        VARCHAR(64) NOT NULL,
-      vote_tag       VARCHAR(64) NOT NULL,
-      vote_hash      VARCHAR(64) NOT NULL,
-      receipt_hash   VARCHAR(64) NOT NULL,
-      receipt_sig    TEXT        NOT NULL,
-      receipt_data   TEXT        NOT NULL,
-      cast_at        DATETIME    DEFAULT CURRENT_TIMESTAMP,
+      id             VARCHAR(36)  PRIMARY KEY,
+      election_id    VARCHAR(36)  NOT NULL,
+      anonymous_id   VARCHAR(64)  NOT NULL,
+      encrypted_vote TEXT         NOT NULL,
+      vote_iv        VARCHAR(64)  NOT NULL,
+      vote_tag       VARCHAR(64)  NOT NULL,
+      vote_hash      VARCHAR(64)  NOT NULL,
+      receipt_hash   VARCHAR(64)  NOT NULL,
+      receipt_sig    TEXT         NOT NULL,
+      receipt_data   TEXT,
+      cast_at        DATETIME     DEFAULT CURRENT_TIMESTAMP,
       UNIQUE KEY uq_vote (election_id, anonymous_id),
       FOREIGN KEY (election_id) REFERENCES elections(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    /* ── VOTE REGISTRY ── */
+    /* ── VOTE REGISTRY (who voted — separated from vote content) ── */
     `CREATE TABLE IF NOT EXISTS vote_registry (
       id          VARCHAR(36) PRIMARY KEY,
       voter_id    VARCHAR(36) NOT NULL,
@@ -145,33 +140,43 @@ async function createTables() {
       FOREIGN KEY (tallied_by)  REFERENCES users(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+    /* ── PASSWORD RESET TOKENS ── */
+    `CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id         VARCHAR(36)  PRIMARY KEY,
+      user_id    VARCHAR(36)  NOT NULL,
+      token      VARCHAR(36)  NOT NULL UNIQUE,
+      expires_at DATETIME     NOT NULL,
+      used       TINYINT(1)   DEFAULT 0,
+      created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
     /* ── VOTER ID RESET REQUESTS ── */
     `CREATE TABLE IF NOT EXISTS voter_id_reset_requests (
-      id          VARCHAR(36)  PRIMARY KEY,
-      user_id     VARCHAR(36)  NOT NULL,
-      reason      TEXT,
-      status      ENUM('pending','approved','rejected') DEFAULT 'pending',
-      admin_note  TEXT,
-      reviewed_by VARCHAR(36),
-      reviewed_at DATETIME,
-      created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
+      id            VARCHAR(36)  PRIMARY KEY,
+      user_id       VARCHAR(36)  NOT NULL,
+      reason        TEXT,
+      status        ENUM('pending','approved','rejected') DEFAULT 'pending',
+      reviewed_by   VARCHAR(36),
+      reject_reason TEXT,
+      created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP,
+      reviewed_at   DATETIME,
       FOREIGN KEY (user_id)     REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (reviewed_by) REFERENCES users(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
   ];
 
   for (const sql of tables) await db.query(sql);
-  console.log('✅  All tables ready');
-}
 
-/* ── Add receipt_data column to existing votes table if missing ── */
-async function runMigrations() {
+  // Migrate: add receipt_data column if it doesn't exist (for existing installs)
   try {
-    await db.query(`ALTER TABLE votes ADD COLUMN IF NOT EXISTS receipt_data TEXT NOT NULL DEFAULT ''`);
-    console.log('✅  Migrations complete');
+    await db.query('ALTER TABLE votes ADD COLUMN receipt_data TEXT AFTER receipt_sig');
+    console.log('✅  Migrated: added receipt_data column to votes');
   } catch (e) {
-    // Ignore — column may already exist or DB doesn't support IF NOT EXISTS
+    if (e.code !== 'ER_DUP_FIELDNAME') console.error('Migration warning:', e.message);
   }
+
+  console.log('✅  All tables ready');
 }
 
 const q  = (sql, p = []) => db.query(sql, p);

@@ -193,17 +193,170 @@
     .result-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--ink), var(--slate)); transition: width 0.8s ease; }
     .result-bar-fill.winner { background: linear-gradient(90deg, var(--crimson), #c0392b); }
 
-    /* ── Section label ── */
-    .section-label { font-size:0.7rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); border-bottom:1px solid var(--border); padding-bottom:0.5rem; margin-bottom:1rem; display:block; }
+    /* ── Mobile Top Bar ── */
+    .mobile-topbar {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      background: var(--ink); height: 56px;
+      align-items: center; justify-content: space-between;
+      padding: 0 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    .mobile-topbar .brand {
+      font-family: 'Playfair Display', serif; color: #fff;
+      font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;
+    }
+    .mobile-topbar .brand i { color: var(--gold); }
+    .mobile-topbar .user-chip {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--crimson));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; font-weight: 700; color: #fff;
+    }
 
-    /* ── Responsive ── */
-    @media (max-width: 768px) {
-      .sidebar { width: 100%; min-height: auto; position: relative; flex-direction: row; flex-wrap: wrap; }
-      .main-content { margin-left: 0; padding: 1.5rem 1rem; }
+    /* ── Mobile Bottom Nav ── */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      background: var(--ink);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+    }
+    .mobile-bottom-nav ul {
+      display: flex; list-style: none; margin: 0; padding: 0;
+      justify-content: space-around;
+    }
+    .mobile-bottom-nav .mob-nav-link {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: rgba(255,255,255,0.5); text-decoration: none;
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.04em;
+      padding: 0.35rem 0.8rem; border-radius: 10px;
+      transition: color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mobile-bottom-nav .mob-nav-link i { font-size: 1.3rem; }
+    .mobile-bottom-nav .mob-nav-link.active { color: var(--gold); }
+    .mobile-bottom-nav .mob-nav-link.logout-link { color: rgba(255,100,100,0.6); }
+    .mobile-bottom-nav .mob-nav-link.logout-link.active,
+    .mobile-bottom-nav .mob-nav-link.logout-link:hover { color: #ff6b6b; }
+
+    /* ── Responsive Breakpoints ── */
+    @media (max-width: 991px) {
+      /* Hide desktop sidebar, show mobile chrome */
+      .sidebar { display: none !important; }
+      .mobile-topbar { display: flex; }
+      .mobile-bottom-nav { display: block; }
+
+      /* Push content below top bar and above bottom nav */
+      .main-content {
+        margin-left: 0;
+        padding: 1.2rem 1rem;
+        padding-top: calc(56px + 1.2rem);
+        padding-bottom: calc(70px + env(safe-area-inset-bottom) + 1rem);
+      }
+
+      /* Page header sizing */
+      .page-header h1 { font-size: 1.45rem; }
+
+      /* Stat cards: 3 across on tablet, 1 row scroll on phone */
+      .stat-card { padding: 1rem 1.2rem; }
+      .stat-card .stat-value { font-size: 1.5rem; }
+
+      /* Election cards: full width on mobile */
+      #electionsGrid .col-md-6,
+      #votedList .col-md-6 { width: 100%; }
+
+      /* Verify section: full width */
+      #section-verify .col-md-7 { width: 100%; }
+
+      /* Modals: full-screen on mobile */
+      .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+        min-height: 100%;
+        align-items: flex-end;
+      }
+      .modal-content {
+        border-radius: 20px 20px 0 0;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+      .modal-dialog-centered { align-items: flex-end; }
+
+      /* Candidate cards: single column */
+      #candidatesList .col-md-6 { width: 100%; }
+
+      /* Buttons: full width on small screens */
+      .modal-footer { flex-wrap: wrap; gap: 0.5rem; }
+      .modal-footer .btn { flex: 1 1 auto; min-width: 120px; }
+
+      /* Receipt box font */
+      .receipt-box { font-size: 0.72rem; padding: 0.9rem; }
+
+      /* Election meta wraps nicely */
+      .election-meta { gap: 0.7rem; }
+      .election-meta span { font-size: 0.75rem; }
+
+      /* Action buttons in election cards */
+      .election-card-body .d-flex { flex-wrap: wrap; gap: 0.5rem !important; }
+      .btn-vote, .btn-voted, .btn-results { font-size: 0.8rem; padding: 0.5rem 1rem; }
+    }
+
+    @media (max-width: 575px) {
+      .main-content { padding: 1rem 0.75rem; padding-top: calc(56px + 1rem); padding-bottom: calc(70px + env(safe-area-inset-bottom) + 1rem); }
+      .page-header { margin-bottom: 1.2rem; }
+      .page-header h1 { font-size: 1.25rem; }
+
+      /* Stat cards: horizontal scroll strip on very small screens */
+      .stats-row { display: flex; overflow-x: auto; gap: 0.75rem; padding-bottom: 0.5rem; flex-wrap: nowrap; }
+      .stats-row .col-md-4 { flex: 0 0 150px; width: 150px; }
+      .stats-row .stat-card { padding: 0.9rem 1rem; }
+      .stats-row .stat-card .stat-value { font-size: 1.3rem; }
+      .stats-row .stat-card .stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+
+      /* Tighten election cards */
+      .election-card-header { padding: 1rem 1.1rem; }
+      .election-card-body { padding: 1rem 1.1rem; }
+      .election-card-header .title { font-size: 0.95rem; }
+
+      /* Candidate card layout on tiny screens */
+      .candidate-card { padding: 0.85rem; }
+      .candidate-photo { width: 48px; height: 48px; font-size: 1.2rem; }
+      .candidate-name { font-size: 0.88rem; }
+
+      /* Modal footer stacks vertically */
+      .modal-footer { flex-direction: column; }
+      .modal-footer .btn { width: 100%; }
+
+      /* Verify section */
+      #section-verify .stat-card { padding: 1.2rem; }
+    }
+
+    /* Tablet: keep sidebar but narrower */
+    @media (min-width: 992px) and (max-width: 1199px) {
+      .sidebar { width: 220px; }
+      .main-content { margin-left: 220px; padding: 1.8rem 1.8rem; }
     }
   </style>
 </head>
 <body>
+
+<!-- Mobile Top Bar -->
+<div class="mobile-topbar">
+  <div class="brand"><i class="bi bi-shield-lock-fill"></i> SecureVote</div>
+  <div class="user-chip" id="mobileAvatarInitial">?</div>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-bottom-nav">
+  <ul>
+    <li><a class="mob-nav-link active" href="#" data-section="elections"><i class="bi bi-card-list"></i>Elections</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="voted"><i class="bi bi-check2-square"></i>My Votes</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="verify"><i class="bi bi-shield-check"></i>Verify</a></li>
+    <li><a class="mob-nav-link" href="#" data-section="account"><i class="bi bi-person-gear"></i>Account</a></li>
+    <li><a class="mob-nav-link logout-link" href="#" id="mobileLogoutBtn"><i class="bi bi-box-arrow-right"></i>Sign Out</a></li>
+  </ul>
+</nav>
 
 <!-- Sidebar -->
 <div class="sidebar">
@@ -223,7 +376,7 @@
     <li class="nav-item"><a class="nav-link active" href="#" data-section="elections"><i class="bi bi-card-list"></i> Elections</a></li>
     <li class="nav-item"><a class="nav-link" href="#" data-section="voted"><i class="bi bi-check2-square"></i> My Votes</a></li>
     <li class="nav-item"><a class="nav-link" href="#" data-section="verify"><i class="bi bi-shield-check"></i> Verify Receipt</a></li>
-    <li class="nav-item"><a class="nav-link" href="#" data-section="account"><i class="bi bi-person-circle"></i> My Account</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-section="account"><i class="bi bi-person-gear"></i> My Account</a></li>
   </ul>
   <div class="sidebar-logout mt-auto">
     <p class="nav-section-label">Account</p>
@@ -244,7 +397,7 @@
     </div>
 
     <!-- Stats Row -->
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-4 stats-row">
       <div class="col-md-4">
         <div class="stat-card">
           <div class="stat-icon" style="background:rgba(201,168,76,0.12);color:var(--gold)"><i class="bi bi-card-list"></i></div>
@@ -305,84 +458,66 @@
       </div>
     </div>
   </div>
-  <!-- MY ACCOUNT SECTION -->
+
+  <!-- ACCOUNT SECTION -->
   <div id="section-account" class="d-none">
     <div class="page-header">
       <h1>My Account</h1>
-      <p>View your profile, manage your Voter ID and update your password.</p>
+      <p>Manage your credentials and voter identity.</p>
     </div>
     <div class="row g-4 justify-content-center">
-      <div class="col-md-8">
 
-        <!-- Profile Info Card -->
-        <div class="stat-card mb-4">
-          <span class="section-label"><i class="bi bi-person-fill me-2"></i>Profile Information</span>
-          <div id="accountProfileBody">
-            <div class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>
-          </div>
-        </div>
-
-        <!-- Voter ID Card -->
-        <div class="stat-card mb-4">
-          <span class="section-label"><i class="bi bi-person-badge-fill me-2"></i>Your Voter ID</span>
-          <div id="voterIdDisplay" style="font-family:'Courier New',monospace;font-size:1.8rem;font-weight:700;letter-spacing:0.15em;color:var(--ink);text-align:center;padding:1rem;background:var(--ivory);border-radius:10px;border:1px solid var(--border);margin-bottom:0.75rem;">—</div>
-          <p class="text-muted mb-4" style="font-size:0.78rem;text-align:center;"><i class="bi bi-info-circle me-1"></i>This ID was emailed to you after email verification. You need it to cast a vote.</p>
-
-          <span class="section-label"><i class="bi bi-arrow-repeat me-2"></i>Request a Voter ID Reset</span>
-          <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">Lost your Voter ID? Submit a reset request and an administrator will issue a new one.</p>
-
-          <div id="voterIdRequestAlert" class="d-none alert mb-3" style="font-size:0.85rem;border-radius:10px;"></div>
-          <label class="form-label" for="resetReason">Reason for request <span style="color:var(--crimson)">*</span></label>
-          <textarea class="form-control mb-3" id="resetReason" rows="3" placeholder="e.g. I lost the email that contained my Voter ID…" maxlength="500"></textarea>
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted" style="font-size:0.75rem;"><i class="bi bi-clock me-1"></i>Reviewed by an administrator</small>
-            <button class="btn btn-vote" id="submitResetBtn" onclick="submitVoterIdRequest()">
-              <i class="bi bi-send me-2"></i>Submit Request
-            </button>
-          </div>
-        </div>
-
-        <!-- Change Password Card -->
-        <div class="stat-card">
-          <span class="section-label"><i class="bi bi-key-fill me-2"></i>Change Password</span>
-          <div id="passwordAlert" class="d-none alert mb-3" style="font-size:0.85rem;border-radius:10px;"></div>
-
-          <div class="mb-3">
-            <label class="form-label" for="currentPassword">Current Password <span style="color:var(--crimson)">*</span></label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="currentPassword" placeholder="Enter your current password" autocomplete="current-password" />
-              <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('currentPassword',this)" tabindex="-1"><i class="bi bi-eye"></i></button>
+      <!-- Password Reset Card -->
+      <div class="col-md-6">
+        <div class="stat-card p-4 h-100">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="stat-icon" style="background:rgba(201,168,76,0.12);color:var(--gold);flex-shrink:0;">
+              <i class="bi bi-lock-fill"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-0" style="color:var(--ink);">Change Password</h5>
+              <small class="text-muted">Update your login password</small>
             </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label" for="newPassword">New Password <span style="color:var(--crimson)">*</span></label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="newPassword" placeholder="At least 8 characters" autocomplete="new-password" />
-              <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('newPassword',this)" tabindex="-1"><i class="bi bi-eye"></i></button>
-            </div>
-            <div class="mt-2" id="pwdStrengthWrap" style="display:none;">
-              <div style="height:4px;border-radius:4px;background:var(--border);overflow:hidden;"><div id="pwdStrengthBar" style="height:100%;width:0;border-radius:4px;transition:width 0.3s,background 0.3s;"></div></div>
-              <small id="pwdStrengthLabel" class="text-muted" style="font-size:0.72rem;"></small>
-            </div>
-          </div>
-          <div class="mb-4">
-            <label class="form-label" for="confirmPassword">Confirm New Password <span style="color:var(--crimson)">*</span></label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="confirmPassword" placeholder="Repeat new password" autocomplete="new-password" />
-              <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('confirmPassword',this)" tabindex="-1"><i class="bi bi-eye"></i></button>
-            </div>
-            <small id="confirmMismatch" class="d-none" style="color:var(--crimson);font-size:0.75rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Passwords do not match.</small>
-          </div>
-          <button class="btn btn-vote w-100" id="changePasswordBtn" onclick="changePassword()">
-            <i class="bi bi-key-fill me-2"></i>Update Password
+          <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.2rem;">
+            A reset link will be sent to your registered email address. The link expires in <strong>1 hour</strong>.
+          </p>
+          <div id="pwdResetAlert" class="alert d-none mb-3" style="border-radius:10px;font-size:0.85rem;"></div>
+          <button class="btn btn-vote w-100" id="sendPwdResetBtn">
+            <i class="bi bi-envelope-fill me-2"></i>Send Password Reset Link
           </button>
         </div>
-
       </div>
+
+      <!-- Voter ID Reset Card -->
+      <div class="col-md-6">
+        <div class="stat-card p-4 h-100">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="stat-icon" style="background:rgba(155,28,28,0.1);color:var(--crimson);flex-shrink:0;">
+              <i class="bi bi-person-badge-fill"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-0" style="color:var(--ink);">Reset Voter ID</h5>
+              <small class="text-muted">Request a new Voter ID from admin</small>
+            </div>
+          </div>
+          <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.2rem;">
+            Use this if your Voter ID was lost or compromised. An administrator will review your request and issue a new ID. You'll be notified by email.
+          </p>
+          <div id="voterIdResetAlert" class="alert d-none mb-3" style="border-radius:10px;font-size:0.85rem;"></div>
+          <button class="btn w-100" id="requestVoterIdResetBtn"
+            style="background:var(--crimson);color:#fff;border-radius:10px;font-weight:600;padding:0.75rem;">
+            <i class="bi bi-arrow-repeat me-2"></i>Request Voter ID Reset
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
 </div>
+
+<!-- ── VOTE MODAL ── -->
 <div class="modal fade" id="voteModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -459,6 +594,9 @@
         <button class="btn btn-outline-secondary btn-sm" id="copyReceiptBtn">
           <i class="bi bi-clipboard me-1"></i>Copy Receipt
         </button>
+        <button class="btn btn-outline-success btn-sm" id="verifyNowBtn">
+          <i class="bi bi-shield-check me-1"></i>Verify My Vote
+        </button>
         <button class="btn btn-vote" data-bs-dismiss="modal">Done</button>
       </div>
     </div>
@@ -482,43 +620,93 @@
   </div>
 </div>
 
+<!-- ── VOTER ID RESET CONFIRM MODAL ── -->
+<div class="modal fade" id="voterIdResetModal" tabindex="-1" aria-labelledby="voterIdResetModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+    <div class="modal-content" style="border-radius:16px;border:none;">
+      <div class="modal-header" style="border-bottom:1px solid var(--border);padding:1.2rem 1.5rem;">
+        <h5 class="modal-title fw-bold" id="voterIdResetModalLabel" style="font-family:'Playfair Display',serif;color:var(--ink);">
+          <i class="bi bi-person-badge-fill me-2" style="color:var(--crimson);"></i>Request Voter ID Reset
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.82rem;border-radius:10px;">
+          <i class="bi bi-shield-exclamation me-2"></i>
+          An admin will review your request before issuing a new ID. Your current Voter ID stays valid until approved.
+        </div>
+        <label class="form-label" for="voterIdResetReason">
+          Reason for Reset <span style="color:var(--muted);font-weight:400;">(optional but recommended)</span>
+        </label>
+        <textarea class="form-control" id="voterIdResetReason" rows="3"
+          placeholder="e.g. Lost my ID email, suspect it was compromised…"
+          style="border-radius:10px;resize:none;"></textarea>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid var(--border);gap:0.5rem;padding:1rem 1.5rem;">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius:10px;">Cancel</button>
+        <button class="btn" id="confirmVoterIdResetBtn"
+          style="background:var(--crimson);color:#fff;border-radius:10px;padding:0.6rem 1.4rem;font-weight:600;">
+          <span id="voterIdResetBtnText"><i class="bi bi-send me-1"></i>Submit Request</span>
+          <span id="voterIdResetBtnSpin" class="spinner-border spinner-border-sm d-none" role="status"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   // ── Auth Guard ──
   const token = localStorage.getItem('token');
   const user  = JSON.parse(localStorage.getItem('user') || '{}');
-  if (!token) { window.location.href = '/'; }
+  // FIXED: previously only checked for token presence — any role could access this page.
+  // Now explicitly allows only voter and admin roles (admin can observe/test voting).
+  // Observers and unauthenticated users are redirected to login.
+  if (!token || !['voter', 'admin'].includes(user.role)) { window.location.href = '/'; }
 
   // ── Init UI ──
   document.getElementById('sidebarName').textContent = user.name || 'Voter';
   document.getElementById('avatarInitial').textContent = (user.name || 'V')[0].toUpperCase();
+  document.getElementById('mobileAvatarInitial').textContent = (user.name || 'V')[0].toUpperCase();
 
   const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-  // ── Section Nav ──
+  // ── Section Nav (desktop sidebar + mobile bottom nav) ──
   let activeSection = 'elections';
+
+  function switchSection(sec) {
+    // Desktop sidebar links
+    document.querySelectorAll('.nav-link[data-section]').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll(`.nav-link[data-section="${sec}"]`).forEach(l => l.classList.add('active'));
+    // Mobile bottom nav links
+    document.querySelectorAll('.mob-nav-link[data-section]').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll(`.mob-nav-link[data-section="${sec}"]`).forEach(l => l.classList.add('active'));
+    // Sections
+    document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('d-none'));
+    document.getElementById(`section-${sec}`).classList.remove('d-none');
+    activeSection = sec;
+    if (sec === 'elections') loadElections();
+    if (sec === 'voted') loadMyVotes();
+    // Scroll to top on mobile
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   document.querySelectorAll('.nav-link[data-section]').forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-      const sec = link.dataset.section;
-      document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('d-none'));
-      document.getElementById(`section-${sec}`).classList.remove('d-none');
-      activeSection = sec;
-      if (sec === 'elections') loadElections();
-      if (sec === 'voted') loadMyVotes();
-      if (sec === 'account') loadAccount();
-    });
+    link.addEventListener('click', e => { e.preventDefault(); switchSection(link.dataset.section); });
+  });
+  document.querySelectorAll('.mob-nav-link[data-section]').forEach(link => {
+    link.addEventListener('click', e => { e.preventDefault(); switchSection(link.dataset.section); });
   });
 
-  // ── Logout ──
-  document.getElementById('logoutBtn').addEventListener('click', async e => {
+  // ── Logout (desktop + mobile) ──
+  async function doLogout(e) {
     e.preventDefault();
     try { await fetch('/api/auth/logout', { method: 'POST', headers }); } catch {}
     localStorage.clear();
     window.location.href = '/';
-  });
+  }
+  document.getElementById('logoutBtn').addEventListener('click', doLogout);
+  document.getElementById('mobileLogoutBtn').addEventListener('click', doLogout);
 
   // ── State ──
   let currentElectionId = null;
@@ -541,10 +729,7 @@
       // Check voting status for each active election
       const statusChecks = await Promise.all(
         elections.filter(e => e.status === 'active').map(e =>
-          fetch(`/api/votes/status/${e.id}`, { headers })
-            .then(r => r.json())
-            .then(d => ({ id: e.id, ...d }))
-            .catch(() => ({ id: e.id, has_voted: false, voted_at: null }))
+          fetch(`/api/votes/status/${e.id}`, { headers }).then(r => r.json()).then(d => ({ id: e.id, ...d }))
         )
       );
       const votedMap = {};
@@ -564,11 +749,11 @@
         const isTallied = el.status === 'tallied';
         let actionBtn = '';
         if (el.status === 'active' && !hasVoted)
-          actionBtn = `<button class="btn btn-vote" onclick="openVoteModal('${el.id}')"><i class="bi bi-ballot me-1"></i>Vote Now</button>`;
+          actionBtn = `<button class="btn btn-vote" data-action="vote" data-id="${el.id}"><i class="bi bi-ballot me-1"></i>Vote Now</button>`;
         else if (el.status === 'active' && hasVoted)
           actionBtn = `<span class="btn-voted"><i class="bi bi-check-circle-fill me-1"></i>Voted</span>`;
         else if (isTallied)
-          actionBtn = `<button class="btn btn-results" onclick="openResults('${el.id}')"><i class="bi bi-bar-chart me-1"></i>View Results</button>`;
+          actionBtn = `<button class="btn btn-results" data-action="results" data-id="${el.id}"><i class="bi bi-bar-chart me-1"></i>View Results</button>`;
 
         return `<div class="col-md-6">
           <div class="election-card">
@@ -585,7 +770,7 @@
               </div>
               <div class="d-flex gap-2">
                 ${actionBtn}
-                <a href="#" class="btn btn-outline-secondary btn-sm" onclick="viewCandidates('${el.id}'); return false;">
+                <a href="#" class="btn btn-outline-secondary btn-sm" data-action="view-candidates" data-id="${el.id}">
                   <i class="bi bi-person-lines-fill me-1"></i>Candidates
                 </a>
               </div>
@@ -614,40 +799,32 @@
     const modal = new bootstrap.Modal(document.getElementById('voteModal'));
     modal.show();
 
+    // Clear voter ID input on fresh open
     document.getElementById('voterIdInput').value = '';
     document.getElementById('voterIdError').classList.add('d-none');
 
-    try {
-      const res = await fetch(`/api/candidates/${electionId}`, { headers });
-      if (!res.ok) throw new Error('Failed to load candidates');
-      const candidates = await res.json();
-      if (!Array.isArray(candidates) || !candidates.length) {
-        container.innerHTML = '<div class="col-12 text-center py-4 text-muted"><i class="bi bi-people fs-2 d-block mb-2"></i>No candidates for this election.</div>';
-        return;
-      }
-      container.innerHTML = candidates.map(c => `
-        <div class="col-md-6">
-          <div class="candidate-card" onclick="selectCandidate('${c.id}', this)">
-            <div class="check-mark"><i class="bi bi-check-lg"></i></div>
-            <div class="d-flex align-items-center gap-3 mb-2">
-              <div class="candidate-photo">
-                ${c.photo_url ? `<img src="${c.photo_url}" alt="${c.name}" />` : `<i class="bi bi-person-fill"></i>`}
-              </div>
-              <div>
-                <div class="candidate-name">${c.name}</div>
-                <div class="candidate-party">${c.party || 'Independent'}</div>
-                <div class="candidate-position">${c.position || ''}</div>
-              </div>
+    const res = await fetch(`/api/candidates/${electionId}`, { headers });
+    const candidates = await res.json();
+
+    container.innerHTML = candidates.map(c => `
+      <div class="col-md-6">
+        <div class="candidate-card" data-action="select-candidate" data-id="${c.id}">
+          <div class="check-mark"><i class="bi bi-check-lg"></i></div>
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="candidate-photo">
+              ${c.photo_url ? `<img src="${c.photo_url}" alt="${c.name}" />` : `<i class="bi bi-person-fill"></i>`}
             </div>
-            ${c.bio ? `<p style="font-size:0.8rem;color:var(--muted);margin:0;">${c.bio.substring(0,100)}${c.bio.length>100?'…':''}</p>` : ''}
-            <a href="/candidate/${c.id}" target="_blank" class="d-block mt-2" style="font-size:0.78rem;color:var(--gold);">View full profile →</a>
+            <div>
+              <div class="candidate-name">${c.name}</div>
+              <div class="candidate-party">${c.party || 'Independent'}</div>
+              <div class="candidate-position">${c.position || ''}</div>
+            </div>
           </div>
+          ${c.bio ? `<p style="font-size:0.8rem;color:var(--muted);margin:0;">${c.bio.substring(0,100)}${c.bio.length>100?'…':''}</p>` : ''}
+          <a href="/candidate/${c.id}" target="_blank" class="d-block mt-2" style="font-size:0.78rem;color:var(--gold);">View full profile →</a>
         </div>
-      `).join('');
-    } catch (err) {
-      console.error('[openVoteModal]', err);
-      container.innerHTML = '<div class="col-12"><div class="alert alert-danger">Failed to load candidates. Please close and try again.</div></div>';
-    }
+      </div>
+    `).join('');
   }
 
   function selectCandidate(id, el) {
@@ -712,10 +889,13 @@
       // Only hide modal on success
       bootstrap.Modal.getInstance(document.getElementById('voteModal')).hide();
 
-      // Show receipt
+      // Show receipt — store IDs for auto-fill in verify section
+      const receiptModal = document.getElementById('receiptModal');
       document.getElementById('receiptHashDisplay').textContent = data.receipt_hash;
       document.getElementById('voteHashDisplay').textContent    = data.vote_hash;
-      new bootstrap.Modal(document.getElementById('receiptModal')).show();
+      receiptModal.dataset.receiptHash = data.receipt_hash;
+      receiptModal.dataset.electionId  = currentElectionId;
+      new bootstrap.Modal(receiptModal).show();
       loadElections();
     } catch {
       alert('Network error casting vote.');
@@ -736,6 +916,18 @@
     });
   });
 
+  // ── Verify My Vote (auto-fill & navigate) ──
+  document.getElementById('verifyNowBtn').addEventListener('click', () => {
+    const modal       = document.getElementById('receiptModal');
+    const receiptHash = modal.dataset.receiptHash || '';
+    const electionId  = modal.dataset.electionId  || '';
+    document.getElementById('receiptHash').value      = receiptHash;
+    document.getElementById('verifyElectionId').value = electionId;
+    document.getElementById('verifyResult').classList.add('d-none');
+    bootstrap.Modal.getInstance(modal).hide();
+    switchSection('verify');
+  });
+
   // ── View Candidates (profile list) ──
   function viewCandidates(electionId) {
     window.open(`/candidate/${electionId}?list=true`, '_blank');
@@ -746,11 +938,23 @@
     const body = document.getElementById('resultsBody');
     body.innerHTML = '<div class="text-center py-4"><span class="spinner-border"></span></div>';
     new bootstrap.Modal(document.getElementById('resultsModal')).show();
-    try {
-      const res  = await fetch(`/api/elections/${electionId}/results`, { headers });
-      if (!res.ok) { body.innerHTML = '<div class="alert alert-warning m-3">Results not yet available for this election.</div>'; return; }
-      const data = await res.json();
-      const r    = data.results;
+
+    const res  = await fetch(`/api/elections/${electionId}/results`, { headers });
+    const data = await res.json();
+
+    // FIXED: previously read data.results with no guard — if the API returned 404
+    // (results not yet available), data.results was undefined and r.talliedAt threw
+    // a TypeError, freezing the modal spinner permanently for the rest of the session.
+    if (!res.ok || !data.results) {
+      body.innerHTML = `
+        <div class="alert alert-warning" style="border-radius:10px;font-size:0.88rem;">
+          <i class="bi bi-hourglass-split me-2"></i>
+          ${data.error || 'Results are not yet available for this election.'}
+        </div>`;
+      return;
+    }
+
+    const r = data.results;
 
     body.innerHTML = `
       <p class="text-muted" style="font-size:0.82rem;margin-bottom:1.5rem;">
@@ -771,90 +975,50 @@
         </div>
       `).join('')}
     `;
-    } catch (err) {
-      console.error('[openResults]', err);
-      body.innerHTML = '<div class="alert alert-danger m-3">Failed to load results. Please try again.</div>';
-    }
   }
 
   // ── My Votes ──
   async function loadMyVotes() {
     const list = document.getElementById('votedList');
     list.innerHTML = '<div class="col-12 text-center py-5 text-muted"><span class="spinner-border me-2"></span>Loading…</div>';
-    try {
-      const res = await fetch('/api/elections', { headers });
-      if (!res.ok) throw new Error('Failed to load elections');
-      const els = await res.json();
-      if (!Array.isArray(els) || !els.length) {
-        list.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-ballot fs-2 d-block mb-2"></i>You haven\'t voted in any elections yet.</div>';
-        return;
-      }
-      const checks = await Promise.all(
-        els.map(e => fetch(`/api/votes/status/${e.id}`, { headers })
-          .then(r => r.json())
-          .then(d => ({ ...e, ...d }))
-          .catch(() => ({ ...e, has_voted: false, voted_at: null })))
-      );
-      const voted = checks.filter(e => e.has_voted);
-      if (!voted.length) {
-        list.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-ballot fs-2 d-block mb-2"></i>You haven\'t voted in any elections yet.</div>';
-        return;
-      }
-      list.innerHTML = voted.map(e => `
-        <div class="col-md-6">
-          <div class="election-card">
-            <div class="election-card-header">
-              <p class="title">${e.title}</p>
-              <span class="status-badge badge-${e.status}">${e.status}</span>
-            </div>
-            <div class="election-card-body">
-              <p class="text-muted" style="font-size:0.82rem;"><i class="bi bi-check-circle-fill text-success me-1"></i>
-                Voted on ${e.voted_at ? new Date(e.voted_at).toLocaleString() : 'Date unavailable'}</p>
-              ${e.status === 'tallied' ? `<button class="btn btn-results btn-sm" data-election-id="${e.id}"><i class="bi bi-bar-chart me-1"></i>View Results</button>` : ''}
-            </div>
+    const res  = await fetch('/api/elections', { headers });
+    const els  = await res.json();
+    const checks = await Promise.all(
+      els.map(e => fetch(`/api/votes/status/${e.id}`, { headers }).then(r => r.json()).then(d => ({ ...e, ...d })))
+    );
+    const voted = checks.filter(e => e.has_voted);
+    if (!voted.length) {
+      list.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-ballot fs-2 d-block mb-2"></i>You haven\'t voted in any elections yet.</div>';
+      return;
+    }
+    list.innerHTML = voted.map(e => `
+      <div class="col-md-6">
+        <div class="election-card">
+          <div class="election-card-header">
+            <p class="title">${e.title}</p>
+            <span class="status-badge badge-${e.status}">${e.status}</span>
+          </div>
+          <div class="election-card-body">
+            <p class="text-muted" style="font-size:0.82rem;"><i class="bi bi-check-circle-fill text-success me-1"></i>
+              Voted on ${new Date(e.voted_at).toLocaleString()}</p>
+            ${e.status === 'tallied' ? `<button class="btn btn-results btn-sm" data-action="results" data-id="${e.id}"><i class="bi bi-bar-chart me-1"></i>View Results</button>` : ''}
           </div>
         </div>
-      `).join('');
-    } catch (err) {
-      console.error('[loadMyVotes]', err);
-      list.innerHTML = '<div class="col-12"><div class="alert alert-danger">Failed to load vote history. Please try again.</div></div>';
-    }
+      </div>
+    `).join('');
   }
-
-  // ── My Votes Results button delegation ──
-  document.getElementById('votedList').addEventListener('click', e => {
-    const btn = e.target.closest('[data-election-id]');
-    if (btn) openResults(btn.dataset.electionId);
-  });
 
   // ── Verify Receipt ──
   document.getElementById('verifyBtn').addEventListener('click', async () => {
-    const hash   = document.getElementById('receiptHash').value.trim();
-    const elId   = document.getElementById('verifyElectionId').value.trim();
+    const hash  = document.getElementById('receiptHash').value.trim();
+    const elId  = document.getElementById('verifyElectionId').value.trim();
     const result = document.getElementById('verifyResult');
-    const btn    = document.getElementById('verifyBtn');
-    if (!hash || !elId) {
-      result.className = 'verify-result fail';
-      result.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>Please enter both receipt hash and election ID.';
-      result.classList.remove('d-none');
-      return;
-    }
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying…';
-    try {
-      const res  = await fetch('/api/votes/verify-receipt', { method: 'POST', headers, body: JSON.stringify({ receipt_hash: hash, election_id: elId }) });
-      const data = await res.json();
-      result.className = `verify-result ${data.verified ? 'success' : 'fail'}`;
-      result.innerHTML = `<i class="bi bi-${data.verified ? 'check-circle-fill' : 'x-circle-fill'} me-2"></i>${data.message}`;
-      result.classList.remove('d-none');
-    } catch {
-      result.className = 'verify-result fail';
-      result.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>Network error. Please try again.';
-      result.classList.remove('d-none');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-search me-2"></i>Verify Receipt';
-    }
+    if (!hash || !elId) { result.className = 'verify-result fail'; result.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>Please enter both receipt hash and election ID.'; result.classList.remove('d-none'); return; }
+    const res  = await fetch('/api/votes/verify-receipt', { method: 'POST', headers, body: JSON.stringify({ receipt_hash: hash, election_id: elId }) });
+    const data = await res.json();
+    result.className = `verify-result ${data.verified ? 'success' : 'fail'}`;
+    result.innerHTML = `<i class="bi bi-${data.verified ? 'check-circle-fill' : 'x-circle-fill'} me-2"></i>${data.message}`;
+    result.classList.remove('d-none');
   });
 
   // ── Voter ID input — live format & uppercase ──
@@ -867,186 +1031,104 @@
     if (val.length > 0) document.getElementById('voterIdError').classList.add('d-none');
   });
 
-  // ── My Account — loads profile, voter ID display, and attaches password listeners ──
-  let _acctInit = false;
-  async function loadAccount() {
-    // Show voter ID immediately from localStorage while server fetch runs
-    document.getElementById('voterIdDisplay').textContent = user.voter_id || '—';
+  // ── Account Section ──
 
-    // Attach password listeners once
-    if (!_acctInit) {
-      _acctInit = true;
-      document.getElementById('newPassword').addEventListener('input', function () {
-        const val = this.value;
-        const wrap = document.getElementById('pwdStrengthWrap');
-        const bar  = document.getElementById('pwdStrengthBar');
-        const lbl  = document.getElementById('pwdStrengthLabel');
-        if (!val) { wrap.style.display = 'none'; return; }
-        wrap.style.display = '';
-        let s = 0;
-        if (val.length >= 8)          s++;
-        if (val.length >= 12)         s++;
-        if (/[A-Z]/.test(val))        s++;
-        if (/[0-9]/.test(val))        s++;
-        if (/[^A-Za-z0-9]/.test(val)) s++;
-        const lvls = [
-          {p:'20%',c:'#e74c3c',t:'Very weak'},
-          {p:'40%',c:'#e67e22',t:'Weak'},
-          {p:'60%',c:'#f1c40f',t:'Fair'},
-          {p:'80%',c:'#2ecc71',t:'Strong'},
-          {p:'100%',c:'#27ae60',t:'Very strong'}
-        ];
-        const lvl = lvls[Math.min(s,4)];
-        bar.style.width = lvl.p; bar.style.background = lvl.c;
-        lbl.textContent = lvl.t; lbl.style.color = lvl.c;
-      });
-      document.getElementById('confirmPassword').addEventListener('input', function () {
-        const mm = document.getElementById('confirmMismatch');
-        if (this.value && this.value !== document.getElementById('newPassword').value)
-          mm.classList.remove('d-none');
-        else mm.classList.add('d-none');
-      });
-    }
-
-    // Load profile from server
-    const body = document.getElementById('accountProfileBody');
-    body.innerHTML = '<div class="text-center py-3 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>';
+  // Password Reset — sends link to voter's own email
+  document.getElementById('sendPwdResetBtn').addEventListener('click', async () => {
+    const alertEl = document.getElementById('pwdResetAlert');
+    const btn     = document.getElementById('sendPwdResetBtn');
+    btn.disabled  = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending…';
     try {
-      const res  = await fetch('/api/auth/me', { headers });
+      const res  = await fetch('/api/auth/forgot-password', {
+        method: 'POST', headers,
+        body: JSON.stringify({ email: user.email })
+      });
       const data = await res.json();
-      if (!res.ok) { body.innerHTML = `<p class="text-danger">${data.error || 'Failed to load.'}</p>`; return; }
-      // Update voter ID display with fresh server value
-      document.getElementById('voterIdDisplay').textContent = data.voter_id || 'Not assigned yet';
-      body.innerHTML = `
-        <div class="row g-3">
-          <div class="col-12 d-flex align-items-center gap-3 mb-1">
-            <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--crimson));display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:#fff;flex-shrink:0;">${(data.full_name||'?')[0].toUpperCase()}</div>
-            <div>
-              <div style="font-size:1rem;font-weight:700;color:var(--ink);">${data.full_name}</div>
-              <div style="font-size:0.75rem;color:var(--muted);">${data.role.charAt(0).toUpperCase()+data.role.slice(1)}</div>
-            </div>
-          </div>
-          <div class="col-sm-6">
-            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:3px;">Full Name</div>
-            <div style="font-size:0.9rem;color:var(--ink);">${data.full_name}</div>
-          </div>
-          <div class="col-sm-6">
-            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:3px;">Email</div>
-            <div style="font-size:0.9rem;color:var(--ink);">${data.email}</div>
-          </div>
-          <div class="col-sm-6">
-            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:3px;">Account Status</div>
-            <span style="font-size:0.82rem;font-weight:600;color:var(--success);"><i class="bi bi-check-circle-fill me-1"></i>Verified &amp; Active</span>
-          </div>
-          <div class="col-sm-6">
-            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:3px;">Member Since</div>
-            <div style="font-size:0.9rem;color:var(--ink);">${new Date(data.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
-          </div>
-        </div>`;
-    } catch {
-      body.innerHTML = '<p class="text-danger">Network error loading profile.</p>';
-    }
-  }
-
-  // ── Submit Voter ID Reset Request ──
-  async function submitVoterIdRequest() {
-    const reason  = document.getElementById('resetReason').value.trim();
-    const alertEl = document.getElementById('voterIdRequestAlert');
-    const btn     = document.getElementById('submitResetBtn');
-
-    alertEl.classList.add('d-none');
-
-    if (!reason) {
-      alertEl.className = 'alert alert-warning mb-3';
-      alertEl.textContent = 'Please provide a reason for your request.';
+      alertEl.className = 'alert alert-success mb-3';
+      alertEl.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${data.message || 'Reset link sent to your email.'}`;
       alertEl.classList.remove('d-none');
-      return;
+    } catch {
+      alertEl.className = 'alert alert-danger mb-3';
+      alertEl.textContent = 'Network error — please try again.';
+      alertEl.classList.remove('d-none');
+      btn.disabled = false;
+    } finally {
+      btn.innerHTML = '<i class="bi bi-envelope-fill me-2"></i>Send Password Reset Link';
     }
+  });
 
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting…';
+  // Voter ID Reset — open confirm modal
+  const voterIdResetModal = new bootstrap.Modal(document.getElementById('voterIdResetModal'));
+  document.getElementById('requestVoterIdResetBtn').addEventListener('click', () => {
+    document.getElementById('voterIdResetReason').value = '';
+    voterIdResetModal.show();
+  });
 
+  document.getElementById('confirmVoterIdResetBtn').addEventListener('click', async () => {
+    const reason  = document.getElementById('voterIdResetReason').value.trim();
+    const alertEl = document.getElementById('voterIdResetAlert');
+    const btn     = document.getElementById('confirmVoterIdResetBtn');
+    const txt     = document.getElementById('voterIdResetBtnText');
+    const spin    = document.getElementById('voterIdResetBtnSpin');
+
+    btn.disabled = true; txt.classList.add('d-none'); spin.classList.remove('d-none');
     try {
       const res  = await fetch('/api/votes/request-voter-id-reset', {
         method: 'POST', headers,
         body: JSON.stringify({ reason })
       });
       const data = await res.json();
-      if (!res.ok) {
-        alertEl.className = 'alert alert-danger mb-3';
-        alertEl.textContent = data.error || 'Failed to submit request.';
-      } else {
-        alertEl.className = 'alert alert-success mb-3';
-        alertEl.textContent = data.message || 'Request submitted successfully.';
-        document.getElementById('resetReason').value = '';
-      }
+      voterIdResetModal.hide();
+      alertEl.className = res.ok ? 'alert alert-success mb-3' : 'alert alert-danger mb-3';
+      alertEl.innerHTML = `<i class="bi bi-${res.ok ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i>${data.message || data.error}`;
       alertEl.classList.remove('d-none');
+      if (res.ok) document.getElementById('requestVoterIdResetBtn').disabled = true;
     } catch {
       alertEl.className = 'alert alert-danger mb-3';
-      alertEl.textContent = 'Network error. Please try again.';
+      alertEl.textContent = 'Network error — please try again.';
       alertEl.classList.remove('d-none');
     } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-send me-2"></i>Submit Request';
+      btn.disabled = false; txt.classList.remove('d-none'); spin.classList.add('d-none');
     }
-  }
-
-  // ── Toggle password visibility ──
-  function togglePwd(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const hidden = input.type === 'password';
-    input.type = hidden ? 'text' : 'password';
-    btn.innerHTML = hidden ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
-  }
-
-  // ── Change Password ──
-  async function changePassword() {
-    const current = document.getElementById('currentPassword').value;
-    const newPwd  = document.getElementById('newPassword').value;
-    const confirm = document.getElementById('confirmPassword').value;
-    const alertEl = document.getElementById('passwordAlert');
-    const btn     = document.getElementById('changePasswordBtn');
-
-    const show = (msg, type) => {
-      alertEl.className = `alert alert-${type} mb-3`;
-      alertEl.innerHTML = `<i class="bi bi-${type==='danger'?'exclamation-triangle-fill':'check-circle-fill'} me-2"></i>${msg}`;
-      alertEl.classList.remove('d-none');
-    };
-    alertEl.classList.add('d-none');
-
-    if (!current || !newPwd || !confirm) return show('All fields are required.', 'danger');
-    if (newPwd.length < 8)              return show('New password must be at least 8 characters.', 'danger');
-    if (newPwd !== confirm)             return show('New passwords do not match.', 'danger');
-    if (current === newPwd)             return show('New password must be different from your current password.', 'danger');
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating…';
-
-    try {
-      const res  = await fetch('/api/auth/change-password', {
-        method: 'PUT', headers,
-        body: JSON.stringify({ current_password: current, new_password: newPwd })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        show(data.error || 'Failed to update password.', 'danger');
-      } else {
-        show('Password updated successfully.', 'success');
-        document.getElementById('currentPassword').value = '';
-        document.getElementById('newPassword').value     = '';
-        document.getElementById('confirmPassword').value = '';
-        document.getElementById('pwdStrengthWrap').style.display = 'none';
-      }
-    } catch {
-      show('Network error. Please try again.', 'danger');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-key-fill me-2"></i>Update Password';
-    }
-  }
+  });
 
   // ── Init ──
   loadElections();
+
+  // ─────────────────────────────────────────────
+  //  DELEGATED EVENT LISTENERS
+  //  Replaces all inline onclick attributes removed
+  //  to satisfy CSP script-src-attr 'none'
+  // ─────────────────────────────────────────────
+
+  // Elections grid — Vote Now, View Results, Candidates
+  document.getElementById('electionsGrid').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    e.preventDefault();
+    const action = btn.dataset.action;
+    const id     = btn.dataset.id;
+    if (action === 'vote')            openVoteModal(id);
+    if (action === 'results')         openResults(id);
+    if (action === 'view-candidates') viewCandidates(id);
+  });
+
+  // My Votes section — View Results
+  document.getElementById('votedList').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id     = btn.dataset.id;
+    if (action === 'results') openResults(id);
+  });
+
+  // Vote modal — candidate card selection
+  document.getElementById('candidatesList').addEventListener('click', e => {
+    const card = e.target.closest('[data-action="select-candidate"]');
+    if (!card) return;
+    selectCandidate(card.dataset.id, card);
+  });
 </script>
 </body>
 </html>

@@ -227,7 +227,7 @@
       </form>
 
       <div class="login-link mt-3">
-        Already registered? <a href="/login">Sign in here</a>
+        Already registered? <a href="/">Sign in here</a>
       </div>
     </div>
   </div>
@@ -252,11 +252,10 @@
     if (/[^A-Za-z0-9]/.test(v)) score++;
     const bar = document.getElementById('pwdBar');
     const lbl = document.getElementById('pwdLabel');
-    if (!v) { bar.style.width = '0%'; bar.className = 'progress-bar'; lbl.textContent = 'Enter a password'; return; }
-    const map = [[25,'bg-danger','Too short'],[25,'bg-danger','Weak'],[50,'bg-warning','Fair'],[75,'bg-info','Good'],[100,'bg-success','Strong']];
-    const [w, c, t] = map[score] || map[0];
+    const map = [[25,'bg-danger','Weak'],[50,'bg-warning','Fair'],[75,'bg-info','Good'],[100,'bg-success','Strong']];
+    const [w, c, t] = map[score - 1] || [0, 'bg-danger', 'Too short'];
     bar.style.width = w + '%'; bar.className = 'progress-bar ' + c;
-    lbl.textContent = t;
+    lbl.textContent = t || 'Enter a password';
   });
 
   // School email live validation
