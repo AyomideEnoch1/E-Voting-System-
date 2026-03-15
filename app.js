@@ -73,7 +73,9 @@ app.use('/api/candidates', candidateRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
-app.get('/',                  (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
+// ── Page routes ──
+app.get('/',                  (req, res) => res.sendFile(path.join(__dirname, 'landing.html')));
+app.get('/login',             (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/register',          (req, res) => res.sendFile(path.join(__dirname, 'register.html')));
 app.get('/voter',             (req, res) => res.sendFile(path.join(__dirname, 'voter.html')));
 app.get('/admin',             (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));

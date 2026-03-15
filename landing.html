@@ -618,7 +618,7 @@
 
 <!-- ══ NAVBAR ══ -->
 <nav class="nav-bar">
-  <a href="/landing" class="nav-brand">
+  <a href="/" class="nav-brand">
     <i class="bi bi-shield-lock-fill"></i>
     <span>SecureVote</span>
   </a>
@@ -639,10 +639,10 @@
 
 <!-- Mobile Menu -->
 <div class="nav-mobile-menu" id="mobileMenu">
-  <a href="#how-it-works" onclick="closeMobileMenu()">How It Works</a>
-  <a href="#security" onclick="closeMobileMenu()">Security</a>
-  <a href="#voter-guide" onclick="closeMobileMenu()">Voter Guide</a>
-  <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
+  <a href="#how-it-works" data-mobile-link>How It Works</a>
+  <a href="#security" data-mobile-link>Security</a>
+  <a href="#voter-guide" data-mobile-link>Voter Guide</a>
+  <a href="#faq" data-mobile-link>FAQ</a>
   <a href="/login" class="btn-nav-login" style="text-align:center;margin-top:0.3rem;">Sign In</a>
   <a href="/register" class="btn-nav-register">Register to Vote →</a>
 </div>
@@ -973,7 +973,7 @@
       <div class="col-lg-8">
 
         <div class="faq-item">
-          <button class="faq-question" onclick="toggleFaq(this)">
+          <button class="faq-question" data-faq-btn>
             Who is eligible to vote on SecureVote?
             <i class="bi bi-chevron-down chevron"></i>
           </button>
@@ -983,7 +983,7 @@
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" onclick="toggleFaq(this)">
+          <button class="faq-question" data-faq-btn>
             How do I get my Voter ID?
             <i class="bi bi-chevron-down chevron"></i>
           </button>
@@ -993,7 +993,7 @@
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" onclick="toggleFaq(this)">
+          <button class="faq-question" data-faq-btn>
             Can I change my vote after submitting?
             <i class="bi bi-chevron-down chevron"></i>
           </button>
@@ -1003,7 +1003,7 @@
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" onclick="toggleFaq(this)">
+          <button class="faq-question" data-faq-btn>
             Is my vote truly anonymous?
             <i class="bi bi-chevron-down chevron"></i>
           </button>
@@ -1013,7 +1013,7 @@
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" onclick="toggleFaq(this)">
+          <button class="faq-question" data-faq-btn>
             What is the receipt hash and why should I save it?
             <i class="bi bi-chevron-down chevron"></i>
           </button>
@@ -1023,7 +1023,7 @@
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" onclick="toggleFaq(this)">
+          <button class="faq-question" data-faq-btn>
             I lost my Voter ID. What do I do?
             <i class="bi bi-chevron-down chevron"></i>
           </button>
@@ -1033,7 +1033,7 @@
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" onclick="toggleFaq(this)">
+          <button class="faq-question" data-faq-btn>
             When can I vote?
             <i class="bi bi-chevron-down chevron"></i>
           </button>
@@ -1043,7 +1043,7 @@
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" onclick="toggleFaq(this)">
+          <button class="faq-question" data-faq-btn>
             How are results published and can I trust them?
             <i class="bi bi-chevron-down chevron"></i>
           </button>
@@ -1157,21 +1157,21 @@
     }
   });
 
-  // ── FAQ accordion ──
-  function toggleFaq(btn) {
+  // ── FAQ accordion (delegated — no inline onclick) ──
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('[data-faq-btn]');
+    if (!btn) return;
     const answer = btn.nextElementSibling;
     const isOpen = answer.classList.contains('open');
-
-    // Close all
     document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
     document.querySelectorAll('.faq-question').forEach(b => b.classList.remove('open'));
+    if (!isOpen) { answer.classList.add('open'); btn.classList.add('open'); }
+  });
 
-    // Toggle current
-    if (!isOpen) {
-      answer.classList.add('open');
-      btn.classList.add('open');
-    }
-  }
+  // ── Mobile menu links (delegated — no inline onclick) ──
+  document.querySelectorAll('[data-mobile-link]').forEach(link => {
+    link.addEventListener('click', () => closeMobileMenu());
+  });
 
   // ── Redirect if already logged in ──
   try {
