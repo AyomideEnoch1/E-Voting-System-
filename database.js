@@ -3,28 +3,41 @@ const mysql = require('mysql2/promise');
 
 let db;
 
-async function connectDB() {
-  try {
-    db = await mysql.createPool({
-      host:     process.env.DB_HOST || 'localhost',
-      port:     process.env.DB_PORT || 3306,
-      user:     process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || '',
-      database: process.env.DB_NAME || 'evoting',
-      waitForConnections: true,
-      connectionLimit: 10,
-      timezone: '+01:00'  // WAT
-    });
+async function connectDB(retries = 5, delay = 3000) {
+  // Log all DB config on startup (mask password)
+  console.log(`🔌  DB config → host=${process.env.DB_HOST} port=${process.env.DB_PORT} user=${process.env.DB_USER} db=${process.env.DB_NAME}`);
 
-    // Force WAT on every connection
-    db.pool.on('connection', conn => conn.query("SET time_zone = '+01:00'"));
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      db = await mysql.createPool({
+        host:     process.env.DB_HOST || 'localhost',
+        port:     parseInt(process.env.DB_PORT) || 3306,
+        user:     process.env.DB_USER || 'root',
+        password: process.env.DB_PASS || '',
+        database: process.env.DB_NAME || 'evoting',
+        waitForConnections: true,
+        connectionLimit: 10,
+        connectTimeout: 10000,
+        timezone: '+01:00'
+      });
 
-    await db.query('SELECT 1');
-    console.log('✅  MySQL connected');
-    await createTables();
-  } catch (err) {
-    console.error('❌  MySQL connection failed:', err.message);
-    process.exit(1);
+      // Force WAT on every connection
+      db.pool.on('connection', conn => conn.query("SET time_zone = '+01:00'"));
+
+      await db.query('SELECT 1');
+      console.log('✅  MySQL connected');
+      await createTables();
+      return;
+    } catch (err) {
+      console.error(`❌  MySQL connection failed (attempt ${attempt}/${retries}): ${err.message || JSON.stringify(err)}`);
+      console.error(`    code=${err.code} errno=${err.errno} host=${process.env.DB_HOST} port=${process.env.DB_PORT}`);
+      if (attempt < retries) {
+        console.log(`⏳  Retrying in ${delay/1000}s...`);
+        await new Promise(r => setTimeout(r, delay));
+      } else {
+        process.exit(1);
+      }
+    }
   }
 }
 
