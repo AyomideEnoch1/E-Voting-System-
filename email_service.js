@@ -1,48 +1,41 @@
 /**
- * Email Service — Nodemailer + Gmail SMTP
+ * Email Service — Resend API
  * Handles verification emails and voter ID delivery
  */
 require('dotenv').config();
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 // ── Validate env vars on startup ──
-const GMAIL_USER = process.env.GMAIL_USER;
-const GMAIL_PASS = process.env.GMAIL_PASS;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL    = process.env.FROM_EMAIL || 'noreply@yourdomain.com';
 
-if (!GMAIL_USER || !GMAIL_PASS) {
-  console.error('❌  Email service: GMAIL_USER or GMAIL_PASS is missing in .env');
+if (!RESEND_API_KEY) {
+  console.error('❌  Email service: RESEND_API_KEY is missing in .env');
 } else {
-  console.log(`✅  Email service: configured for ${GMAIL_USER}`);
+  console.log(`✅  Email service: Resend configured — sending from ${FROM_EMAIL}`);
 }
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: GMAIL_USER,
-    pass: GMAIL_PASS
-  }
-});
+const resend = new Resend(RESEND_API_KEY);
 
-// ── Verify Gmail connection on startup ──
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌  Gmail SMTP connection failed:', error.message);
-    console.error('    → Make sure GMAIL_PASS is a Gmail App Password, not your real password.');
-    console.error('    → Get one at: https://myaccount.google.com/apppasswords');
-  } else {
-    console.log('✅  Gmail SMTP ready — emails will be sent from', GMAIL_USER);
-  }
-});
+// ── Helper ──
+async function sendMail({ to, subject, html }) {
+  const { data, error } = await resend.emails.send({
+    from: `"${process.env.APP_NAME || 'RUN E-Voting System'}" <${FROM_EMAIL}>`,
+    to,
+    subject,
+    html
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
 
 /**
  * Send email verification link
  */
 async function sendVerificationEmail(toEmail, token, fullName) {
   const verifyUrl = `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/verify-email?token=${token}`;
-
   try {
-    const info = await transporter.sendMail({
-      from: `"${process.env.APP_NAME || 'RUN E-Voting System'}" <${GMAIL_USER}>`,
+    const data = await sendMail({
       to: toEmail,
       subject: 'Verify Your Email - E-Voting System',
       html: `
@@ -65,7 +58,7 @@ async function sendVerificationEmail(toEmail, token, fullName) {
         </div>
       `
     });
-    console.log(`✅  Verification email sent to ${toEmail} | MessageID: ${info.messageId}`);
+    console.log(`✅  Verification email sent to ${toEmail} | ID: ${data.id}`);
   } catch (err) {
     console.error(`❌  Failed to send verification email to ${toEmail}:`, err.message);
     throw err;
@@ -77,8 +70,7 @@ async function sendVerificationEmail(toEmail, token, fullName) {
  */
 async function sendVoterIdEmail(toEmail, fullName, voterId) {
   try {
-    const info = await transporter.sendMail({
-      from: `"${process.env.APP_NAME || 'RUN E-Voting System'}" <${GMAIL_USER}>`,
+    const data = await sendMail({
       to: toEmail,
       subject: 'Your Voter ID - E-Voting System',
       html: `
@@ -98,7 +90,7 @@ async function sendVoterIdEmail(toEmail, fullName, voterId) {
         </div>
       `
     });
-    console.log(`✅  Voter ID email sent to ${toEmail} | MessageID: ${info.messageId}`);
+    console.log(`✅  Voter ID email sent to ${toEmail} | ID: ${data.id}`);
   } catch (err) {
     console.error(`❌  Failed to send Voter ID email to ${toEmail}:`, err.message);
     throw err;
@@ -118,9 +110,8 @@ async function sendElectionNotice(toEmail, fullName, { electionTitle, startTime,
   });
 
   try {
-    const info = await transporter.sendMail({
-      from:    `"${appName}" <${GMAIL_USER}>`,
-      to:      toEmail,
+    const data = await sendMail({
+      to: toEmail,
       subject: `📢 Upcoming Election: ${electionTitle}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e0e0e0;border-radius:8px;">
@@ -166,14 +157,12 @@ async function sendElectionNotice(toEmail, fullName, { electionTitle, startTime,
         </div>
       `
     });
-    console.log(`✅  Election notice sent to ${toEmail} | MessageID: ${info.messageId}`);
+    console.log(`✅  Election notice sent to ${toEmail} | ID: ${data.id}`);
   } catch (err) {
     console.error(`❌  Failed to send election notice to ${toEmail}:`, err.message);
     throw err;
   }
 }
-
-// ─── Password & Voter ID Reset Emails ────────────────────────────────────────
 
 /**
  * Send password reset link (expires 1 hour)
@@ -182,9 +171,8 @@ async function sendPasswordResetEmail(toEmail, fullName, token) {
   const appName  = process.env.APP_NAME || 'RUN E-Voting System';
   const resetUrl = `${process.env.APP_URL || 'http://localhost:5000'}/reset-password?token=${token}`;
   try {
-    const info = await transporter.sendMail({
-      from:    `"${appName}" <${GMAIL_USER}>`,
-      to:      toEmail,
+    const data = await sendMail({
+      to: toEmail,
       subject: '🔐 Password Reset Request — SecureVote',
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e0e0e0;border-radius:8px;">
@@ -204,7 +192,7 @@ async function sendPasswordResetEmail(toEmail, fullName, token) {
         </div>
       `
     });
-    console.log(`✅  Password reset email sent to ${toEmail} | MessageID: ${info.messageId}`);
+    console.log(`✅  Password reset email sent to ${toEmail} | ID: ${data.id}`);
   } catch (err) {
     console.error(`❌  Failed to send password reset email to ${toEmail}:`, err.message);
     throw err;
@@ -217,9 +205,8 @@ async function sendPasswordResetEmail(toEmail, fullName, token) {
 async function sendVoterIdRequestReceived(toEmail, fullName) {
   const appName = process.env.APP_NAME || 'RUN E-Voting System';
   try {
-    await transporter.sendMail({
-      from:    `"${appName}" <${GMAIL_USER}>`,
-      to:      toEmail,
+    await sendMail({
+      to: toEmail,
       subject: '📋 Voter ID Reset Request Received — SecureVote',
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e0e0e0;border-radius:8px;">
@@ -248,9 +235,8 @@ async function sendVoterIdRequestReceived(toEmail, fullName) {
 async function sendVoterIdResetApproved(toEmail, fullName, newVoterId) {
   const appName = process.env.APP_NAME || 'RUN E-Voting System';
   try {
-    await transporter.sendMail({
-      from:    `"${appName}" <${GMAIL_USER}>`,
-      to:      toEmail,
+    await sendMail({
+      to: toEmail,
       subject: '✅ Your New Voter ID — SecureVote',
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e0e0e0;border-radius:8px;">
@@ -281,9 +267,8 @@ async function sendVoterIdResetApproved(toEmail, fullName, newVoterId) {
 async function sendVoterIdResetRejected(toEmail, fullName, reason) {
   const appName = process.env.APP_NAME || 'RUN E-Voting System';
   try {
-    await transporter.sendMail({
-      from:    `"${appName}" <${GMAIL_USER}>`,
-      to:      toEmail,
+    await sendMail({
+      to: toEmail,
       subject: '❌ Voter ID Reset Request Declined — SecureVote',
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #e0e0e0;border-radius:8px;">
@@ -307,7 +292,6 @@ async function sendVoterIdResetRejected(toEmail, fullName, reason) {
   }
 }
 
-// Update exports to include all functions
 module.exports = {
   sendVerificationEmail,
   sendVoterIdEmail,
