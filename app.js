@@ -16,6 +16,7 @@ const adminRoutes     = require('./admin_routes');
 const candidateRoutes = require('./candidate_routes');
 
 const app  = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 // FIXED: was '../uploads' — mismatched upload_middleware.js which uses path.join(__dirname,'uploads').
