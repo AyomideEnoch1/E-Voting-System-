@@ -1,32 +1,39 @@
 /**
- * Email Service — Resend API
+ * Email Service — Gmail SMTP via Nodemailer
  * Handles verification emails and voter ID delivery
  */
 require('dotenv').config();
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
 // ── Validate env vars on startup ──
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL    = process.env.FROM_EMAIL || 'noreply@yourdomain.com';
+const GMAIL_USER = process.env.GMAIL_USER;
+const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
+const APP_NAME   = process.env.APP_NAME || 'RUN E-Voting System';
 
-if (!RESEND_API_KEY) {
-  console.error('❌  Email service: RESEND_API_KEY is missing in .env');
+if (!GMAIL_USER || !GMAIL_PASS) {
+  console.error('❌  Email service: GMAIL_USER or GMAIL_APP_PASSWORD is missing in .env');
 } else {
-  console.log(`✅  Email service: Resend configured — sending from ${FROM_EMAIL}`);
+  console.log(`✅  Email service: Gmail SMTP configured — sending from ${GMAIL_USER}`);
 }
 
-const resend = new Resend(RESEND_API_KEY);
+// ── Transporter ──
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: GMAIL_USER,
+    pass: GMAIL_PASS,   // Use a Gmail App Password, NOT your account password
+  },
+});
 
 // ── Helper ──
 async function sendMail({ to, subject, html }) {
-  const { data, error } = await resend.emails.send({
-    from: `"${process.env.APP_NAME || 'RUN E-Voting System'}" <${FROM_EMAIL}>`,
+  const info = await transporter.sendMail({
+    from: `"${APP_NAME}" <${GMAIL_USER}>`,
     to,
     subject,
-    html
+    html,
   });
-  if (error) throw new Error(error.message);
-  return data;
+  return info;
 }
 
 /**
@@ -35,7 +42,7 @@ async function sendMail({ to, subject, html }) {
 async function sendVerificationEmail(toEmail, token, fullName) {
   const verifyUrl = `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/verify-email?token=${token}`;
   try {
-    const data = await sendMail({
+    const info = await sendMail({
       to: toEmail,
       subject: 'Verify Your Email - E-Voting System',
       html: `
@@ -58,7 +65,7 @@ async function sendVerificationEmail(toEmail, token, fullName) {
         </div>
       `
     });
-    console.log(`✅  Verification email sent to ${toEmail} | ID: ${data.id}`);
+    console.log(`✅  Verification email sent to ${toEmail} | MessageID: ${info.messageId}`);
   } catch (err) {
     console.error(`❌  Failed to send verification email to ${toEmail}:`, err.message);
     throw err;
@@ -70,7 +77,7 @@ async function sendVerificationEmail(toEmail, token, fullName) {
  */
 async function sendVoterIdEmail(toEmail, fullName, voterId) {
   try {
-    const data = await sendMail({
+    const info = await sendMail({
       to: toEmail,
       subject: 'Your Voter ID - E-Voting System',
       html: `
@@ -90,7 +97,7 @@ async function sendVoterIdEmail(toEmail, fullName, voterId) {
         </div>
       `
     });
-    console.log(`✅  Voter ID email sent to ${toEmail} | ID: ${data.id}`);
+    console.log(`✅  Voter ID email sent to ${toEmail} | MessageID: ${info.messageId}`);
   } catch (err) {
     console.error(`❌  Failed to send Voter ID email to ${toEmail}:`, err.message);
     throw err;
@@ -110,7 +117,7 @@ async function sendElectionNotice(toEmail, fullName, { electionTitle, startTime,
   });
 
   try {
-    const data = await sendMail({
+    const info = await sendMail({
       to: toEmail,
       subject: `📢 Upcoming Election: ${electionTitle}`,
       html: `
@@ -157,7 +164,7 @@ async function sendElectionNotice(toEmail, fullName, { electionTitle, startTime,
         </div>
       `
     });
-    console.log(`✅  Election notice sent to ${toEmail} | ID: ${data.id}`);
+    console.log(`✅  Election notice sent to ${toEmail} | MessageID: ${info.messageId}`);
   } catch (err) {
     console.error(`❌  Failed to send election notice to ${toEmail}:`, err.message);
     throw err;
@@ -171,7 +178,7 @@ async function sendPasswordResetEmail(toEmail, fullName, token) {
   const appName  = process.env.APP_NAME || 'RUN E-Voting System';
   const resetUrl = `${process.env.APP_URL || 'http://localhost:5000'}/reset-password?token=${token}`;
   try {
-    const data = await sendMail({
+    const info = await sendMail({
       to: toEmail,
       subject: '🔐 Password Reset Request — SecureVote',
       html: `
@@ -192,7 +199,7 @@ async function sendPasswordResetEmail(toEmail, fullName, token) {
         </div>
       `
     });
-    console.log(`✅  Password reset email sent to ${toEmail} | ID: ${data.id}`);
+    console.log(`✅  Password reset email sent to ${toEmail} | MessageID: ${info.messageId}`);
   } catch (err) {
     console.error(`❌  Failed to send password reset email to ${toEmail}:`, err.message);
     throw err;
