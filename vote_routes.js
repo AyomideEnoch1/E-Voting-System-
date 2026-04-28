@@ -7,6 +7,7 @@ const encService        = require('./encryption_service');
 const sigService        = require('./digital-signature_service');
 const hashService       = require('./hashing_service');
 const secUtils          = require('./security_utils');
+const { parseMatric, checkEligibility } = require('./matric_utils');
 const { q, q1 }         = require('./database');
 const { sendVoterIdRequestReceived } = require('./email_service');
 
@@ -36,6 +37,28 @@ router.post('/cast', auth, isVoter, voteLimiter, async (req, res) => {
     const now = new Date();
     if (now < new Date(election.start_time) || now > new Date(election.end_time))
       return res.status(400).json({ error: 'Voting period is not active' });
+
+    // ── ELIGIBILITY CHECK ──
+    // Fetch the election's eligibility rules and the voter's matric profile.
+    // If rules exist, every configured filter must pass before the vote is allowed.
+    const rules = await q1(
+      'SELECT * FROM election_eligibility_rules WHERE election_id=?', [election_id]
+    );
+    if (rules) {
+      const voter = await q1(
+        'SELECT faculty, matric_number, dept_code, entry_year, serial_number FROM users WHERE id=?',
+        [req.user.id]
+      );
+      if (!voter || !voter.matric_number) {
+        return res.status(403).json({ error: 'Your account does not have a matriculation number on record. Please contact the administrator.' });
+      }
+      const parsed = parseMatric(voter.matric_number);
+      if (!parsed) {
+        return res.status(403).json({ error: 'Your matriculation number could not be parsed. Please contact the administrator.' });
+      }
+      const { eligible, reason } = checkEligibility(parsed, rules, voter.faculty);
+      if (!eligible) return res.status(403).json({ error: reason });
+    }
 
     const candidate = await q1(
       'SELECT id FROM candidates WHERE id=? AND election_id=?', [candidate_id, election_id]

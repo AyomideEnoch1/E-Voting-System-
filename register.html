@@ -180,12 +180,40 @@
             <label class="form-label" for="email">School Email Address <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
-              <input type="email" class="form-control" id="email"
-                placeholder="yourname@run.edu.ng" required />
+              <input type="email" class="form-control" id="email" placeholder="yourname@run.edu.ng" required />
             </div>
             <div class="form-text" style="font-size:0.78rem;color:var(--muted);margin-top:5px;">
               <i class="bi bi-shield-check me-1" style="color:var(--gold);"></i>
-              Only <strong>@run.edu.ng</strong> addresses are accepted. Your Voter ID will be sent here after verification.
+              Only <strong>@run.edu.ng</strong> addresses are accepted.
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="matricNumber">Matriculation Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="matricNumber"
+              placeholder="e.g. RUN/CYB/22/13123" required
+              style="font-family:monospace;letter-spacing:0.05em;text-transform:uppercase;" />
+            <div id="matricFeedback" class="form-text mt-1" style="font-size:0.78rem;"></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="faculty">Faculty <span class="text-danger">*</span></label>
+            <select class="form-control" id="faculty" required>
+              <option value="">— Select Faculty —</option>
+              <option>Faculty of Arts and Humanities</option>
+              <option>Faculty of Basic Medical Sciences</option>
+              <option>Faculty of Engineering</option>
+              <option>Faculty of Law</option>
+              <option>Faculty of Management Sciences</option>
+              <option>Faculty of Natural Sciences</option>
+              <option>Faculty of Social Sciences</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Department Code</label>
+            <input type="text" class="form-control" id="deptCodeDisplay" readonly
+              placeholder="Auto-detected from matric"
+              style="background:#f5f0e8;font-family:monospace;font-weight:700;color:var(--slate);" />
+            <div class="form-text" style="font-size:0.75rem;color:var(--muted);margin-top:4px;">
+              <i class="bi bi-magic me-1"></i>Extracted automatically from your matric number
             </div>
           </div>
         </div>
@@ -278,16 +306,40 @@
     box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  // Live matric number parser — extracts dept code as user types
+  document.getElementById('matricNumber').addEventListener('input', function () {
+    const val  = this.value.trim().toUpperCase();
+    const fb   = document.getElementById('matricFeedback');
+    const dept = document.getElementById('deptCodeDisplay');
+    const match = val.match(/^RUN\/([A-Z]{2,6})\/(\d{2})\/(\d+)$/);
+    if (match) {
+      dept.value    = match[1];
+      fb.innerHTML  = `<i class="bi bi-check-circle-fill me-1" style="color:var(--success)"></i>
+                       Valid format — Dept: <strong>${match[1]}</strong>, Year: <strong>20${match[2]}</strong>, Serial: <strong>${parseInt(match[3])}</strong>`;
+      this.style.borderColor = '';
+    } else if (val.length > 3) {
+      dept.value    = '';
+      fb.innerHTML  = `<i class="bi bi-exclamation-triangle-fill me-1" style="color:#dc3545"></i>
+                       Format must be <strong>RUN/DEPT/YY/SERIAL</strong> — e.g. RUN/CYB/22/13123`;
+      this.style.borderColor = '#dc3545';
+    } else {
+      dept.value   = '';
+      fb.innerHTML = '';
+      this.style.borderColor = '';
+    }
+  });
+
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const full_name = document.getElementById('fullName').value.trim();
-    const email     = document.getElementById('email').value.trim().toLowerCase();
-    const password  = document.getElementById('password').value;
-    const confirm   = document.getElementById('confirmPwd').value;
-    const agreed    = document.getElementById('agreeTerms').checked;
+    const full_name     = document.getElementById('fullName').value.trim();
+    const email         = document.getElementById('email').value.trim().toLowerCase();
+    const password      = document.getElementById('password').value;
+    const confirm       = document.getElementById('confirmPwd').value;
+    const agreed        = document.getElementById('agreeTerms').checked;
+    const faculty       = document.getElementById('faculty').value.trim();
+    const matric_number = document.getElementById('matricNumber').value.trim().toUpperCase();
 
-    // Client-side validation
     if (!full_name || !email || !password)
       return showAlert('Please fill in all required fields.');
     if (!email.endsWith('@run.edu.ng'))
@@ -296,6 +348,12 @@
       return showAlert('Password must be at least 8 characters.');
     if (password !== confirm)
       return showAlert('Passwords do not match.');
+    if (!faculty)
+      return showAlert('Please select your faculty.');
+    if (!matric_number)
+      return showAlert('Please enter your matriculation number.');
+    if (!/^RUN\/[A-Z]{2,6}\/\d{2}\/\d+$/.test(matric_number))
+      return showAlert('Invalid matric number. Format must be RUN/DEPT/YY/SERIAL (e.g. RUN/CYB/22/13123).');
     if (!agreed)
       return showAlert('Please agree to the terms to continue.');
 
@@ -308,7 +366,7 @@
       const res  = await fetch('/api/auth/register', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ full_name, email, password })  // no voter_id
+        body:    JSON.stringify({ full_name, email, password, faculty, matric_number })
       });
       const data = await res.json();
       if (!res.ok) return showAlert(data.error || 'Registration failed.');
@@ -320,6 +378,8 @@
         'success'
       );
       document.getElementById('registerForm').reset();
+      document.getElementById('deptCodeDisplay').value = '';
+      document.getElementById('matricFeedback').innerHTML = '';
     } catch {
       showAlert('Network error — please try again.');
     } finally {

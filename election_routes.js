@@ -14,7 +14,12 @@ const isAdmin = authMiddleware.authorize('admin');
 // Normalize any ISO 8601 string (including timezone offsets) to MySQL DATETIME format.
 // The DB pool is already set to WAT (+01:00), so we convert to UTC then let MySQL
 // store the wall-clock value correctly via the pool's timezone setting.
-const toMySQLDatetime = (iso) => new Date(iso).toISOString().slice(0, 19).replace('T', ' ');
+// Uses local wall-clock time (WAT) instead of UTC — prevents the 1-hour shift bug.
+const toMySQLDatetime = (iso) => {
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
 
 /* ── CREATE ── */
 router.post('/', auth, isAdmin, async (req, res) => {

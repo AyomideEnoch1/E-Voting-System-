@@ -7,6 +7,7 @@ const authMiddleware     = require('./auth_middleware');
 const { blacklistToken } = require('./auth_middleware');
 const { authLimiter }    = require('./rate-limit_middleware');
 const secUtils           = require('./security_utils');
+const { parseMatric, isValidMatric } = require('./matric_utils');
 const { q, q1 }          = require('./database');
 const { sendVerificationEmail, sendVoterIdEmail, sendPasswordResetEmail } = require('./email_service');
 
@@ -26,7 +27,7 @@ async function generateVoterId() {
 /* ── REGISTER ── */
 router.post('/register', authLimiter, async (req, res) => {
   try {
-    const { full_name, email, password } = req.body;
+    const { full_name, email, password, matric_number, faculty } = req.body;
     if (!full_name || !email || !password)
       return res.status(400).json({ error: 'full_name, email and password are required' });
     if (full_name.trim().length < 2)
@@ -35,8 +36,23 @@ router.post('/register', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 8 characters' });
     if (!email.toLowerCase().endsWith(SCHOOL_DOMAIN))
       return res.status(400).json({ error: `Only ${SCHOOL_DOMAIN} email addresses are allowed` });
+
+    // Validate and parse matric number
+    if (!matric_number)
+      return res.status(400).json({ error: 'Matriculation number is required' });
+    if (!isValidMatric(matric_number))
+      return res.status(400).json({ error: 'Invalid matriculation number format. Expected: RUN/DEPT/YY/SERIAL (e.g. RUN/CYB/22/13123)' });
+
+    const parsed = parseMatric(matric_number);
+
+    // Faculty is still manually provided since it's not encoded in the matric
+    if (!faculty || faculty.trim().length < 2)
+      return res.status(400).json({ error: 'Please select your faculty' });
+
     if (await q1('SELECT id FROM users WHERE email=?', [email.toLowerCase()]))
       return res.status(400).json({ error: 'Email already registered' });
+    if (await q1('SELECT id FROM users WHERE matric_number=?', [parsed.raw]))
+      return res.status(400).json({ error: 'This matriculation number is already registered' });
 
     const id                = uuid();
     const password_hash     = await hashingService.hashPassword(password);
@@ -46,10 +62,12 @@ router.post('/register', authLimiter, async (req, res) => {
 
     await q(
       `INSERT INTO users
-         (id, full_name, email, voter_id, password_hash, role, public_key,
-          is_verified, verification_token, verification_token_expiry)
-       VALUES (?,?,?,NULL,?,?,?,0,?,?)`,
+         (id, full_name, email, matric_number, dept_code, entry_year, serial_number, faculty,
+          voter_id, password_hash, role, public_key, is_verified, verification_token, verification_token_expiry)
+       VALUES (?,?,?,?,?,?,?,?,NULL,?,?,?,0,?,?)`,
       [id, secUtils.sanitize(full_name.trim()), email.toLowerCase(),
+       parsed.raw, parsed.dept_code, parsed.entry_year, parsed.serial,
+       secUtils.sanitize(faculty.trim()),
        password_hash, 'voter', publicKey, verificationToken, tokenExpiry]
     );
     await sendVerificationEmail(email.toLowerCase(), verificationToken, full_name.trim());
@@ -154,7 +172,7 @@ router.post('/logout', authMiddleware.authenticate, async (req, res) => {
 router.get('/me', authMiddleware.authenticate, async (req, res) => {
   try {
     const user = await q1(
-      'SELECT id, full_name, email, voter_id, role, is_verified, created_at FROM users WHERE id=?',
+      'SELECT id, full_name, email, matric_number, dept_code, entry_year, faculty, voter_id, role, is_verified, created_at FROM users WHERE id=?',
       [req.user.id]
     );
     if (!user) return res.status(404).json({ error: 'User not found' });

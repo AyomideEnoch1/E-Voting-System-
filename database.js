@@ -49,6 +49,11 @@ async function createTables() {
       id                         VARCHAR(36)  PRIMARY KEY,
       full_name                  VARCHAR(150) NOT NULL,
       email                      VARCHAR(150) NOT NULL UNIQUE,
+      matric_number              VARCHAR(30)  UNIQUE,
+      dept_code                  VARCHAR(10),
+      entry_year                 VARCHAR(4),
+      serial_number              INT,
+      faculty                    VARCHAR(100),
       voter_id                   VARCHAR(50)  UNIQUE,
       password_hash              VARCHAR(255) NOT NULL,
       role                       ENUM('voter','admin','observer') DEFAULT 'voter',
@@ -77,6 +82,20 @@ async function createTables() {
       created_by     VARCHAR(36)  NOT NULL,
       created_at     DATETIME     DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (created_by) REFERENCES users(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    /* ── ELECTION ELIGIBILITY RULES ── */
+    `CREATE TABLE IF NOT EXISTS election_eligibility_rules (
+      id              VARCHAR(36)  PRIMARY KEY,
+      election_id     VARCHAR(36)  NOT NULL UNIQUE,
+      faculty         VARCHAR(100),
+      dept_codes      TEXT,
+      entry_year_from VARCHAR(4),
+      entry_year_to   VARCHAR(4),
+      serial_from     INT,
+      serial_to       INT,
+      created_at      DATETIME     DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (election_id) REFERENCES elections(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
     /* ── CANDIDATES ── */
@@ -188,6 +207,36 @@ async function createTables() {
   } catch (e) {
     if (e.code !== 'ER_DUP_FIELDNAME') console.error('Migration warning:', e.message);
   }
+
+  // Migrate: add matric/dept fields to users (for existing installs)
+  const userMigrations = [
+    "ALTER TABLE users ADD COLUMN matric_number VARCHAR(30) UNIQUE AFTER email",
+    "ALTER TABLE users ADD COLUMN dept_code     VARCHAR(10)  AFTER matric_number",
+    "ALTER TABLE users ADD COLUMN entry_year    VARCHAR(4)   AFTER dept_code",
+    "ALTER TABLE users ADD COLUMN serial_number INT          AFTER entry_year",
+    "ALTER TABLE users ADD COLUMN faculty       VARCHAR(100) AFTER serial_number",
+  ];
+  for (const col of userMigrations) {
+    try { await db.query(col); console.log(`✅  Migrated: ${col.split('ADD COLUMN')[1].trim().split(' ')[0]}`); }
+    catch (e) { if (e.code !== 'ER_DUP_FIELDNAME') console.error('Migration warning:', e.message); }
+  }
+
+  // Migrate: create election_eligibility_rules if missing (for existing installs)
+  try {
+    await db.query(`CREATE TABLE IF NOT EXISTS election_eligibility_rules (
+      id              VARCHAR(36)  PRIMARY KEY,
+      election_id     VARCHAR(36)  NOT NULL UNIQUE,
+      faculty         VARCHAR(100),
+      dept_codes      TEXT,
+      entry_year_from VARCHAR(4),
+      entry_year_to   VARCHAR(4),
+      serial_from     INT,
+      serial_to       INT,
+      created_at      DATETIME     DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (election_id) REFERENCES elections(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+    console.log('✅  Migrated: election_eligibility_rules table ready');
+  } catch (e) { console.error('Migration warning:', e.message); }
 
   console.log('✅  All tables ready');
 }

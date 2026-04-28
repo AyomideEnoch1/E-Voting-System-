@@ -3,6 +3,7 @@ const router         = express.Router();
 const { v4: uuid }   = require('uuid');
 const authMiddleware = require('./auth_middleware');
 const secUtils       = require('./security_utils');
+const { parseMatric } = require('./matric_utils');
 const { q, q1, qa }  = require('./database');
 const { sendElectionNotice, sendVoterIdResetApproved, sendVoterIdResetRejected } = require('./email_service');
 
@@ -12,11 +13,8 @@ const isAdmin = authMiddleware.authorize('admin');
 /* ── LIST USERS ── */
 router.get('/users', auth, isAdmin, async (req, res) => {
   try {
-    // FIXED: added is_verified and is_active server-side filter params
-    // Previously the frontend filtered client-side on only the first page of 20 results,
-    // meaning users on page 2+ were invisible when a filter was active.
     const { role, search, is_verified, is_active, page = 1, limit = 20 } = req.query;
-    let sql      = `SELECT id,full_name,email,voter_id,role,is_active,is_verified,login_attempts,last_login,created_at FROM users WHERE 1=1`;
+    let sql      = `SELECT id,full_name,email,matric_number,dept_code,entry_year,faculty,voter_id,role,is_active,is_verified,login_attempts,last_login,created_at FROM users WHERE 1=1`;
     let countSql = `SELECT COUNT(*) AS total FROM users WHERE 1=1`;
     const params = [], countParams = [];
     if (role)   { sql += ' AND role=?';   countSql += ' AND role=?';   params.push(role);   countParams.push(role); }
@@ -289,6 +287,201 @@ router.post('/voter-id-requests/:id/reject', auth, isAdmin, async (req, res) => 
   } catch (e) {
     console.error('[REJECT VOTER ID]', e);
     res.status(500).json({ error: 'Failed to reject request' });
+  }
+});
+
+/* ── MATRIC PURGE: PREVIEW ── */
+// Returns a count and sample list of users matching the given matric filter criteria
+// so admin can review before committing the delete.
+router.post('/matric-purge/preview', auth, isAdmin, async (req, res) => {
+  try {
+    const { dept_code, entry_year, serial_from, serial_to } = req.body;
+    if (!dept_code && !entry_year && serial_from == null && serial_to == null)
+      return res.status(400).json({ error: 'At least one filter (dept_code, entry_year, serial range) is required.' });
+
+    let sql    = `SELECT id, full_name, email, matric_number, dept_code, entry_year, serial_number FROM users WHERE role='voter'`;
+    let cntSql = `SELECT COUNT(*) AS total FROM users WHERE role='voter'`;
+    const params = [], cntParams = [];
+
+    if (dept_code) {
+      sql    += ' AND dept_code=?';
+      cntSql += ' AND dept_code=?';
+      params.push(dept_code.toUpperCase());
+      cntParams.push(dept_code.toUpperCase());
+    }
+    if (entry_year) {
+      sql    += ' AND entry_year=?';
+      cntSql += ' AND entry_year=?';
+      params.push(String(entry_year));
+      cntParams.push(String(entry_year));
+    }
+    if (serial_from != null && serial_from !== '') {
+      sql    += ' AND serial_number >= ?';
+      cntSql += ' AND serial_number >= ?';
+      params.push(parseInt(serial_from));
+      cntParams.push(parseInt(serial_from));
+    }
+    if (serial_to != null && serial_to !== '') {
+      sql    += ' AND serial_number <= ?';
+      cntSql += ' AND serial_number <= ?';
+      params.push(parseInt(serial_to));
+      cntParams.push(parseInt(serial_to));
+    }
+
+    const [[{ total }]] = await q(cntSql, cntParams);
+    const sample        = await qa(sql + ' ORDER BY matric_number LIMIT 10', params);
+
+    res.json({
+      total,
+      sample,
+      warning: total > 0
+        ? `This will permanently delete ${total} user account(s) and all their associated vote records.`
+        : 'No users match these criteria.'
+    });
+  } catch (e) {
+    console.error('[MATRIC PURGE PREVIEW]', e);
+    res.status(500).json({ error: 'Preview failed' });
+  }
+});
+
+/* ── MATRIC PURGE: CONFIRM DELETE ── */
+router.post('/matric-purge/delete', auth, isAdmin, async (req, res) => {
+  try {
+    const { dept_code, entry_year, serial_from, serial_to, confirm } = req.body;
+    if (!confirm) return res.status(400).json({ error: 'You must confirm the deletion.' });
+    if (!dept_code && !entry_year && serial_from == null && serial_to == null)
+      return res.status(400).json({ error: 'At least one filter is required.' });
+
+    let sql    = `SELECT id FROM users WHERE role='voter'`;
+    const params = [];
+
+    if (dept_code)  { sql += ' AND dept_code=?';       params.push(dept_code.toUpperCase()); }
+    if (entry_year) { sql += ' AND entry_year=?';       params.push(String(entry_year)); }
+    if (serial_from != null && serial_from !== '') { sql += ' AND serial_number >= ?'; params.push(parseInt(serial_from)); }
+    if (serial_to   != null && serial_to   !== '') { sql += ' AND serial_number <= ?'; params.push(parseInt(serial_to)); }
+
+    const targets = await qa(sql, params);
+    if (!targets.length) return res.status(404).json({ error: 'No users match these criteria.' });
+
+    const ids = targets.map(u => u.id);
+
+    // Cascade delete in safe order: vote_registry → votes (anonymous, no FK to user) → user
+    for (const id of ids) {
+      await q('DELETE FROM vote_registry WHERE voter_id=?', [id]);
+      await q('DELETE FROM voter_id_reset_requests WHERE user_id=?', [id]);
+      await q('DELETE FROM password_reset_tokens WHERE user_id=?', [id]);
+      await q('DELETE FROM users WHERE id=?', [id]);
+    }
+
+    await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
+      [uuid(), 'MATRIC_PURGE', req.user.id,
+       JSON.stringify({ filters: { dept_code, entry_year, serial_from, serial_to }, deleted: ids.length }),
+       secUtils.hashIP(req.ip)]);
+
+    res.json({ message: `Successfully purged ${ids.length} user account(s).`, deleted: ids.length });
+  } catch (e) {
+    console.error('[MATRIC PURGE DELETE]', e);
+    res.status(500).json({ error: 'Purge failed. Please try again.' });
+  }
+});
+
+/* ─────────────────────────────────────────────────────────────────────────
+   MATRIC PURGE — Preview and delete outdated/graduated student records
+   All filters are optional but at least one must be provided.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Build WHERE clause for matric purge queries.
+ * Filters: dept_code, entry_year, serial_from, serial_to
+ */
+function buildPurgeWhere(query) {
+  const { dept_code, entry_year, serial_from, serial_to } = query;
+  const conditions = ["role='voter'", 'matric_number IS NOT NULL'];
+  const params = [];
+  if (dept_code)    { conditions.push('dept_code=?');        params.push(dept_code.trim().toUpperCase()); }
+  if (entry_year)   { conditions.push('entry_year=?');       params.push(String(entry_year).trim()); }
+  if (serial_from)  { conditions.push('serial_number>=?');   params.push(+serial_from); }
+  if (serial_to)    { conditions.push('serial_number<=?');   params.push(+serial_to); }
+  return { where: conditions.join(' AND '), params };
+}
+
+/* ── MATRIC PURGE: PREVIEW ── */
+// GET /api/admin/matric-purge/preview?dept_code=CYB&entry_year=19&serial_from=1&serial_to=500
+// Returns count + sample of users that would be deleted — no data is changed.
+router.get('/matric-purge/preview', auth, isAdmin, async (req, res) => {
+  try {
+    const { dept_code, entry_year, serial_from, serial_to } = req.query;
+    if (!dept_code && !entry_year && !serial_from && !serial_to)
+      return res.status(400).json({ error: 'At least one filter is required (dept_code, entry_year, serial_from, serial_to).' });
+
+    const { where, params } = buildPurgeWhere(req.query);
+
+    const [[{ total }]] = await q(`SELECT COUNT(*) AS total FROM users WHERE ${where}`, params);
+    const sample = await qa(
+      `SELECT id, full_name, email, matric_number, dept_code, entry_year, serial_number, faculty
+       FROM users WHERE ${where} ORDER BY matric_number LIMIT 20`,
+      params
+    );
+
+    res.json({
+      preview: true,
+      total,
+      filters: { dept_code: dept_code || null, entry_year: entry_year || null, serial_from: serial_from || null, serial_to: serial_to || null },
+      sample,
+      warning: total > 0
+        ? `This action will permanently delete ${total} voter account(s) and all associated vote records. This cannot be undone.`
+        : 'No users match these filters.'
+    });
+  } catch (e) {
+    console.error('[MATRIC PURGE PREVIEW]', e);
+    res.status(500).json({ error: 'Failed to run purge preview' });
+  }
+});
+
+/* ── MATRIC PURGE: EXECUTE ── */
+// DELETE /api/admin/matric-purge
+// Body: { dept_code, entry_year, serial_from, serial_to, confirm: true }
+// Requires confirm:true to prevent accidental mass deletion.
+router.delete('/matric-purge', auth, isAdmin, async (req, res) => {
+  try {
+    const { dept_code, entry_year, serial_from, serial_to, confirm } = req.body;
+    if (!dept_code && !entry_year && !serial_from && !serial_to)
+      return res.status(400).json({ error: 'At least one filter is required.' });
+    if (!confirm)
+      return res.status(400).json({ error: 'You must set confirm:true to execute a purge. Run the preview endpoint first.' });
+
+    const { where, params } = buildPurgeWhere(req.body);
+
+    // Fetch the IDs to be deleted for audit trail and cascade cleanup
+    const targets = await qa(`SELECT id, matric_number FROM users WHERE ${where}`, params);
+    if (!targets.length) return res.json({ message: 'No users matched the filters. Nothing was deleted.', deleted: 0 });
+
+    const ids = targets.map(u => u.id);
+    const placeholders = ids.map(() => '?').join(',');
+
+    // Cascade delete in correct FK order
+    await q(`DELETE FROM vote_registry              WHERE voter_id    IN (${placeholders})`, ids);
+    await q(`DELETE FROM voter_id_reset_requests    WHERE user_id     IN (${placeholders})`, ids);
+    await q(`DELETE FROM password_reset_tokens      WHERE user_id     IN (${placeholders})`, ids);
+    await q(`DELETE FROM users                      WHERE id          IN (${placeholders})`, ids);
+
+    await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)', [
+      uuid(), 'MATRIC_PURGE_EXECUTED', req.user.id,
+      JSON.stringify({
+        filters: { dept_code, entry_year, serial_from, serial_to },
+        deleted: ids.length,
+        matrics: targets.map(u => u.matric_number)
+      }),
+      secUtils.hashIP(req.ip)
+    ]);
+
+    res.json({
+      message: `Purge complete. ${ids.length} voter account(s) permanently deleted.`,
+      deleted: ids.length
+    });
+  } catch (e) {
+    console.error('[MATRIC PURGE EXECUTE]', e);
+    res.status(500).json({ error: 'Purge failed. Please try again.' });
   }
 });
 
