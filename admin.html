@@ -109,6 +109,32 @@
     .election-mini-card { background:var(--ivory);border-radius:12px;padding:1rem 1.2rem;border:1px solid var(--border);margin-bottom:0.8rem; }
     .election-mini-card:last-child { margin-bottom:0; }
 
+    /* ── Skeleton Loaders ── */
+    @keyframes skeleton-glow {
+      0% { background-color: rgba(0, 0, 0, 0.05); }
+      50% { background-color: rgba(0, 0, 0, 0.12); }
+      100% { background-color: rgba(0, 0, 0, 0.05); }
+    }
+    .skeleton-pulse {
+      animation: skeleton-glow 1.5s ease-in-out infinite;
+      background-color: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      display: inline-block;
+      width: 100%;
+    }
+    .skeleton-text { height: 12px; margin-bottom: 8px; }
+    .skeleton-text.short { width: 45%; }
+    .skeleton-text.medium { width: 70%; }
+    
+    /* ── Live Update Highlighting ── */
+    @keyframes highlight-flash {
+      0% { background-color: rgba(34, 197, 94, 0.25); }
+      100% { background-color: transparent; }
+    }
+    .highlight-flash {
+      animation: highlight-flash 1.5s ease-out;
+    }
+
     /* ── Mobile Top Bar ── */
     .mobile-topbar {
       display:none; position:fixed; top:0; left:0; right:0; z-index:200;
@@ -272,16 +298,32 @@
   <div id="section-dashboard">
     <div class="page-header"><h1>Dashboard</h1><p>Overview of the e-voting system.</p></div>
     <div class="row g-3 mb-4">
-      <div class="col-md-3"><div class="stat-card"><div class="stat-icon" style="background:rgba(201,168,76,0.12);color:var(--gold)"><i class="bi bi-people-fill"></i></div><div class="stat-value" id="dashUsers">—</div><div class="stat-label">Registered Voters</div></div></div>
-      <div class="col-md-3"><div class="stat-card"><div class="stat-icon" style="background:rgba(58,69,86,0.1);color:var(--slate)"><i class="bi bi-card-list"></i></div><div class="stat-value" id="dashElections">—</div><div class="stat-label">Total Elections</div></div></div>
-      <div class="col-md-3"><div class="stat-card"><div class="stat-icon" style="background:rgba(26,107,58,0.1);color:var(--success)"><i class="bi bi-lightning-fill"></i></div><div class="stat-value" id="dashActive">—</div><div class="stat-label">Active Elections</div></div></div>
-      <div class="col-md-3"><div class="stat-card"><div class="stat-icon" style="background:rgba(155,28,28,0.1);color:var(--crimson)"><i class="bi bi-ballot-fill"></i></div><div class="stat-value" id="dashVotes">—</div><div class="stat-label">Votes Cast</div></div></div>
+      <div class="col-md-3"><div class="stat-card"><div class="stat-icon" style="background:rgba(201,168,76,0.12);color:var(--gold)"><i class="bi bi-people-fill"></i></div><div class="stat-value" id="dashUsers"><span class="skeleton-pulse" style="height:28px; width:60px; display:inline-block; border-radius:4px; vertical-align:middle;"></span></div><div class="stat-label">Registered Voters</div></div></div>
+      <div class="col-md-3"><div class="stat-card"><div class="stat-icon" style="background:rgba(58,69,86,0.1);color:var(--slate)"><i class="bi bi-card-list"></i></div><div class="stat-value" id="dashElections"><span class="skeleton-pulse" style="height:28px; width:50px; display:inline-block; border-radius:4px; vertical-align:middle;"></span></div><div class="stat-label">Total Elections</div></div></div>
+      <div class="col-md-3"><div class="stat-card"><div class="stat-icon" style="background:rgba(26,107,58,0.1);color:var(--success)"><i class="bi bi-lightning-fill"></i></div><div class="stat-value" id="dashActive"><span class="skeleton-pulse" style="height:28px; width:40px; display:inline-block; border-radius:4px; vertical-align:middle;"></span></div><div class="stat-label">Active Elections</div></div></div>
+      <div class="col-md-3"><div class="stat-card"><div class="stat-icon" style="background:rgba(155,28,28,0.1);color:var(--crimson)"><i class="bi bi-ballot-fill"></i></div><div class="stat-value" id="dashVotes"><span class="skeleton-pulse" style="height:28px; width:60px; display:inline-block; border-radius:4px; vertical-align:middle;"></span></div><div class="stat-label">Votes Cast</div></div></div>
     </div>
     <div class="row g-3">
       <div class="col-md-7">
         <div class="card-section">
           <div class="card-section-header"><h5>Recent Activity</h5></div>
-          <div class="card-section-body p-0"><table class="table mb-0"><thead><tr><th>Action</th><th>User</th><th>Time</th></tr></thead><tbody id="recentActivityBody"><tr><td colspan="3" class="text-center text-muted py-4">Loading…</td></tr></tbody></table></div>
+          <div class="card-section-body p-0"><table class="table mb-0"><thead><tr><th>Action</th><th>User</th><th>Time</th></tr></thead><tbody id="recentActivityBody">
+            <tr>
+              <td><span class="skeleton-pulse skeleton-text short"></span></td>
+              <td><span class="skeleton-pulse skeleton-text medium"></span></td>
+              <td><span class="skeleton-pulse skeleton-text short"></span></td>
+            </tr>
+            <tr>
+              <td><span class="skeleton-pulse skeleton-text short"></span></td>
+              <td><span class="skeleton-pulse skeleton-text medium"></span></td>
+              <td><span class="skeleton-pulse skeleton-text short"></span></td>
+            </tr>
+            <tr>
+              <td><span class="skeleton-pulse skeleton-text short"></span></td>
+              <td><span class="skeleton-pulse skeleton-text medium"></span></td>
+              <td><span class="skeleton-pulse skeleton-text short"></span></td>
+            </tr>
+          </tbody></table></div>
         </div>
       </div>
       <div class="col-md-5">
@@ -449,80 +491,7 @@
     </div>
   </div>
 
-  <!-- ── MATRIC PURGE SECTION ── -->
-  <div id="section-matric-purge" class="d-none">
-    <div class="page-header">
-      <h1><i class="bi bi-trash3 me-2" style="color:var(--crimson);"></i>Matric Purge Tool</h1>
-      <p>Permanently remove outdated student accounts by filtering on matriculation number components. Always preview before deleting.</p>
-    </div>
 
-    <div class="card-section mb-4">
-      <div class="card-section-header">
-        <h5><i class="bi bi-funnel me-2" style="color:var(--gold);"></i>Filter Criteria</h5>
-      </div>
-      <div class="card-section-body">
-        <div id="purgeAlert" class="alert d-none mb-3"></div>
-        <div class="row g-3 mb-3">
-          <div class="col-md-3">
-            <label class="form-label">Department Code</label>
-            <input type="text" class="form-control" id="purgeDeptCode"
-              placeholder="e.g. CYB"
-              style="font-family:monospace;text-transform:uppercase;" />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Entry Year <span style="font-weight:400;">(2-digit)</span></label>
-            <input type="text" class="form-control" id="purgeYear"
-              placeholder="e.g. 19" maxlength="2" style="font-family:monospace;" />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Serial From</label>
-            <input type="number" class="form-control" id="purgeSerialFrom" placeholder="e.g. 1" min="1" />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Serial To</label>
-            <input type="number" class="form-control" id="purgeSerialTo" placeholder="e.g. 999" min="1" />
-          </div>
-        </div>
-        <button class="btn btn-primary-dark me-2" id="purgePreviewBtn">
-          <i class="bi bi-eye me-2"></i>Preview Affected Accounts
-        </button>
-      </div>
-    </div>
-
-    <div id="purgePreviewPanel" class="d-none">
-      <div class="card-section">
-        <div class="card-section-header">
-          <h5><i class="bi bi-exclamation-triangle me-2" style="color:var(--crimson);"></i>Preview Results</h5>
-          <span id="purgeCountBadge" class="status-pill pill-closed"></span>
-        </div>
-        <div class="card-section-body">
-          <div id="purgeWarningBox" class="alert alert-warning mb-3" style="border-radius:10px;font-size:0.88rem;"></div>
-          <p class="form-label mb-2">Sample of affected accounts (up to 10 shown):</p>
-          <div class="table-responsive mb-3">
-            <table class="table">
-              <thead><tr><th>Full Name</th><th>Email</th><th>Matric Number</th><th>Dept</th><th>Year</th><th>Serial</th></tr></thead>
-              <tbody id="purgeSampleBody"></tbody>
-            </table>
-          </div>
-          <div class="alert alert-danger" style="border-radius:10px;font-size:0.88rem;">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <strong>This action is irreversible.</strong> All matched accounts, their vote registry entries, and reset requests will be permanently deleted.
-          </div>
-          <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="purgeConfirmCheck" />
-            <label class="form-check-label" for="purgeConfirmCheck" style="font-size:0.88rem;color:var(--slate);">
-              I understand this is permanent and confirm the deletion of all matched accounts.
-            </label>
-          </div>
-          <button class="btn btn-danger-soft" id="purgeDeleteBtn" disabled>
-            <i class="bi bi-trash3 me-2"></i>
-            <span id="purgeDeleteText">Delete Matched Accounts</span>
-            <span id="purgeDeleteSpin" class="spinner-border spinner-border-sm d-none"></span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- MATRIC PURGE -->
   <div id="section-matric-purge" class="d-none">
@@ -839,6 +808,32 @@ const H = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/jso
 // XSS-safe HTML escaping — used whenever injecting user-supplied text into innerHTML
 const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
+const modalInstances = {};
+function getOrCreateModal(elementId) {
+  if (!modalInstances[elementId]) {
+    const el = document.getElementById(elementId);
+    modalInstances[elementId] = new bootstrap.Modal(el);
+  }
+  return modalInstances[elementId];
+}
+
+function updateDashboardValue(elementId, newValue) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  const oldVal = el.textContent;
+  if (oldVal !== String(newValue) && !el.querySelector('.skeleton-pulse')) {
+    el.textContent = newValue;
+    const statCard = el.closest('.stat-card');
+    if (statCard) {
+      statCard.classList.remove('highlight-flash');
+      void statCard.offsetWidth; // Trigger DOM reflow to restart CSS animation
+      statCard.classList.add('highlight-flash');
+    }
+  } else {
+    el.textContent = newValue;
+  }
+}
+
 // ── Section Switch ──
 function switchSection(sec) {
   document.querySelectorAll('.nav-link[data-section]').forEach(l => l.classList.remove('active'));
@@ -973,10 +968,10 @@ async function loadDashboard() {
   try {
     const res = await fetch('/api/admin/stats', { headers: H });
     const d   = await res.json();
-    document.getElementById('dashUsers').textContent     = d.totalUsers     ?? '—';
-    document.getElementById('dashElections').textContent = d.totalElections  ?? '—';
-    document.getElementById('dashActive').textContent    = d.activeElections ?? '—';
-    document.getElementById('dashVotes').textContent     = d.totalVotes      ?? '—';
+    updateDashboardValue('dashUsers', d.totalUsers ?? 0);
+    updateDashboardValue('dashElections', d.totalElections ?? 0);
+    updateDashboardValue('dashActive', d.activeElections ?? 0);
+    updateDashboardValue('dashVotes', d.totalVotes ?? 0);
 
     const actionClass = a => a.includes('LOGIN_SUCCESS')?'action-login':a.includes('VOTE')?'action-vote':a.includes('ADMIN')?'action-admin':a.includes('FAIL')?'action-fail':'action-other';
     document.getElementById('recentActivityBody').innerHTML = (d.recentLogs||[]).map(l => `
@@ -1154,8 +1149,7 @@ async function saveElection() {
     const res  = await fetch(url, { method, headers:H, body:JSON.stringify(body) });
     const data = await res.json();
     if (!res.ok) return showModalAlert('electionAlert', data.error || 'Failed to save election.', 'danger');
-    const m = bootstrap.Modal.getInstance(document.getElementById('electionModal'));
-    if (m) m.hide();
+    getOrCreateModal('electionModal').hide();
     loadElections();
   } catch (err) {
     console.error('[saveElection]', err);
@@ -1178,7 +1172,7 @@ async function deleteElection(id, title) {
   document.getElementById('deleteElectionTitle').textContent = title;
   document.getElementById('confirmDeleteElectionBtn').dataset.id = id;
   document.getElementById('deleteElectionAlert').classList.add('d-none');
-  new bootstrap.Modal(document.getElementById('deleteElectionModal')).show();
+  getOrCreateModal('deleteElectionModal').show();
 }
 
 async function doDeleteElection(id) {
@@ -1188,8 +1182,7 @@ async function doDeleteElection(id) {
   try {
     const res = await fetch(`/api/elections/${id}`, { method: 'DELETE', headers: H });
     const d   = await res.json();
-    const m   = bootstrap.Modal.getInstance(document.getElementById('deleteElectionModal'));
-    if (m) m.hide();
+    getOrCreateModal('deleteElectionModal').hide();
     if (!res.ok) return alert(d.error || 'Delete failed');
     loadElections();
     loadDashboard();
@@ -1207,7 +1200,7 @@ function openTallyModal(id, title, voteCount) {
   document.getElementById('tallyElectionId').value    = id;
   document.getElementById('tallyElectionName').textContent = title;
   document.getElementById('tallyVoteCount').textContent    = voteCount;
-  new bootstrap.Modal(document.getElementById('tallyModal')).show();
+  getOrCreateModal('tallyModal').show();
 }
 
 async function doTally() {
@@ -1216,8 +1209,7 @@ async function doTally() {
   try {
     const res = await fetch(`/api/elections/${id}/tally`, { method:'POST', headers:H });
     const d   = await res.json();
-    const m   = bootstrap.Modal.getInstance(document.getElementById('tallyModal'));
-    if (m) m.hide();
+    getOrCreateModal('tallyModal').hide();
     if (!res.ok) return alert(d.error || 'Tally failed');
     loadElections();
     quickViewResults(id);

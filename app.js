@@ -50,7 +50,13 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || `http://localhost:${PORT}`,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (server-to-server, curl, etc.)
+    if (!origin) return callback(null, true);
+    const allowed = (process.env.CLIENT_URL || `http://localhost:${PORT}`).split(',').map(s => s.trim());
+    if (allowed.includes(origin) || allowed.includes('*')) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -71,6 +77,27 @@ app.use('/api/elections',  electionRoutes);
 app.use('/api/votes',      voteRoutes);
 app.use('/api/admin',      adminRoutes);
 app.use('/api/candidates', candidateRoutes);
+
+const liveEvents = require('./live_events');
+
+app.get('/api/live-updates', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  });
+  res.write('\n'); // Handshake
+
+  const listener = (data) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  liveEvents.on('update', listener);
+
+  req.on('close', () => {
+    liveEvents.off('update', listener);
+  });
+});
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 

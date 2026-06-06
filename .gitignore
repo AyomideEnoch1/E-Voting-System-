@@ -2,7 +2,23 @@
 *.log
 npm-debug.log*
 
-
+# dependencies
 node_modules/
 dist/
-.env*
+
+# environment secrets — NEVER commit these
+.env
+.env.local
+.env.development
+.env.production
+# allow the example/template file
+!.env.example
+
+# uploaded user files — don't commit binary uploads
+uploads/photos/*
+uploads/manifestos/*
+uploads/documents/*
+# keep the folder structure in git
+!uploads/photos/.gitkeep
+!uploads/manifestos/.gitkeep
+!uploads/documents/.gitkeep

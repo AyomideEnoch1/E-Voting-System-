@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "description": "Secure E-Voting System — Bootstrap UI + Node.js + MySQL",
   "main": "app.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js"

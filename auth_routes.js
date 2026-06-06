@@ -10,6 +10,7 @@ const secUtils           = require('./security_utils');
 const { parseMatric, isValidMatric } = require('./matric_utils');
 const { q, q1 }          = require('./database');
 const { sendVerificationEmail, sendVoterIdEmail, sendPasswordResetEmail } = require('./email_service');
+const liveEvents         = require('./live_events');
 
 const SCHOOL_DOMAIN      = '@run.edu.ng';
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -73,6 +74,7 @@ router.post('/register', authLimiter, async (req, res) => {
     await sendVerificationEmail(email.toLowerCase(), verificationToken, full_name.trim());
     await q('INSERT INTO audit_log (id,action,user_id,ip_hash) VALUES (?,?,?,?)',
       [uuid(), 'USER_REGISTERED', id, secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'USER_REGISTERED' });
 
     res.status(201).json({ message: `Registration successful! A verification link has been sent to ${email}.` });
   } catch (e) {
@@ -108,6 +110,7 @@ router.get('/verify-email', async (req, res) => {
     await sendVoterIdEmail(user.email, user.full_name, voterId);
     await q('INSERT INTO audit_log (id,action,user_id,ip_hash) VALUES (?,?,?,?)',
       [uuid(), 'EMAIL_VERIFIED', user.id, secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'EMAIL_VERIFIED' });
 
     res.redirect(`/?verified=1&email=${encodeURIComponent(user.email)}`);
   } catch (e) {

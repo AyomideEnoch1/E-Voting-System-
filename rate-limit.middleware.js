@@ -7,8 +7,10 @@
 
 const rateLimit = require('express-rate-limit');
 
+const skipLimiter = (req, res, next) => next();
+
 /** General API rate limiter */
-const apiLimiter = rateLimit({
+const apiLimiter = process.env.NODE_ENV === 'test' ? skipLimiter : rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
   standardHeaders: true,
@@ -17,7 +19,7 @@ const apiLimiter = rateLimit({
 });
 
 /** Strict limiter for login/register (brute-force protection) */
-const authLimiter = rateLimit({
+const authLimiter = process.env.NODE_ENV === 'test' ? skipLimiter : rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   standardHeaders: true,
@@ -26,7 +28,7 @@ const authLimiter = rateLimit({
 });
 
 /** Vote submission limiter */
-const voteLimiter = rateLimit({
+const voteLimiter = process.env.NODE_ENV === 'test' ? skipLimiter : rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour window
   max: 5, // Max 5 vote attempts per IP (duplicate vote prevention at network level)
   standardHeaders: true,

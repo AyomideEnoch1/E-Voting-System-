@@ -7,6 +7,7 @@ const keyMgmt        = require('./key-management_service');
 const sigService     = require('./digital-signature_service');
 const secUtils       = require('./security_utils');
 const { q, q1, qa }  = require('./database');
+const liveEvents   = require('./live_events');
 
 const auth    = authMiddleware.authenticate.bind(authMiddleware);
 const isAdmin = authMiddleware.authorize('admin');
@@ -46,6 +47,7 @@ router.post('/', auth, isAdmin, async (req, res) => {
     );
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'ELECTION_CREATED', req.user.id, JSON.stringify({ electionId: id }), secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'ELECTION_CHANGED', electionId: id });
 
     res.status(201).json({ message: 'Election created', id });
   } catch (e) { console.error('[CREATE ELECTION]', e); res.status(500).json({ error: 'Failed to create election' }); }
@@ -72,6 +74,7 @@ router.put('/:id', auth, isAdmin, async (req, res) => {
     );
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'ELECTION_UPDATED', req.user.id, JSON.stringify({ electionId: req.params.id }), secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'ELECTION_CHANGED', electionId: req.params.id });
 
     res.json({ message: 'Election updated', id: req.params.id });
   } catch (e) { console.error('[UPDATE ELECTION]', e); res.status(500).json({ error: 'Failed to update election' }); }
@@ -126,6 +129,7 @@ router.post('/:id/open', auth, isAdmin, async (req, res) => {
     await q("UPDATE elections SET status='active' WHERE id=?", [req.params.id]);
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'ELECTION_OPENED', req.user.id, JSON.stringify({ electionId: req.params.id }), secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'ELECTION_CHANGED', electionId: req.params.id });
     res.json({ message: 'Election is now active and open for voting' });
   } catch (e) { console.error('[OPEN ELECTION]', e); res.status(500).json({ error: 'Failed to open election' }); }
 });
@@ -140,6 +144,7 @@ router.post('/:id/close', auth, isAdmin, async (req, res) => {
     await q("UPDATE elections SET status='closed' WHERE id=?", [req.params.id]);
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'ELECTION_CLOSED', req.user.id, JSON.stringify({ electionId: req.params.id }), secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'ELECTION_CHANGED', electionId: req.params.id });
     res.json({ message: 'Election closed. Run tally to publish results.' });
   } catch (e) { console.error('[CLOSE ELECTION]', e); res.status(500).json({ error: 'Failed to close election' }); }
 });
@@ -194,6 +199,7 @@ router.post('/:id/tally', auth, isAdmin, async (req, res) => {
     await q("UPDATE elections SET status='tallied',results_sig=? WHERE id=?", [signature, election.id]);
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'ELECTION_TALLIED', req.user.id, JSON.stringify({ electionId: election.id, totalVotes }), secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'ELECTION_CHANGED', electionId: election.id });
 
     res.json({ message: 'Tally complete', results, signature });
   } catch (e) { console.error('[TALLY]', e); res.status(500).json({ error: 'Tally failed' }); }
@@ -237,6 +243,7 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Cannot delete a tallied election. Results are permanent records.' });
 
     // Cascade delete in correct FK order
+    await q('DELETE FROM election_eligibility_rules WHERE election_id=?', [req.params.id]);
     await q('DELETE FROM election_results WHERE election_id=?', [req.params.id]);
     await q('DELETE FROM vote_registry   WHERE election_id=?', [req.params.id]);
     await q('DELETE FROM votes           WHERE election_id=?', [req.params.id]);
@@ -246,6 +253,7 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'ELECTION_DELETED', req.user.id,
        JSON.stringify({ electionId: req.params.id, title: election.title }), secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'ELECTION_CHANGED', electionId: req.params.id });
 
     res.json({ message: `Election "${election.title}" deleted successfully` });
   } catch (e) {

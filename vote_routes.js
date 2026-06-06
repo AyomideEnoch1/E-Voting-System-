@@ -10,6 +10,7 @@ const secUtils          = require('./security_utils');
 const { parseMatric, checkEligibility } = require('./matric_utils');
 const { q, q1 }         = require('./database');
 const { sendVoterIdRequestReceived } = require('./email_service');
+const liveEvents     = require('./live_events');
 
 const auth    = authMiddleware.authenticate.bind(authMiddleware);
 const isVoter = authMiddleware.authorize('voter', 'admin');
@@ -116,6 +117,7 @@ router.post('/cast', auth, isVoter, voteLimiter, async (req, res) => {
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'VOTE_CAST', req.user.id,
        JSON.stringify({ electionId: election_id, voteHash }), secUtils.hashIP(req.ip)]);
+    liveEvents.emit('update', { type: 'VOTE_CAST', electionId: election_id });
 
     res.json({
       message:      'Vote cast successfully',
@@ -171,7 +173,8 @@ router.post('/verify-receipt', auth, async (req, res) => {
       message: sigValid
         ? 'Your vote has been recorded and cryptographically verified'
         : 'Receipt found but signature could not be verified — contact administrator',
-      receipt_hash
+      receipt_hash,
+      receipt_data: vote.receipt_data
     });
   } catch (e) {
     console.error('[VERIFY RECEIPT]', e);

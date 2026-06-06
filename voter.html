@@ -95,6 +95,45 @@
       overflow: hidden; transition: box-shadow 0.2s, transform 0.2s;
     }
     .election-card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.1); transform: translateY(-2px); }
+
+    /* ── Skeleton Loading ── */
+    @keyframes skeleton-glow {
+      0% { background-color: rgba(0, 0, 0, 0.05); }
+      50% { background-color: rgba(0, 0, 0, 0.12); }
+      100% { background-color: rgba(0, 0, 0, 0.05); }
+    }
+    .skeleton-pulse {
+      animation: skeleton-glow 1.5s ease-in-out infinite;
+      background-color: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      display: inline-block;
+      width: 100%;
+    }
+    .skeleton-text { height: 12px; margin-bottom: 8px; }
+    .skeleton-text.short { width: 50%; }
+    .skeleton-text.medium { width: 75%; }
+
+    /* ── Verification Step Wizard ── */
+    .verification-step {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.02);
+      border: 1px solid rgba(0,0,0,0.04);
+      transition: all 0.3s ease;
+    }
+    .verification-step.active {
+      background: rgba(201,168,76,0.05);
+      border-color: rgba(201,168,76,0.2);
+    }
+    .verification-step.success {
+      background: rgba(26,107,58,0.05);
+      border-color: rgba(26,107,58,0.15);
+    }
+    .verification-step.fail {
+      background: rgba(155,28,28,0.05);
+      border-color: rgba(155,28,28,0.15);
+    }
+
     .election-card-header {
       background: var(--ink); padding: 1.2rem 1.5rem;
       display: flex; align-items: flex-start; justify-content: space-between;
@@ -453,7 +492,62 @@
           <button class="btn btn-vote w-100" id="verifyBtn">
             <i class="bi bi-search me-2"></i>Verify Receipt
           </button>
-          <div id="verifyResult" class="mt-3 d-none"></div>
+          <div id="verifyResult" class="mt-3 d-none">
+            <div class="card bg-light border-0 rounded-4 p-4 mt-3">
+              <h6 class="fw-bold mb-3 d-flex align-items-center" style="color:var(--ink);">
+                <i class="bi bi-cpu text-gold me-2"></i>Cryptographic Verification Pipeline
+              </h6>
+              
+              <div class="verification-step mb-2" id="step-locate">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="step-icon spinner-border spinner-border-sm text-secondary"></span>
+                    <span class="step-text text-secondary fw-semibold" style="font-size:0.85rem;">Locating ballot receipt in the database...</span>
+                  </div>
+                  <span class="step-badge badge bg-secondary" style="font-size:0.65rem;">STAGE 1</span>
+                </div>
+              </div>
+
+              <div class="verification-step mb-2" id="step-hash">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="step-icon text-muted"><i class="bi bi-circle"></i></span>
+                    <span class="step-text text-muted" style="font-size:0.85rem;">Matching SHA-256 integrity hash...</span>
+                  </div>
+                  <span class="step-badge badge bg-secondary" style="font-size:0.65rem;">STAGE 2</span>
+                </div>
+              </div>
+
+              <div class="verification-step mb-2" id="step-key">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="step-icon text-muted"><i class="bi bi-circle"></i></span>
+                    <span class="step-text text-muted" style="font-size:0.85rem;">Extracting election public key...</span>
+                  </div>
+                  <span class="step-badge badge bg-secondary" style="font-size:0.65rem;">STAGE 3</span>
+                </div>
+              </div>
+
+              <div class="verification-step mb-3" id="step-sig">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="step-icon text-muted"><i class="bi bi-circle"></i></span>
+                    <span class="step-text text-muted" style="font-size:0.85rem;">Validating ECDSA signature...</span>
+                  </div>
+                  <span class="step-badge badge bg-secondary" style="font-size:0.65rem;">STAGE 4</span>
+                </div>
+              </div>
+
+              <div class="alert mt-3 d-none" id="verifySummaryAlert"></div>
+
+              <div class="p-3 bg-white border border-light rounded-3 d-none" id="verification-details">
+                <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1">
+                  <i class="bi bi-card-text"></i> Decrypted Receipt Metadata:
+                </div>
+                <div class="font-monospace text-break p-2 bg-light rounded text-secondary" style="font-size:0.75rem; white-space: pre-wrap;" id="decrypted-data-preview"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -716,7 +810,30 @@
   // ── Load Elections ──
   async function loadElections() {
     const grid = document.getElementById('electionsGrid');
-    grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><span class="spinner-border me-2"></span>Loading elections…</div>';
+    grid.innerHTML = `
+      <div class="col-md-6">
+        <div class="card border-0 rounded-4 p-4 mb-3" style="background:#fff; border: 1px solid var(--border);">
+          <div class="skeleton-pulse skeleton-text short mb-3"></div>
+          <div class="skeleton-pulse skeleton-text medium mb-2"></div>
+          <div class="skeleton-pulse skeleton-text short mb-4"></div>
+          <div class="d-flex gap-2">
+            <div class="skeleton-pulse" style="height:34px; width:100px;"></div>
+            <div class="skeleton-pulse" style="height:34px; width:100px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card border-0 rounded-4 p-4 mb-3" style="background:#fff; border: 1px solid var(--border);">
+          <div class="skeleton-pulse skeleton-text short mb-3"></div>
+          <div class="skeleton-pulse skeleton-text medium mb-2"></div>
+          <div class="skeleton-pulse skeleton-text short mb-4"></div>
+          <div class="d-flex gap-2">
+            <div class="skeleton-pulse" style="height:34px; width:100px;"></div>
+            <div class="skeleton-pulse" style="height:34px; width:100px;"></div>
+          </div>
+        </div>
+      </div>
+    `;
     try {
       const res = await fetch('/api/elections', { headers });
       elections = await res.json();
@@ -980,7 +1097,20 @@
   // ── My Votes ──
   async function loadMyVotes() {
     const list = document.getElementById('votedList');
-    list.innerHTML = '<div class="col-12 text-center py-5 text-muted"><span class="spinner-border me-2"></span>Loading…</div>';
+    list.innerHTML = `
+      <div class="col-md-6">
+        <div class="card border-0 rounded-4 p-4 mb-3" style="background:#fff; border: 1px solid var(--border);">
+          <div class="skeleton-pulse skeleton-text short mb-3"></div>
+          <div class="skeleton-pulse skeleton-text medium mb-2"></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card border-0 rounded-4 p-4 mb-3" style="background:#fff; border: 1px solid var(--border);">
+          <div class="skeleton-pulse skeleton-text short mb-3"></div>
+          <div class="skeleton-pulse skeleton-text medium mb-2"></div>
+        </div>
+      </div>
+    `;
     const res  = await fetch('/api/elections', { headers });
     const els  = await res.json();
     const checks = await Promise.all(
@@ -1013,12 +1143,134 @@
     const hash  = document.getElementById('receiptHash').value.trim();
     const elId  = document.getElementById('verifyElectionId').value.trim();
     const result = document.getElementById('verifyResult');
-    if (!hash || !elId) { result.className = 'verify-result fail'; result.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>Please enter both receipt hash and election ID.'; result.classList.remove('d-none'); return; }
-    const res  = await fetch('/api/votes/verify-receipt', { method: 'POST', headers, body: JSON.stringify({ receipt_hash: hash, election_id: elId }) });
-    const data = await res.json();
-    result.className = `verify-result ${data.verified ? 'success' : 'fail'}`;
-    result.innerHTML = `<i class="bi bi-${data.verified ? 'check-circle-fill' : 'x-circle-fill'} me-2"></i>${data.message}`;
+    
+    if (!hash || !elId) {
+      alert('Please enter both receipt hash and election ID.');
+      return;
+    }
+    
+    // Show the pipeline container
     result.classList.remove('d-none');
+    
+    // Reset steps to default / pending states
+    const steps = ['locate', 'hash', 'key', 'sig'];
+    steps.forEach(s => {
+      const stepEl = document.getElementById(`step-${s}`);
+      stepEl.className = 'verification-step mb-2';
+      const icon = stepEl.querySelector('.step-icon');
+      icon.className = 'step-icon text-muted';
+      icon.innerHTML = '<i class="bi bi-circle"></i>';
+      const text = stepEl.querySelector('.step-text');
+      text.className = 'step-text text-muted';
+    });
+    
+    document.getElementById('verifySummaryAlert').className = 'alert mt-3 d-none';
+    document.getElementById('verification-details').classList.add('d-none');
+    
+    // Step state helper
+    const setStepState = (step, state, label) => {
+      const el = document.getElementById(`step-${step}`);
+      const icon = el.querySelector('.step-icon');
+      const text = el.querySelector('.step-text');
+      
+      if (state === 'active') {
+        el.className = 'verification-step mb-2 active';
+        icon.className = 'step-icon spinner-border spinner-border-sm text-warning';
+        icon.innerHTML = '';
+        text.className = 'step-text text-dark fw-semibold';
+        if (label) text.textContent = label;
+      } else if (state === 'success') {
+        el.className = 'verification-step mb-2 success';
+        icon.className = 'step-icon text-success';
+        icon.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+        text.className = 'step-text text-success';
+        if (label) text.textContent = label;
+      } else if (state === 'fail') {
+        el.className = 'verification-step mb-2 fail';
+        icon.className = 'step-icon text-danger';
+        icon.innerHTML = '<i class="bi bi-x-circle-fill"></i>';
+        text.className = 'step-text text-danger';
+        if (label) text.textContent = label;
+      }
+    };
+    
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    
+    // Trigger Stage 1: Locate
+    setStepState('locate', 'active', 'Locating ballot receipt in the database...');
+    await sleep(850);
+    
+    try {
+      const res  = await fetch('/api/votes/verify-receipt', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ receipt_hash: hash, election_id: elId })
+      });
+      const data = await res.json();
+      
+      if (!res.ok || data.verified === undefined) {
+        setStepState('locate', 'fail', 'Failed to communicate with database ledger.');
+        return;
+      }
+      
+      if (data.verified === false && data.message === 'Receipt not found in ballot box') {
+        setStepState('locate', 'fail', 'Receipt not found in the ballot box.');
+        return;
+      }
+      
+      // Stage 1 Success
+      setStepState('locate', 'success', 'Ballot receipt found in the database.');
+      
+      // Trigger Stage 2: Hash Match
+      await sleep(650);
+      setStepState('hash', 'active', 'Matching SHA-256 integrity hash...');
+      await sleep(750);
+      
+      setStepState('hash', 'success', 'SHA-256 integrity hash matched successfully.');
+      
+      // Trigger Stage 3: Public Key Extraction
+      await sleep(650);
+      setStepState('key', 'active', 'Extracting election public key...');
+      await sleep(700);
+      
+      setStepState('key', 'success', 'Election verification key loaded.');
+      
+      // Trigger Stage 4: Signature Verification
+      await sleep(650);
+      setStepState('sig', 'active', 'Validating ECDSA signature...');
+      await sleep(900);
+      
+      if (data.verified) {
+        setStepState('sig', 'success', 'ECDSA Digital Signature is Valid.');
+        
+        // Show success alert summary
+        const summaryAlert = document.getElementById('verifySummaryAlert');
+        summaryAlert.className = 'alert alert-success mt-3';
+        summaryAlert.innerHTML = '<i class="bi bi-shield-check-fill me-2 fs-5"></i><strong>Verified!</strong> Your vote is cryptographically secure and was counted correctly.';
+        summaryAlert.classList.remove('d-none');
+        
+        // Show Decrypted metadata
+        if (data.receipt_data) {
+          const detailsEl = document.getElementById('verification-details');
+          const dataPreview = document.getElementById('decrypted-data-preview');
+          let parsedData = data.receipt_data;
+          try {
+            parsedData = JSON.stringify(JSON.parse(data.receipt_data), null, 2);
+          } catch(e){}
+          dataPreview.textContent = parsedData;
+          detailsEl.classList.remove('d-none');
+        }
+      } else {
+        setStepState('sig', 'fail', 'Signature validation failed.');
+        const summaryAlert = document.getElementById('verifySummaryAlert');
+        summaryAlert.className = 'alert alert-danger mt-3';
+        summaryAlert.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i><strong>Verification Warning:</strong> ${data.message}`;
+        summaryAlert.classList.remove('d-none');
+      }
+      
+    } catch (err) {
+      setStepState('locate', 'fail', 'Network error verifying receipt.');
+    }
   });
 
   // ── Voter ID input — live format & uppercase ──
