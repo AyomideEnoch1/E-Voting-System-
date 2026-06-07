@@ -19,12 +19,16 @@
 
     /* ── Sidebar ── */
     .sidebar {
-      width: 260px; min-height: 100vh;
+      width: 260px; height: 100vh; overflow-y: auto;
       background: var(--sidebar-bg);
       position: fixed; top: 0; left: 0;
       display: flex; flex-direction: column;
       z-index: 100; padding-bottom: 2rem;
     }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+    .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
     .sidebar-brand { padding:1.6rem 1.8rem; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:10px; }
     .sidebar-brand i { color:var(--teal-lt); font-size:1.3rem; }
     .sidebar-brand span { font-family:'Playfair Display',serif; color:#fff; font-size:1.15rem; font-weight:700; }

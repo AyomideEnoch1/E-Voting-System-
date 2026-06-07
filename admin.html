@@ -11,7 +11,11 @@
     :root { --ink:#0d1117;--ivory:#f5f0e8;--gold:#c9a84c;--gold-lt:#e8d49a;--crimson:#9b1c1c;--slate:#3a4556;--muted:#6c7a8d;--border:#ddd8ce;--success:#1a6b3a; }
     body { font-family:'DM Sans',sans-serif; background:#f0eee8; min-height:100vh; }
 
-    .sidebar { width:260px;min-height:100vh;background:var(--ink);position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:100;padding-bottom:2rem; }
+    .sidebar { width:260px;height:100vh;overflow-y:auto;background:var(--ink);position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:100;padding-bottom:2rem; }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+    .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
     .sidebar-brand { padding:1.6rem 1.8rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:10px; }
     .sidebar-brand i { color:var(--gold);font-size:1.3rem; }
     .sidebar-brand span { font-family:'Playfair Display',serif;color:#fff;font-size:1.15rem;font-weight:700; }
