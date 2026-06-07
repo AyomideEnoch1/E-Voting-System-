@@ -56,7 +56,7 @@ async function createTables() {
       faculty                    VARCHAR(100),
       voter_id                   VARCHAR(50)  UNIQUE,
       password_hash              VARCHAR(255) NOT NULL,
-      role                       ENUM('voter','admin','observer') DEFAULT 'voter',
+      role                       ENUM('voter','admin','superadmin','observer') DEFAULT 'voter',
       is_active                  TINYINT(1)   DEFAULT 1,
       is_verified                TINYINT(1)   DEFAULT 0,
       public_key                 TEXT,
@@ -237,6 +237,19 @@ async function createTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
     console.log('✅  Migrated: election_eligibility_rules table ready');
   } catch (e) { console.error('Migration warning:', e.message); }
+
+  // Migrate: expand role ENUM to include superadmin (safe on existing DBs)
+  try {
+    await db.query(`ALTER TABLE users MODIFY COLUMN role ENUM('voter','admin','superadmin','observer') DEFAULT 'voter'`);
+    console.log('✅  Migrated: role ENUM updated to include superadmin');
+  } catch (e) { console.error('Migration warning (role ENUM):', e.message); }
+
+  // Migrate: elevate all existing admins to superadmin (first-run promotion)
+  try {
+    const [result] = await db.query("UPDATE users SET role='superadmin' WHERE role='admin'");
+    if (result.affectedRows > 0)
+      console.log(`✅  Migrated: ${result.affectedRows} admin account(s) elevated to superadmin`);
+  } catch (e) { console.error('Migration warning (superadmin elevation):', e.message); }
 
   console.log('✅  All tables ready');
 }

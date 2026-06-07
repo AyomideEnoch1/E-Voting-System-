@@ -7,8 +7,9 @@ const { parseMatric } = require('./matric_utils');
 const { q, q1, qa }  = require('./database');
 const { sendElectionNotice, sendVoterIdResetApproved, sendVoterIdResetRejected } = require('./email_service');
 
-const auth    = authMiddleware.authenticate.bind(authMiddleware);
-const isAdmin = authMiddleware.authorize('admin');
+const auth          = authMiddleware.authenticate.bind(authMiddleware);
+const isAdmin       = authMiddleware.authorize('admin', 'superadmin');
+const isSuperAdmin  = authMiddleware.authorize('superadmin');
 
 /* ── LIST USERS ── */
 router.get('/users', auth, isAdmin, async (req, res) => {
@@ -43,14 +44,28 @@ router.put('/users/:id', auth, isAdmin, async (req, res) => {
     if (!target) return res.status(404).json({ error: 'User not found' });
 
     const { is_active, is_verified, role } = req.body;
-    // FIX: only update provided fields — prevents accidental NULL writes
-    const newIsActive   = is_active   !== undefined ? (is_active   ? 1 : 0) : target.is_active;
-    const newIsVerified = is_verified !== undefined ? (is_verified ? 1 : 0) : target.is_verified;
+    // Helper to safely parse booleans from JSON or query strings
+    const parseBool = val => {
+      if (val === undefined) return undefined;
+      if (typeof val === 'string') return val === 'true' || val === '1';
+      return !!val;
+    };
+
+    const newIsActive   = is_active   !== undefined ? (parseBool(is_active)   ? 1 : 0) : target.is_active;
+    const newIsVerified = is_verified !== undefined ? (parseBool(is_verified) ? 1 : 0) : target.is_verified;
     const newRole       = role        !== undefined ? role                   : target.role;
 
-    const validRoles = ['voter','admin','observer'];
+    const validRoles = ['voter','admin','superadmin','observer'];
     if (!validRoles.includes(newRole))
       return res.status(400).json({ error: `Invalid role. Must be: ${validRoles.join(', ')}` });
+
+    // Prevent a regular admin from changing a superadmin's role
+    if (target.role === 'superadmin' && req.user.role !== 'superadmin')
+      return res.status(403).json({ error: 'Only a superadmin can modify another superadmin account.' });
+
+    // Prevent a regular admin from promoting someone to superadmin
+    if (newRole === 'superadmin' && req.user.role !== 'superadmin')
+      return res.status(403).json({ error: 'Only a superadmin can grant the superadmin role.' });
 
     await q('UPDATE users SET is_active=?,is_verified=?,role=? WHERE id=?',
       [newIsActive, newIsVerified, newRole, req.params.id]);
@@ -131,19 +146,47 @@ router.get('/stats', auth, isAdmin, async (req, res) => {
   } catch (e) { console.error('[STATS]', e); res.status(500).json({ error: 'Failed to fetch stats' }); }
 });
 
-/* ── CREATE ADMIN ── */
-router.post('/create-admin', auth, isAdmin, async (req, res) => {
+/* ── CREATE ADMIN (superadmin only) ── */
+router.post('/create-admin', auth, isSuperAdmin, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required' });
     const user = await q1('SELECT id,role FROM users WHERE email=?', [email.toLowerCase()]);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    if (user.role === 'admin') return res.status(400).json({ error: 'User is already an admin' });
+    if (['admin','superadmin'].includes(user.role)) return res.status(400).json({ error: 'User is already an admin' });
     await q("UPDATE users SET role='admin' WHERE id=?", [user.id]);
     await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
       [uuid(), 'ADMIN_PROMOTED', req.user.id, JSON.stringify({ targetId: user.id, targetEmail: email }), secUtils.hashIP(req.ip)]);
     res.json({ message: `User ${email} promoted to admin` });
   } catch (e) { console.error('[CREATE ADMIN]', e); res.status(500).json({ error: 'Failed to promote user' }); }
+});
+
+/* ── DELETE ADMIN (superadmin only) ── */
+router.delete('/users/:id', auth, isSuperAdmin, async (req, res) => {
+  try {
+    const target = await q1('SELECT id, role, full_name, email FROM users WHERE id=?', [req.params.id]);
+    if (!target) return res.status(404).json({ error: 'User not found' });
+
+    // Superadmins cannot delete other superadmins (safety guard)
+    if (target.role === 'superadmin')
+      return res.status(403).json({ error: 'Cannot delete a superadmin account.' });
+
+    // Only allow deleting admin-tier accounts via this route
+    if (target.role !== 'admin')
+      return res.status(400).json({ error: 'This route only removes admin accounts. Use matric-purge for voters.' });
+
+    // Cascade cleanup
+    await q('DELETE FROM voter_id_reset_requests WHERE user_id=?', [req.params.id]);
+    await q('DELETE FROM password_reset_tokens   WHERE user_id=?', [req.params.id]);
+    await q('DELETE FROM vote_registry            WHERE voter_id=?', [req.params.id]);
+    await q('DELETE FROM users                    WHERE id=?', [req.params.id]);
+
+    await q('INSERT INTO audit_log (id,action,user_id,meta,ip_hash) VALUES (?,?,?,?,?)',
+      [uuid(), 'ADMIN_DELETED', req.user.id,
+       JSON.stringify({ targetId: req.params.id, targetEmail: target.email }),
+       secUtils.hashIP(req.ip)]);
+    res.json({ message: `Admin account for ${target.email} has been removed.` });
+  } catch (e) { console.error('[DELETE ADMIN]', e); res.status(500).json({ error: 'Failed to delete admin' }); }
 });
 
 /* ── NOTIFY ALL VERIFIED VOTERS ── */

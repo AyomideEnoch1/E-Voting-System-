@@ -9,8 +9,9 @@ const secUtils       = require('./security_utils');
 const { q, q1, qa }  = require('./database');
 const liveEvents   = require('./live_events');
 
-const auth    = authMiddleware.authenticate.bind(authMiddleware);
-const isAdmin = authMiddleware.authorize('admin');
+const auth         = authMiddleware.authenticate.bind(authMiddleware);
+const isAdmin      = authMiddleware.authorize('admin', 'superadmin');
+const isSuperAdmin = authMiddleware.authorize('superadmin');
 
 // Normalize any ISO 8601 string (including timezone offsets) to MySQL DATETIME format.
 // The DB pool is already set to WAT (+01:00), so we convert to UTC then let MySQL
@@ -238,9 +239,9 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
     if (election.status === 'active')
       return res.status(400).json({ error: 'Cannot delete an active election. Close it first.' });
 
-    // FIXED: also block tallied elections — signed results must remain for audit integrity
-    if (election.status === 'tallied')
-      return res.status(400).json({ error: 'Cannot delete a tallied election. Results are permanent records.' });
+    // Only superadmins can delete tallied elections (audit integrity guard)
+    if (election.status === 'tallied' && req.user.role !== 'superadmin')
+      return res.status(403).json({ error: 'Only a superadmin can delete a tallied election.' });
 
     // Cascade delete in correct FK order
     await q('DELETE FROM election_eligibility_rules WHERE election_id=?', [req.params.id]);

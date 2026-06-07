@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureVote — Observer Dashboard</title>
+  <meta name="description" content="Read-only observer dashboard for accredited election monitors. View live vote counts, elections and results." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:#0d1117; --ivory:#f5f0e8; --gold:#c9a84c; --gold-lt:#e8d49a;
+      --teal:#0f766e; --teal-lt:#14b8a6; --teal-bg:rgba(15,118,110,0.12);
+      --muted:#6c7a8d; --border:#ddd8ce; --success:#1a6b3a; --crimson:#9b1c1c;
+      --sidebar-bg:#0a1f1d;
+    }
+    body { font-family:'DM Sans',sans-serif; background:#eef5f4; min-height:100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 260px; min-height: 100vh;
+      background: var(--sidebar-bg);
+      position: fixed; top: 0; left: 0;
+      display: flex; flex-direction: column;
+      z-index: 100; padding-bottom: 2rem;
+    }
+    .sidebar-brand { padding:1.6rem 1.8rem; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:10px; }
+    .sidebar-brand i { color:var(--teal-lt); font-size:1.3rem; }
+    .sidebar-brand span { font-family:'Playfair Display',serif; color:#fff; font-size:1.15rem; font-weight:700; }
+    .observer-badge { background:rgba(20,184,166,0.2); color:var(--teal-lt); font-size:0.62rem; padding:2px 8px; border-radius:4px; font-weight:700; letter-spacing:0.08em; }
+    .sidebar-user { padding:1.2rem 1.8rem; margin:0.8rem 0; background:rgba(255,255,255,0.03); }
+    .user-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--teal),#0a5c55); display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:700; color:#fff; flex-shrink:0; }
+    .user-name { color:#fff; font-size:0.88rem; font-weight:600; }
+    .user-role { color:var(--teal-lt); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; }
+    .nav-section-label { padding:0.6rem 1.8rem 0.3rem; font-size:0.65rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.28); }
+    .sidebar-nav .nav-item { margin:1px 0.8rem; }
+    .sidebar-nav .nav-link { color:rgba(255,255,255,0.55); border-radius:10px; padding:0.65rem 1rem; font-size:0.88rem; font-weight:500; display:flex; align-items:center; gap:10px; transition:all 0.2s; }
+    .sidebar-nav .nav-link i { font-size:1rem; width:20px; }
+    .sidebar-nav .nav-link:hover { color:#fff; background:rgba(255,255,255,0.06); }
+    .sidebar-nav .nav-link.active { color:var(--teal-lt); background:rgba(20,184,166,0.12); }
+    .sidebar-logout .nav-link { color:rgba(255,100,100,0.7); }
+    .sidebar-logout .nav-link:hover { color:#ff6b6b; background:rgba(255,100,100,0.08); }
+
+    /* ── Mobile Top Bar ── */
+    .mobile-topbar {
+      display:none; position:fixed; top:0; left:0; right:0; z-index:200;
+      background:var(--sidebar-bg); height:56px;
+      align-items:center; justify-content:space-between; padding:0 1rem;
+      box-shadow:0 2px 12px rgba(0,0,0,0.3);
+    }
+    .mobile-topbar .brand { font-family:'Playfair Display',serif; color:#fff; font-size:1rem; font-weight:700; display:flex; align-items:center; gap:8px; }
+    .mobile-topbar .brand i { color:var(--teal-lt); }
+    .mobile-topbar .user-chip { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--teal),#0a5c55); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; color:#fff; }
+    .sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:998; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+    .sidebar-overlay.show { opacity:1; pointer-events:auto; }
+    #sidebarClose { display:none !important; color:rgba(255,255,255,0.5); transition:color 0.2s; line-height:1; padding:4px; margin-right:-4px; }
+    @media (max-width:991px) {
+      .sidebar { transform:translateX(-100%); transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); z-index:999; }
+      .sidebar.show { transform:translateX(0); }
+      .sidebar.show #sidebarClose { display:flex !important; align-items:center; justify-content:center; }
+      .mobile-topbar { display:flex; }
+      .main-content { margin-left:0 !important; padding:1.2rem 1rem; padding-top:calc(56px + 1.2rem) !important; }
+    }
+
+    /* ── Main ── */
+    .main-content { margin-left:260px; padding:2rem 2.5rem; }
+    .page-header { margin-bottom:2rem; }
+    .page-header h1 { font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:700; color:var(--ink); margin:0; }
+    .page-header p { color:var(--muted); font-size:0.92rem; margin:0.3rem 0 0; }
+
+    /* ── Stat Cards ── */
+    .stat-card { background:#fff; border-radius:16px; padding:1.4rem 1.6rem; border:1px solid var(--border); box-shadow:0 2px 12px rgba(0,0,0,0.04); }
+    .stat-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; margin-bottom:0.8rem; }
+    .stat-value { font-size:1.8rem; font-weight:700; color:var(--ink); line-height:1; }
+    .stat-label { font-size:0.8rem; color:var(--muted); margin-top:0.25rem; }
+
+    /* ── Cards ── */
+    .card-section { background:#fff; border-radius:16px; border:1px solid var(--border); box-shadow:0 2px 12px rgba(0,0,0,0.04); overflow:hidden; margin-bottom:2rem; }
+    .card-section-header { padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .card-section-header h5 { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:var(--ink); margin:0; }
+    .card-section-body { padding:1.5rem; }
+
+    .status-pill { padding:3px 10px; border-radius:50px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; }
+    .pill-draft   { background:rgba(108,122,141,0.15); color:var(--muted); }
+    .pill-active  { background:rgba(26,107,58,0.1); color:var(--success); }
+    .pill-closed  { background:rgba(155,28,28,0.1); color:var(--crimson); }
+    .pill-tallied { background:rgba(201,168,76,0.15); color:#8a6d1a; }
+
+    .table { font-size:0.85rem; }
+    .table th { font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); border-bottom:2px solid var(--border); padding:0.7rem 1rem; }
+    .table td { padding:0.8rem 1rem; vertical-align:middle; border-bottom:1px solid var(--border); }
+    .table tbody tr:last-child td { border-bottom:none; }
+    .table tbody tr:hover td { background:rgba(0,0,0,0.015); }
+
+    /* ── Live vote counter ── */
+    .live-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; display:inline-block; margin-right:5px; animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+    .vote-counter {
+      font-size:3.5rem; font-weight:900; color:var(--ink);
+      font-family:'Playfair Display',serif; line-height:1;
+      transition: all 0.4s ease;
+    }
+    .vote-counter.bump {
+      color: var(--teal);
+      transform: scale(1.08);
+    }
+
+    .candidate-bar-wrap { margin-bottom:0.9rem; }
+    .candidate-bar-label { display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:4px; }
+    .candidate-bar-label strong { color:var(--ink); }
+    .candidate-bar-label span { color:var(--muted); }
+    .candidate-bar-track { height:10px; background:#eef5f4; border-radius:10px; overflow:hidden; }
+    .candidate-bar-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--teal),var(--teal-lt)); transition:width 0.8s ease; }
+
+    .btn-teal { background:var(--teal); color:#fff; border:none; border-radius:8px; padding:0.5rem 1rem; font-size:0.82rem; font-weight:700; cursor:pointer; transition:background 0.2s; }
+    .btn-teal:hover { background:#0a5c55; }
+
+    /* ── Election Detail Panel ── */
+    .election-card {
+      background: linear-gradient(135deg,#f0faf9,#e8f5f3);
+      border:1px solid rgba(15,118,110,0.15);
+      border-radius:16px; padding:1.5rem;
+      cursor:pointer; transition:all 0.2s;
+      margin-bottom:0.8rem;
+    }
+    .election-card:hover { border-color:var(--teal-lt); box-shadow:0 4px 16px rgba(15,118,110,0.12); }
+    .election-card.selected { border-color:var(--teal); background:linear-gradient(135deg,#e6f7f5,#d4f0ec); }
+    .election-card .election-title { font-weight:700; color:var(--ink); font-size:0.95rem; }
+    .election-card .vote-pill {
+      background:rgba(15,118,110,0.1); color:var(--teal); font-size:0.8rem;
+      font-weight:700; padding:3px 10px; border-radius:20px;
+      transition: all 0.3s;
+    }
+    .election-card .vote-pill.updated { background:rgba(15,118,110,0.25); }
+
+    /* ── Read-only banner ── */
+    .readonly-banner {
+      background:linear-gradient(90deg,rgba(15,118,110,0.08),rgba(20,184,166,0.05));
+      border:1px solid rgba(15,118,110,0.15);
+      border-radius:10px; padding:0.7rem 1rem;
+      font-size:0.82rem; color:var(--teal);
+      display:flex; align-items:center; gap:8px;
+      margin-bottom:1.5rem;
+    }
+
+    /* ── Results bars ── */
+    .vote-bar-wrap { margin-bottom:1rem; }
+    .vote-bar-label { display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:4px; }
+    .vote-bar-track { height:10px; background:#eef5f4; border-radius:10px; overflow:hidden; }
+    .vote-bar-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--gold),#e8c96a); transition:width 0.6s ease; }
+    .winner-crown { color:var(--gold); margin-left:5px; }
+
+    /* ── Signature badge ── */
+    .sig-valid { color:#1a6b3a; background:rgba(26,107,58,0.08); border:1px solid rgba(26,107,58,0.2); padding:4px 10px; border-radius:8px; font-size:0.78rem; font-weight:700; }
+    .sig-invalid { color:var(--crimson); background:rgba(155,28,28,0.08); border:1px solid rgba(155,28,28,0.2); padding:4px 10px; border-radius:8px; font-size:0.78rem; font-weight:700; }
+
+    @keyframes highlight-bump {
+      0% { background:rgba(20,184,166,0.15); }
+      100% { background:transparent; }
+    }
+    .bump-row { animation:highlight-bump 1.5s ease-out; }
+
+    @media (max-width:575px) {
+      .vote-counter { font-size:2.5rem; }
+      .main-content { padding:1rem 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mobile Top Bar -->
+<div class="mobile-topbar">
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn border-0 text-white p-1" id="mobileSidebarToggle" aria-label="Toggle Navigation">
+      <i class="bi bi-list fs-3"></i>
+    </button>
+    <div class="brand"><i class="bi bi-eye-fill"></i> SecureVote <span class="observer-badge ms-1">OBSERVER</span></div>
+  </div>
+  <div class="user-chip" id="mobileAvatarInitial">O</div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand d-flex align-items-center justify-content-between w-100">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-eye-fill"></i>
+      <span>SecureVote</span>
+      <span class="observer-badge ms-1">OBSERVER</span>
+    </div>
+    <button class="btn border-0 text-white-50 p-0 d-lg-none" id="sidebarClose" aria-label="Close Navigation">
+      <i class="bi bi-x-lg fs-4"></i>
+    </button>
+  </div>
+  <div class="sidebar-user d-flex align-items-center gap-3">
+    <div class="user-avatar" id="avatarInitial">O</div>
+    <div>
+      <div class="user-name" id="sidebarName">Observer</div>
+      <div class="user-role" id="sidebarRoleLabel">Election Observer</div>
+    </div>
+  </div>
+  <p class="nav-section-label">Monitoring</p>
+  <ul class="nav flex-column sidebar-nav">
+    <li class="nav-item"><a class="nav-link active" href="#" data-section="overview"><i class="bi bi-speedometer2"></i>Overview</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-section="live"><i class="bi bi-activity"></i>Live Vote Counts</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-section="elections"><i class="bi bi-card-list"></i>All Elections</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" data-section="results"><i class="bi bi-bar-chart-fill"></i>Results</a></li>
+  </ul>
+  <div class="sidebar-logout mt-auto">
+    <p class="nav-section-label">Account</p>
+    <ul class="nav flex-column sidebar-nav">
+      <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right"></i>Sign Out</a></li>
+    </ul>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+  <div class="readonly-banner">
+    <i class="bi bi-eye-fill"></i>
+    <span><strong>Read-Only Mode</strong> — You are viewing as an election observer. No modifications can be made from this portal.</span>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="section-overview">
+    <div class="page-header">
+      <h1>Overview</h1>
+      <p>System-wide election statistics — read only.</p>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-3 col-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(15,118,110,0.1);color:var(--teal)"><i class="bi bi-card-list"></i></div>
+          <div class="stat-value" id="statElections">—</div>
+          <div class="stat-label">Total Elections</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(26,107,58,0.1);color:var(--success)"><i class="bi bi-lightning-fill"></i></div>
+          <div class="stat-value" id="statActive">—</div>
+          <div class="stat-label">Active Now</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(201,168,76,0.12);color:var(--gold)"><i class="bi bi-ballot-fill"></i></div>
+          <div class="stat-value" id="statVotes">—</div>
+          <div class="stat-label">Votes Cast</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(58,69,86,0.1);color:var(--muted)"><i class="bi bi-check2-all"></i></div>
+          <div class="stat-value" id="statTallied">—</div>
+          <div class="stat-label">Tallied</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Elections Quick View -->
+    <div class="card-section">
+      <div class="card-section-header">
+        <h5><span class="live-dot"></span>Active Elections</h5>
+        <button class="btn-teal" id="overviewRefreshBtn"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="card-section-body" id="overviewActiveElections">
+        <p class="text-center text-muted py-3">Loading…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE VOTE COUNTS -->
+  <div id="section-live" class="d-none">
+    <div class="page-header">
+      <h1>Live Vote Counts</h1>
+      <p><span class="live-dot"></span>Real-time vote count. Automatically updates as each vote is cast.</p>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card-section">
+          <div class="card-section-header"><h5>Select Election</h5></div>
+          <div class="card-section-body" id="liveElectionList">
+            <p class="text-muted text-center" style="font-size:0.85rem;">Loading elections…</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="card-section">
+          <div class="card-section-header">
+            <h5 id="liveElectionTitle">— Select an election —</h5>
+            <div class="d-flex align-items-center gap-2">
+              <span class="live-dot"></span>
+              <span style="font-size:0.78rem;color:var(--muted);">Live stream active</span>
+            </div>
+          </div>
+          <div class="card-section-body text-center" id="liveCountPanel">
+            <p class="text-muted py-4"><i class="bi bi-hand-index fs-2 d-block mb-2"></i>Select an election to begin live monitoring.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL ELECTIONS -->
+  <div id="section-elections" class="d-none">
+    <div class="page-header">
+      <h1>All Elections</h1>
+      <p>Complete list of all elections in the system.</p>
+    </div>
+    <div class="card-section">
+      <div class="card-section-body p-0">
+        <table class="table mb-0">
+          <thead><tr><th>Title</th><th>Status</th><th>Candidates</th><th>Votes Cast</th><th>Dates</th><th>Action</th></tr></thead>
+          <tbody id="electionsBody"><tr><td colspan="6" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="section-results" class="d-none">
+    <div class="page-header">
+      <h1>Election Results</h1>
+      <p>Official tallied results with cryptographic signature verification.</p>
+    </div>
+    <div class="mb-3">
+      <select class="form-select w-auto" id="resultsFilter" style="border-radius:10px;font-size:0.88rem;">
+        <option value="">— Select a tallied election —</option>
+      </select>
+    </div>
+    <div id="resultsContent">
+      <div class="card-section">
+        <div class="card-section-body text-center text-muted py-5">
+          <i class="bi bi-bar-chart fs-2 d-block mb-2"></i>Select a tallied election above to view results.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main-content -->
+
+<script>
+// ── Auth Guard ──
+let token = localStorage.getItem('observerToken');
+let user  = JSON.parse(localStorage.getItem('observerUser') || '{}');
+if (!token) {
+  token = localStorage.getItem('adminToken');
+  user  = JSON.parse(localStorage.getItem('adminUser') || '{}');
+}
+if (!token || !['observer','admin','superadmin'].includes(user.role)) {
+  window.location.href = '/observer/login';
+}
+
+const H = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+// Sidebar user
+document.getElementById('sidebarName').textContent = user.name || 'Observer';
+document.getElementById('avatarInitial').textContent = (user.name||'O')[0].toUpperCase();
+document.getElementById('mobileAvatarInitial').textContent = (user.name||'O')[0].toUpperCase();
+if (user.role === 'superadmin') document.getElementById('sidebarRoleLabel').textContent = 'Super Admin (Observer View)';
+else if (user.role === 'admin') document.getElementById('sidebarRoleLabel').textContent = 'Admin (Observer View)';
+
+// ── Mobile Sidebar ──
+function closeMobileSidebar() {
+  document.querySelector('.sidebar').classList.remove('show');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+document.getElementById('mobileSidebarToggle').addEventListener('click', () => {
+  document.querySelector('.sidebar').classList.add('show');
+  document.getElementById('sidebarOverlay').classList.add('show');
+});
+document.getElementById('sidebarClose').addEventListener('click', closeMobileSidebar);
+document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
+
+// ── Logout ──
+document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+  e.preventDefault();
+  try { await fetch('/api/auth/logout', { method:'POST', headers:H }); } catch {}
+  localStorage.removeItem('observerToken');
+  localStorage.removeItem('observerUser');
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('adminUser');
+  window.location.href = '/observer/login';
+});
+
+// ── Section Switching ──
+function switchSection(sec) {
+  document.querySelectorAll('.nav-link[data-section]').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll(`.nav-link[data-section="${sec}"]`).forEach(l => l.classList.add('active'));
+  document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('d-none'));
+  document.getElementById(`section-${sec}`).classList.remove('d-none');
+  closeMobileSidebar();
+  window.scrollTo({ top:0, behavior:'smooth' });
+  if (sec === 'overview')   loadOverview();
+  if (sec === 'live')       loadLiveSection();
+  if (sec === 'elections')  loadElections();
+  if (sec === 'results')    loadResultsDropdown();
+}
+document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+  link.addEventListener('click', e => { e.preventDefault(); switchSection(link.dataset.section); });
+});
+
+// ═══════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════
+async function loadOverview() {
+  try {
+    const res  = await fetch('/api/observer/stats', { headers:H });
+    const data = await res.json();
+    document.getElementById('statElections').textContent = data.totalElections ?? '—';
+    document.getElementById('statActive').textContent    = data.activeElections ?? '—';
+    document.getElementById('statVotes').textContent     = data.totalVotes ?? '—';
+    document.getElementById('statTallied').textContent   = data.talliedElections ?? '—';
+
+    const elRes = await fetch('/api/observer/elections', { headers:H });
+    const els   = await elRes.json();
+    const active = els.filter(e => e.status === 'active');
+    const box    = document.getElementById('overviewActiveElections');
+    if (!active.length) {
+      box.innerHTML = '<p class="text-muted text-center py-3" style="font-size:0.85rem;"><i class="bi bi-info-circle me-1"></i>No active elections at the moment.</p>';
+    } else {
+      box.innerHTML = active.map(e => `
+        <div class="d-flex justify-content-between align-items-start p-3 mb-2" style="background:#f0faf9;border-radius:12px;border:1px solid rgba(15,118,110,0.12);">
+          <div>
+            <strong style="font-size:0.92rem;">${esc(e.title)}</strong>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">
+              <i class="bi bi-people me-1"></i>${e.candidate_count} candidates
+              &nbsp;·&nbsp; Ends ${new Date(e.end_time).toLocaleString()}
+            </div>
+          </div>
+          <div class="d-flex flex-column align-items-end gap-2">
+            <span class="status-pill pill-active">Active</span>
+            <strong style="font-size:1.1rem;color:var(--teal);">${e.vote_count} <span style="font-size:0.7rem;font-weight:400;color:var(--muted);">votes</span></strong>
+          </div>
+        </div>`).join('');
+    }
+  } catch(err) { console.error('Overview error:', err); }
+}
+document.getElementById('overviewRefreshBtn').addEventListener('click', loadOverview);
+
+// ═══════════════════════════════════════════
+// LIVE VOTE COUNTS
+// ═══════════════════════════════════════════
+let liveEventSource = null;
+let activeLiveElectionId = null;
+
+async function loadLiveSection() {
+  const res  = await fetch('/api/observer/elections', { headers:H });
+  const data = await res.json();
+  const list = document.getElementById('liveElectionList');
+
+  if (!data.length) {
+    list.innerHTML = '<p class="text-muted text-center" style="font-size:0.85rem;">No elections found.</p>';
+    return;
+  }
+
+  list.innerHTML = data.map(e => `
+    <div class="election-card${e.id === activeLiveElectionId ? ' selected' : ''}"
+         data-id="${e.id}" data-title="${esc(e.title)}" data-status="${e.status}">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="election-title">${esc(e.title)}</div>
+        <span class="status-pill pill-${e.status}">${e.status}</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span style="font-size:0.78rem;color:var(--muted);">${e.candidate_count} candidates</span>
+        <span class="vote-pill" id="pill-${e.id}">${e.vote_count} votes</span>
+      </div>
+    </div>`).join('');
+
+  list.querySelectorAll('.election-card').forEach(card => {
+    card.addEventListener('click', () => startLiveMonitoring(card.dataset.id, card.dataset.title, card.dataset.status));
+  });
+
+  // Resume previous selection
+  if (activeLiveElectionId) startLiveMonitoring(activeLiveElectionId, null, null);
+}
+
+function startLiveMonitoring(electionId, title, status) {
+  // Deselect all
+  document.querySelectorAll('.election-card').forEach(c => c.classList.remove('selected'));
+  const card = document.querySelector(`.election-card[data-id="${electionId}"]`);
+  if (card) card.classList.add('selected');
+
+  activeLiveElectionId = electionId;
+  const titleEl = document.getElementById('liveElectionTitle');
+  if (title) titleEl.textContent = title;
+  if (!title && card) titleEl.textContent = card.querySelector('.election-title').textContent;
+
+  // Close existing SSE
+  if (liveEventSource) { liveEventSource.close(); liveEventSource = null; }
+
+  const panel = document.getElementById('liveCountPanel');
+  panel.innerHTML = `
+    <div class="py-4">
+      <div class="vote-counter" id="liveVoteCount">—</div>
+      <div style="font-size:0.88rem;color:var(--muted);margin-top:0.5rem;">votes cast so far</div>
+      <div style="margin-top:1.5rem;" id="liveCandidateSection"></div>
+    </div>`;
+
+  // Fetch initial election detail (candidates)
+  fetch(`/api/observer/elections/${electionId}`, { headers:H })
+    .then(r => r.json())
+    .then(d => {
+      const sec = document.getElementById('liveCandidateSection');
+      if (!sec) return;
+      if (!d.candidates || !d.candidates.length) return;
+      if (d.status === 'tallied') {
+        sec.innerHTML = `<p style="font-size:0.82rem;color:var(--muted);">This election has been tallied. View results in the <strong>Results</strong> section.</p>`;
+        return;
+      }
+      sec.innerHTML = `
+        <p class="section-label" style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);border-bottom:1px solid var(--border);padding-bottom:0.5rem;margin-bottom:1rem;">Candidates</p>
+        ${d.candidates.map(c => `
+          <div class="d-flex align-items-center gap-3 mb-2" style="font-size:0.85rem;">
+            ${c.photo_url ? `<img src="${c.photo_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" alt="${esc(c.name)}">` : `<div style="width:32px;height:32px;border-radius:50%;background:#eef5f4;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.8rem;flex-shrink:0;"><i class="bi bi-person"></i></div>`}
+            <div style="flex:1;">
+              <strong>${esc(c.name)}</strong>
+              ${c.party ? `<span style="color:var(--muted);font-size:0.78rem;"> · ${esc(c.party)}</span>` : ''}
+            </div>
+          </div>`).join('')}`;
+    }).catch(() => {});
+
+  // Start SSE
+  liveEventSource = new EventSource(`/api/observer/elections/${electionId}/live`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+
+  // NOTE: EventSource doesn't support custom headers in browsers.
+  // We'll use a polling fallback with fetch for auth-protected SSE.
+  liveEventSource.close();
+  startPollingLive(electionId);
+}
+
+// Browser EventSource can't send auth headers, so we poll instead
+let pollingInterval = null;
+function startPollingLive(electionId) {
+  if (pollingInterval) clearInterval(pollingInterval);
+  pollLiveCount(electionId);
+  pollingInterval = setInterval(() => pollLiveCount(electionId), 3000);
+}
+
+async function pollLiveCount(electionId) {
+  if (activeLiveElectionId !== electionId) return;
+  try {
+    const res  = await fetch(`/api/observer/elections/${electionId}`, { headers:H });
+    const data = await res.json();
+    const countEl = document.getElementById('liveVoteCount');
+    if (!countEl) return;
+
+    const prev = parseInt(countEl.textContent) || 0;
+    const curr = data.vote_count || 0;
+
+    if (curr !== prev) {
+      countEl.textContent = curr;
+      countEl.classList.add('bump');
+      setTimeout(() => countEl.classList.remove('bump'), 600);
+
+      // Update sidebar pill
+      const pill = document.getElementById(`pill-${electionId}`);
+      if (pill) { pill.textContent = `${curr} votes`; pill.classList.add('updated'); }
+    } else {
+      countEl.textContent = curr;
+    }
+  } catch(e) { /* silently ignore polling errors */ }
+}
+
+// ═══════════════════════════════════════════
+// ALL ELECTIONS
+// ═══════════════════════════════════════════
+async function loadElections() {
+  const res  = await fetch('/api/observer/elections', { headers:H });
+  const data = await res.json();
+  document.getElementById('electionsBody').innerHTML = data.length
+    ? data.map(e => `
+        <tr>
+          <td><strong>${esc(e.title)}</strong>${e.description ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${esc(e.description.substring(0,60))}${e.description.length>60?'…':''}</div>` : ''}</td>
+          <td><span class="status-pill pill-${e.status}">${e.status}</span></td>
+          <td>${e.candidate_count}</td>
+          <td><strong>${e.vote_count}</strong></td>
+          <td class="text-muted" style="font-size:0.78rem;">${new Date(e.start_time).toLocaleDateString()} → ${new Date(e.end_time).toLocaleDateString()}</td>
+          <td>
+            ${e.status === 'active' ? `<button class="btn-teal" style="padding:0.35rem 0.8rem;font-size:0.78rem;" onclick="switchSection('live');setTimeout(()=>{startLiveMonitoring('${e.id}','${esc(e.title)}','${e.status}')},200)"><i class="bi bi-activity me-1"></i>Monitor</button>` : ''}
+            ${e.status === 'tallied' ? `<button class="btn-teal" style="padding:0.35rem 0.8rem;font-size:0.78rem;background:#8a6d1a;" onclick="switchSection('results');setTimeout(()=>{document.getElementById('resultsFilter').value='${e.id}';loadResults('${e.id}')},200)"><i class="bi bi-bar-chart me-1"></i>Results</button>` : ''}
+          </td>
+        </tr>`).join('')
+    : '<tr><td colspan="6" class="text-center text-muted py-4">No elections found.</td></tr>';
+}
+
+// ═══════════════════════════════════════════
+// RESULTS
+// ═══════════════════════════════════════════
+async function loadResultsDropdown() {
+  const res  = await fetch('/api/observer/elections', { headers:H });
+  const data = await res.json();
+  const select = document.getElementById('resultsFilter');
+  const tallied = data.filter(e => e.status === 'tallied');
+  select.innerHTML = '<option value="">— Select a tallied election —</option>' +
+    tallied.map(e => `<option value="${e.id}">${esc(e.title)}</option>`).join('');
+  select.addEventListener('change', () => { if (select.value) loadResults(select.value); });
+}
+
+async function loadResults(electionId) {
+  const box = document.getElementById('resultsContent');
+  box.innerHTML = '<div class="card-section"><div class="card-section-body text-center py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading results…</div></div>';
+  try {
+    const res  = await fetch(`/api/observer/elections/${electionId}/results`, { headers:H });
+    const data = await res.json();
+    if (!res.ok) {
+      box.innerHTML = `<div class="card-section"><div class="card-section-body text-center text-muted py-5">${esc(data.error || 'Results not available.')}</div></div>`;
+      return;
+    }
+    const r     = data.results;
+    const max   = Math.max(...r.candidates.map(c => c.votes), 1);
+    const winner= r.candidates[0];
+    box.innerHTML = `
+      <div class="card-section">
+        <div class="card-section-header">
+          <div>
+            <h5>${esc(r.electionTitle)}</h5>
+            <span style="font-size:0.78rem;color:var(--muted);">Tallied ${new Date(data.tallied_at).toLocaleString()} by ${esc(data.tallied_by)}</span>
+          </div>
+          <span class="${data.signature_valid ? 'sig-valid' : 'sig-invalid'}">
+            <i class="bi bi-${data.signature_valid ? 'patch-check-fill' : 'exclamation-triangle-fill'} me-1"></i>
+            ${data.signature_valid ? 'Signature Valid' : 'Signature Invalid'}
+          </span>
+        </div>
+        <div class="card-section-body">
+          <div class="d-flex gap-4 mb-4" style="flex-wrap:wrap;">
+            <div><div style="font-size:2rem;font-weight:900;color:var(--ink);">${r.totalVotes}</div><div style="font-size:0.8rem;color:var(--muted);">Total Votes</div></div>
+            <div><div style="font-size:2rem;font-weight:900;color:var(--crimson);">${r.invalidVotes}</div><div style="font-size:0.8rem;color:var(--muted);">Invalid Votes</div></div>
+            <div><div style="font-size:2rem;font-weight:900;color:var(--teal);">${r.candidates.length}</div><div style="font-size:0.8rem;color:var(--muted);">Candidates</div></div>
+          </div>
+          ${r.candidates.map((c, i) => `
+            <div class="vote-bar-wrap">
+              <div class="vote-bar-label">
+                <strong>${esc(c.name)}${i===0 ? '<i class="bi bi-trophy-fill winner-crown ms-1"></i>' : ''} <span style="font-size:0.78rem;color:var(--muted);font-weight:400;">${c.party ? '· ' + esc(c.party) : ''}</span></strong>
+                <span>${c.votes} votes (${c.percentage}%)</span>
+              </div>
+              <div class="vote-bar-track">
+                <div class="vote-bar-fill" style="width:${(c.votes/max*100).toFixed(1)}%"></div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  } catch(e) {
+    box.innerHTML = '<div class="card-section"><div class="card-section-body text-center text-muted py-5">Failed to load results.</div></div>';
+  }
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+loadOverview();
+</script>
+</body>
+</html>

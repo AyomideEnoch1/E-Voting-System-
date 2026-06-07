@@ -204,7 +204,7 @@ router.post('/admin-login', authLimiter, async (req, res) => {
 
     const user = await q1('SELECT * FROM users WHERE email=?', [email.toLowerCase()]);
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    if (user.role !== 'admin') {
+    if (!['admin','superadmin'].includes(user.role)) {
       await q('INSERT INTO audit_log (id,action,user_id,ip_hash) VALUES (?,?,?,?)',
         [uuid(), 'ADMIN_LOGIN_DENIED', user.id, secUtils.hashIP(req.ip)]);
       return res.status(403).json({ error: 'Access denied. Administrator account required.' });
@@ -234,6 +234,55 @@ router.post('/admin-login', authLimiter, async (req, res) => {
   } catch (e) {
     console.error('[ADMIN LOGIN]', e);
     res.status(500).json({ error: 'Admin login failed' });
+  }
+});
+
+/* ── OBSERVER LOGIN ── */
+router.post('/observer-login', authLimiter, async (req, res) => {
+  try {
+    const { email, password, observer_key } = req.body;
+    if (!email || !password || !observer_key)
+      return res.status(400).json({ error: 'Email, password and observer key are required' });
+
+    const expectedKey = process.env.OBSERVER_SECRET_KEY || '';
+    if (!expectedKey) return res.status(500).json({ error: 'Observer login not configured' });
+
+    if (!secUtils.safeCompare(observer_key, expectedKey)) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const user = await q1('SELECT * FROM users WHERE email=?', [email.toLowerCase()]);
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!['observer','admin','superadmin'].includes(user.role)) {
+      await q('INSERT INTO audit_log (id,action,user_id,ip_hash) VALUES (?,?,?,?)',
+        [uuid(), 'OBSERVER_LOGIN_DENIED', user.id, secUtils.hashIP(req.ip)]);
+      return res.status(403).json({ error: 'Access denied.' });
+    }
+    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+      const mins = Math.ceil((new Date(user.locked_until) - Date.now()) / 60000);
+      return res.status(423).json({ error: `Account locked. Try again in ${mins} minute(s)` });
+    }
+    if (!user.is_active) return res.status(403).json({ error: 'Account suspended' });
+
+    const valid = await hashingService.verifyPassword(password, user.password_hash);
+    if (!valid) {
+      const attempts = user.login_attempts + 1;
+      const lock = attempts >= MAX_LOGIN_ATTEMPTS ? new Date(Date.now() + LOCK_MS) : null;
+      await q('UPDATE users SET login_attempts=?, locked_until=? WHERE id=?', [attempts, lock, user.id]);
+      await q('INSERT INTO audit_log (id,action,user_id,ip_hash,meta) VALUES (?,?,?,?,?)',
+        [uuid(), 'OBSERVER_LOGIN_FAILED', user.id, secUtils.hashIP(req.ip), JSON.stringify({ attempts })]);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    await q('UPDATE users SET login_attempts=0, locked_until=NULL, last_login=NOW() WHERE id=?', [user.id]);
+    const token = keyMgmt.generateToken({ id: user.id, role: user.role, name: user.full_name });
+    await q('INSERT INTO audit_log (id,action,user_id,ip_hash) VALUES (?,?,?,?)',
+      [uuid(), 'OBSERVER_LOGIN_SUCCESS', user.id, secUtils.hashIP(req.ip)]);
+
+    res.json({ token, user: { id: user.id, name: user.full_name, email: user.email, role: user.role } });
+  } catch (e) {
+    console.error('[OBSERVER LOGIN]', e);
+    res.status(500).json({ error: 'Observer login failed' });
   }
 });
 

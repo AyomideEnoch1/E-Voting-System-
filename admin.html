@@ -280,7 +280,7 @@
     <div class="d-flex align-items-center gap-2">
       <i class="bi bi-shield-lock-fill"></i>
       <span>SecureVote</span>
-      <span class="admin-badge ms-1">ADMIN</span>
+      <span class="admin-badge ms-1" id="sidebarAdminBadge">ADMIN</span>
     </div>
     <button class="btn border-0 text-white-50 p-0 d-lg-none" id="sidebarClose" aria-label="Close Navigation">
       <i class="bi bi-x-lg fs-4"></i>
@@ -290,7 +290,7 @@
     <div class="user-avatar" id="avatarInitial">A</div>
     <div>
       <div class="user-name" id="sidebarName">Admin</div>
-      <div class="user-role">Administrator</div>
+      <div class="user-role" id="sidebarRoleLabel">Administrator</div>
     </div>
   </div>
   <p class="nav-section-label">Management</p>
@@ -303,10 +303,12 @@
     <li class="nav-item"><a class="nav-link" href="#" data-section="voter-id-requests"><i class="bi bi-person-badge"></i>ID Requests <span id="pendingIdBadge" class="badge ms-1 d-none" style="background:var(--crimson);font-size:0.65rem;"></span></a></li>
     <li class="nav-item"><a class="nav-link" href="#" data-section="matric-purge"><i class="bi bi-trash3"></i>Matric Purge</a></li>
     <li class="nav-item"><a class="nav-link" href="#" data-section="audit"><i class="bi bi-journal-text"></i>Audit Log</a></li>
+    <li class="nav-item" data-superadmin-only><a class="nav-link" href="#" data-section="admin-mgmt"><i class="bi bi-person-gear"></i>Admin Management <span class="badge ms-1" style="background:rgba(201,168,76,0.3);color:#c9a84c;font-size:0.6rem;">SA</span></a></li>
   </ul>
   <div class="sidebar-logout mt-auto">
     <p class="nav-section-label">Account</p>
     <ul class="nav flex-column sidebar-nav">
+      <li class="nav-item"><a class="nav-link" href="/observer" target="_blank" style="color:#14b8a6;"><i class="bi bi-eye-fill"></i>View as Observer</a></li>
       <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right"></i>Sign Out</a></li>
     </ul>
   </div>
@@ -600,8 +602,49 @@
       </div>
     </div>
   </div>
+  <!-- ADMIN MANAGEMENT (superadmin only) -->
+  <div id="section-admin-mgmt" class="d-none">
+    <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <h1>Admin Management</h1>
+        <p>Promote trusted users to admin, and manage existing admin accounts.</p>
+      </div>
+    </div>
+    <!-- Add Admin Panel -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-5">
+        <div class="card-section">
+          <div class="card-section-header"><h5><i class="bi bi-person-plus-fill me-2" style="color:var(--gold)"></i>Promote User to Admin</h5></div>
+          <div class="card-section-body">
+            <div id="adminMgmtAlert" class="alert d-none mb-3"></div>
+            <div class="mb-3">
+              <label class="form-label">User Email Address</label>
+              <input type="email" class="form-control" id="promoteEmail" placeholder="user@run.edu.ng" />
+              <div class="form-text" style="font-size:0.78rem;">The user must already be registered in the system.</div>
+            </div>
+            <button class="btn btn-primary-dark w-100" id="promoteAdminBtn">
+              <span id="promoteAdminText"><i class="bi bi-shield-plus me-2"></i>Promote to Admin</span>
+              <span id="promoteAdminSpin" class="spinner-border spinner-border-sm d-none"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-7">
+        <div class="card-section">
+          <div class="card-section-header"><h5><i class="bi bi-person-gear me-2" style="color:var(--gold)"></i>Existing Admin Accounts</h5></div>
+          <div class="card-section-body p-0">
+            <table class="table mb-0">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last Login</th><th>Actions</th></tr></thead>
+              <tbody id="adminListBody"><tr><td colspan="5" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div><!-- end main-content -->
+
 <div class="modal fade" id="electionModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
@@ -821,10 +864,20 @@
 // ── Auth Guard ──
 const token = localStorage.getItem('token');
 const user  = JSON.parse(localStorage.getItem('user') || '{}');
-if (!token || user.role !== 'admin') window.location.href = '/';
+const isSuperAdmin = user.role === 'superadmin';
+if (!token || !['admin','superadmin'].includes(user.role)) window.location.href = '/';
 document.getElementById('sidebarName').textContent    = user.name || 'Admin';
 document.getElementById('avatarInitial').textContent  = (user.name||'A')[0].toUpperCase();
 document.getElementById('mobileAvatarInitial').textContent = (user.name||'A')[0].toUpperCase();
+// Update sidebar role badge dynamically
+const roleLabelEl = document.getElementById('sidebarRoleLabel');
+const roleAdminBadge = document.getElementById('sidebarAdminBadge');
+if (roleLabelEl) roleLabelEl.textContent = isSuperAdmin ? 'Super Administrator' : 'Administrator';
+if (roleAdminBadge) roleAdminBadge.textContent = isSuperAdmin ? 'SUPER ADMIN' : 'ADMIN';
+// Show/hide superadmin-only nav items and UI elements
+document.querySelectorAll('[data-superadmin-only]').forEach(el => {
+  el.style.display = isSuperAdmin ? '' : 'none';
+});
 const H = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 // XSS-safe HTML escaping — used whenever injecting user-supplied text into innerHTML
 const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -879,6 +932,7 @@ function switchSection(sec) {
   if (sec === 'audit')              loadAudit();
   if (sec === 'voter-id-requests')  loadVoterIdRequests();
   if (sec === 'matric-purge')       initMatricPurge();
+  if (sec === 'admin-mgmt')         loadAdminMgmt();
 }
 
 // ── MATRIC PURGE ──
@@ -1074,7 +1128,7 @@ async function loadElections() {
           ${e.status==='active'  ? `<button class="btn btn-outline-secondary btn-sm" data-action="live" data-id="${e.id}"><i class="bi bi-eye me-1"></i>Live</button>` : ''}
           ${e.status==='closed'  ? `<button class="btn btn-gold btn-sm" data-id="${e.id}" data-title="${esc(e.title)}" data-votes="${e.vote_count}" data-action="tally"><i class="bi bi-calculator me-1"></i>Tally</button>` : ''}
           ${e.status==='tallied' ? `<button class="btn btn-outline-secondary btn-sm" data-action="results" data-id="${e.id}"><i class="bi bi-bar-chart me-1"></i>Results</button>` : ''}
-          ${e.status!=='active'  ? `<button class="btn btn-danger-soft btn-sm" data-id="${e.id}" data-title="${esc(e.title)}" data-action="delete-election"><i class="bi bi-trash me-1"></i>Delete</button>` : ''}
+          ${e.status!=='active' && (e.status!=='tallied' || isSuperAdmin) ? `<button class="btn btn-danger-soft btn-sm" data-id="${e.id}" data-title="${esc(e.title)}" data-action="delete-election"><i class="bi bi-trash me-1"></i>Delete</button>` : ''}
         </div>
       </td>
     </tr>`).join('');
@@ -1592,8 +1646,8 @@ async function loadUsers() {
     </tr>`).join('');
 }
 
-async function toggleUser(id, active, role, verified) {
-  const res = await fetch(`/api/admin/users/${id}`, { method:'PUT', headers:H, body:JSON.stringify({ is_active: active, role, is_verified: verified }) });
+async function toggleUser(id, active) {
+  const res = await fetch(`/api/admin/users/${id}`, { method:'PUT', headers:H, body:JSON.stringify({ is_active: active }) });
   if (!res.ok) { const d = await res.json(); return alert(d.error || 'Failed to update user.'); }
   loadUsers();
 }
@@ -1631,6 +1685,65 @@ async function loadAudit() {
       <td><code style="font-size:0.72rem;color:var(--muted);">${esc(l.meta||'')}</code></td>
     </tr>`).join('') || '<tr><td colspan="4" class="text-center text-muted py-4">No audit records.</td></tr>';
 }
+
+// ─────────────────────────────────────────────
+//  ADMIN MANAGEMENT (superadmin only)
+// ─────────────────────────────────────────────
+async function loadAdminMgmt() {
+  // Fetch all users and filter for admin/superadmin (role filter supports one value at a time)
+  const [adminRes, superRes] = await Promise.all([
+    fetch('/api/admin/users?role=admin&limit=100', { headers: H }),
+    fetch('/api/admin/users?role=superadmin&limit=100', { headers: H })
+  ]);
+  const adminData = adminRes.ok ? await adminRes.json() : { users: [] };
+  const superData = superRes.ok ? await superRes.json() : { users: [] };
+  const admins = [...(adminData.users || []), ...(superData.users || [])];
+  document.getElementById('adminListBody').innerHTML = admins.length
+    ? admins.map(a => `
+      <tr>
+        <td><strong>${esc(a.full_name)}</strong></td>
+        <td style="font-size:0.82rem;color:var(--muted);">${esc(a.email)}</td>
+        <td>
+          <span class="status-pill" style="background:${a.role==='superadmin'?'rgba(201,168,76,0.15)':'rgba(58,69,86,0.1)'};color:${a.role==='superadmin'?'#8a6d1a':'var(--slate)'}">
+            ${a.role === 'superadmin' ? '⭐ Super Admin' : 'Admin'}
+          </span>
+        </td>
+        <td class="text-muted" style="font-size:0.78rem;">${a.last_login ? new Date(a.last_login).toLocaleString() : 'Never'}</td>
+        <td>
+          ${a.role !== 'superadmin' ? `<button class="btn btn-danger-soft btn-sm" data-action="delete-admin" data-id="${a.id}" data-name="${esc(a.full_name)}"><i class="bi bi-trash me-1"></i>Remove</button>` : '<span class="text-muted" style="font-size:0.78rem;">Protected</span>'}
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="text-center text-muted py-4">No admin accounts found.</td></tr>';
+}
+
+document.getElementById('promoteAdminBtn').addEventListener('click', async () => {
+  const email = document.getElementById('promoteEmail').value.trim();
+  if (!email) return showSectionAlert('adminMgmtAlert', 'Please enter an email address.', 'warning');
+  toggleBtnLoad('promoteAdminBtn','promoteAdminText','promoteAdminSpin', true);
+  try {
+    const res = await fetch('/api/admin/create-admin', { method: 'POST', headers: H, body: JSON.stringify({ email }) });
+    const d   = await res.json();
+    if (!res.ok) return showSectionAlert('adminMgmtAlert', d.error || 'Failed to promote user.', 'danger');
+    showSectionAlert('adminMgmtAlert', d.message, 'success');
+    document.getElementById('promoteEmail').value = '';
+    loadAdminMgmt();
+  } catch { showSectionAlert('adminMgmtAlert', 'Network error.', 'danger'); }
+  finally { toggleBtnLoad('promoteAdminBtn','promoteAdminText','promoteAdminSpin', false); }
+});
+
+document.getElementById('adminListBody').addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-action="delete-admin"]');
+  if (!btn) return;
+  const id   = btn.dataset.id;
+  const name = btn.dataset.name;
+  if (!confirm(`Remove admin access for "${name}"? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: H });
+    const d   = await res.json();
+    if (!res.ok) return alert(d.error || 'Failed to remove admin.');
+    loadAdminMgmt();
+  } catch { alert('Network error.'); }
+});
 
 // ─────────────────────────────────────────────
 //  HELPERS
@@ -1864,8 +1977,8 @@ document.getElementById('usersBody').addEventListener('click', e => {
   const id      = btn.dataset.id;
   const role    = btn.dataset.role;
   const verified= btn.dataset.verified;
-  if (action === 'suspend')  toggleUser(id, 0, role, verified);
-  if (action === 'activate') toggleUser(id, 1, role, verified);
+  if (action === 'suspend')  toggleUser(id, 0);
+  if (action === 'activate') toggleUser(id, 1);
   if (action === 'verify')   manualVerify(id);
   if (action === 'unlock')   unlockUser(id);
 });

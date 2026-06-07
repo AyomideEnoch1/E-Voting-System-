@@ -14,6 +14,7 @@ const electionRoutes  = require('./election_routes');
 const voteRoutes      = require('./vote_routes');
 const adminRoutes     = require('./admin_routes');
 const candidateRoutes = require('./candidate_routes');
+const observerRoutes  = require('./observer_routes');
 
 const app  = express();
 app.set('trust proxy', 1);
@@ -77,6 +78,7 @@ app.use('/api/elections',  electionRoutes);
 app.use('/api/votes',      voteRoutes);
 app.use('/api/admin',      adminRoutes);
 app.use('/api/candidates', candidateRoutes);
+app.use('/api/observer',   observerRoutes);
 
 const liveEvents = require('./live_events');
 
@@ -108,6 +110,8 @@ app.get('/register',          (req, res) => res.sendFile(path.join(__dirname, 'r
 app.get('/voter',             (req, res) => res.sendFile(path.join(__dirname, 'voter.html')));
 app.get('/admin',             (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/admin/login',       (req, res) => res.sendFile(path.join(__dirname, 'admin-login.html')));
+app.get('/observer',          (req, res) => res.sendFile(path.join(__dirname, 'observer.html')));
+app.get('/observer/login',    (req, res) => res.sendFile(path.join(__dirname, 'observer-login.html')));
 app.get('/candidate/:id',     (req, res) => res.sendFile(path.join(__dirname, 'candidate-profile.html')));
 app.get('/reset-password',    (req, res) => res.sendFile(path.join(__dirname, 'reset-password.html')));
 
