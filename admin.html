@@ -164,6 +164,18 @@
       pointer-events: auto;
     }
 
+    #sidebarClose {
+      display: none !important;
+      color: rgba(255, 255, 255, 0.6);
+      transition: color 0.2s;
+      line-height: 1;
+      padding: 4px;
+      margin-right: -4px;
+    }
+    #sidebarClose:hover {
+      color: #fff;
+    }
+
     /* ── Tables: horizontally scrollable on mobile ── */
     .table-responsive-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 
@@ -177,6 +189,11 @@
       }
       .sidebar.show {
         transform: translateX(0);
+      }
+      .sidebar.show #sidebarClose {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
       }
       .mobile-topbar { display:flex; }
       .main-content {
