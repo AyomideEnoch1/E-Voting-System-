@@ -16,13 +16,23 @@ if (!GMAIL_USER || !GMAIL_PASS) {
   console.log(`✅  Email service: Gmail SMTP configured — sending from ${GMAIL_USER}`);
 }
 
+const dns = require('dns');
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
 // ── Transporter ──
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // true for port 465, false for other ports
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_PASS,   // Use a Gmail App Password, NOT your account password
   },
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 // ── Helper ──

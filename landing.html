@@ -1139,15 +1139,23 @@
   mobileToggle.addEventListener('click', () => {
     menuOpen = !menuOpen;
     mobileMenu.classList.toggle('open', menuOpen);
-    mobileToggle.innerHTML = menuOpen
-      ? '<i class="bi bi-x-lg"></i>'
-      : '<i class="bi bi-list"></i>';
+    const icon = mobileToggle.querySelector('i');
+    if (icon) {
+      if (menuOpen) {
+        icon.className = 'bi bi-x-lg';
+      } else {
+        icon.className = 'bi bi-list';
+      }
+    }
   });
 
   function closeMobileMenu() {
     menuOpen = false;
     mobileMenu.classList.remove('open');
-    mobileToggle.innerHTML = '<i class="bi bi-list"></i>';
+    const icon = mobileToggle.querySelector('i');
+    if (icon) {
+      icon.className = 'bi bi-list';
+    }
   }
 
   // Close on outside click

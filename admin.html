@@ -147,36 +147,42 @@
     .mobile-topbar .brand .admin-badge { font-size:0.6rem; }
     .mobile-topbar .user-chip { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--crimson),#7d1515); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; color:#fff; }
 
-    /* ── Mobile Bottom Nav ── */
-    .mobile-bottom-nav {
-      display:none; position:fixed; bottom:0; left:0; right:0; z-index:200;
-      background:var(--ink); border-top:1px solid rgba(255,255,255,0.08);
-      padding:0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom));
+    /* ── Sidebar Overlay ── */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(13, 17, 23, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
     }
-    .mobile-bottom-nav ul { display:flex; list-style:none; margin:0; padding:0; justify-content:space-around; }
-    .mob-nav-link {
-      display:flex; flex-direction:column; align-items:center; gap:2px;
-      color:rgba(255,255,255,0.45); text-decoration:none;
-      font-size:0.58rem; font-weight:600; letter-spacing:0.04em;
-      padding:0.3rem 0.5rem; border-radius:8px; transition:color 0.2s;
-      -webkit-tap-highlight-color:transparent;
+    .sidebar-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
     }
-    .mob-nav-link i { font-size:1.2rem; }
-    .mob-nav-link.active { color:var(--gold); }
-    .mob-nav-link.logout-mob { color:rgba(255,100,100,0.6); }
-    .mob-nav-link.logout-mob:hover { color:#ff6b6b; }
 
     /* ── Tables: horizontally scrollable on mobile ── */
     .table-responsive-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 
     @media (max-width:991px) {
-      .sidebar { display:none !important; }
+      .sidebar {
+        display: flex !important;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+        z-index: 999;
+      }
+      .sidebar.show {
+        transform: translateX(0);
+      }
       .mobile-topbar { display:flex; }
-      .mobile-bottom-nav { display:block; }
       .main-content {
         margin-left:0; padding:1.2rem 1rem;
         padding-top:calc(56px + 1.2rem);
-        padding-bottom:calc(68px + env(safe-area-inset-bottom) + 1rem);
+        padding-bottom:1.5rem;
       }
       .page-header h1 { font-size:1.45rem; }
       .page-header { flex-direction:column !important; align-items:flex-start !important; gap:0.8rem; }
@@ -218,7 +224,7 @@
     }
 
     @media (max-width:575px) {
-      .main-content { padding:1rem 0.75rem; padding-top:calc(56px + 1rem); padding-bottom:calc(68px + env(safe-area-inset-bottom) + 1rem); }
+      .main-content { padding:1rem 0.75rem; padding-top:calc(56px + 1rem); padding-bottom:1rem; }
       #section-dashboard .row.g-3.mb-4 .col-md-3 { width:100%; }
       .stat-card { padding:0.9rem 1rem; display:flex; align-items:center; gap:1rem; }
       .stat-icon { margin-bottom:0; flex-shrink:0; }
@@ -239,31 +245,29 @@
 
 <!-- Mobile Top Bar -->
 <div class="mobile-topbar">
-  <div class="brand"><i class="bi bi-shield-lock-fill"></i> SecureVote <span class="admin-badge ms-1">ADMIN</span></div>
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn border-0 text-white p-1" id="mobileSidebarToggle" aria-label="Toggle Navigation">
+      <i class="bi bi-list fs-3"></i>
+    </button>
+    <div class="brand"><i class="bi bi-shield-lock-fill"></i> SecureVote <span class="admin-badge ms-1">ADMIN</span></div>
+  </div>
   <div class="user-chip" id="mobileAvatarInitial">A</div>
 </div>
 
-<!-- Mobile Bottom Nav -->
-<nav class="mobile-bottom-nav">
-  <ul>
-    <li><a class="mob-nav-link active" href="#" data-section="dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a></li>
-    <li><a class="mob-nav-link" href="#" data-section="elections"><i class="bi bi-card-list"></i>Elections</a></li>
-    <li><a class="mob-nav-link" href="#" data-section="results"><i class="bi bi-bar-chart-fill"></i>Results</a></li>
-    <li><a class="mob-nav-link" href="#" data-section="candidates"><i class="bi bi-people-fill"></i>Candidates</a></li>
-    <li><a class="mob-nav-link" href="#" data-section="users"><i class="bi bi-person-lines-fill"></i>Voters</a></li>
-    <li><a class="mob-nav-link" href="#" data-section="voter-id-requests"><i class="bi bi-person-badge"></i>ID Req.</a></li>
-    <li><a class="mob-nav-link" href="#" data-section="matric-purge"><i class="bi bi-trash3"></i>Purge</a></li>
-    <li><a class="mob-nav-link" href="#" data-section="audit"><i class="bi bi-journal-text"></i>Audit</a></li>
-    <li><a class="mob-nav-link logout-mob" href="#" id="mobileLogoutBtn"><i class="bi bi-box-arrow-right"></i>Out</a></li>
-  </ul>
-</nav>
+<!-- Sidebar Overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- ── SIDEBAR ── -->
 <div class="sidebar">
-  <div class="sidebar-brand">
-    <i class="bi bi-shield-lock-fill"></i>
-    <span>SecureVote</span>
-    <span class="admin-badge ms-1">ADMIN</span>
+  <div class="sidebar-brand d-flex align-items-center justify-content-between w-100">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-shield-lock-fill"></i>
+      <span>SecureVote</span>
+      <span class="admin-badge ms-1">ADMIN</span>
+    </div>
+    <button class="btn border-0 text-white-50 p-0 d-lg-none" id="sidebarClose" aria-label="Close Navigation">
+      <i class="bi bi-x-lg fs-4"></i>
+    </button>
   </div>
   <div class="sidebar-user d-flex align-items-center gap-3">
     <div class="user-avatar" id="avatarInitial">A</div>
@@ -834,14 +838,21 @@ function updateDashboardValue(elementId, newValue) {
   }
 }
 
+// ── Close Mobile Sidebar ──
+function closeMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (sidebar) sidebar.classList.remove('show');
+  if (overlay) overlay.classList.remove('show');
+}
+
 // ── Section Switch ──
 function switchSection(sec) {
   document.querySelectorAll('.nav-link[data-section]').forEach(l => l.classList.remove('active'));
   document.querySelectorAll(`.nav-link[data-section="${sec}"]`).forEach(l => l.classList.add('active'));
-  document.querySelectorAll('.mob-nav-link[data-section]').forEach(l => l.classList.remove('active'));
-  document.querySelectorAll(`.mob-nav-link[data-section="${sec}"]`).forEach(l => l.classList.add('active'));
   document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('d-none'));
   document.getElementById(`section-${sec}`).classList.remove('d-none');
+  closeMobileSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (sec === 'dashboard')          loadDashboard();
   if (sec === 'elections')          loadElections();
@@ -948,18 +959,23 @@ function showSectionAlert(id, msg, type='danger') {
 document.querySelectorAll('.nav-link[data-section]').forEach(link => {
   link.addEventListener('click', e => { e.preventDefault(); switchSection(link.dataset.section); });
 });
-document.querySelectorAll('.mob-nav-link[data-section]').forEach(link => {
-  link.addEventListener('click', e => { e.preventDefault(); switchSection(link.dataset.section); });
+
+// ── Mobile Sidebar Toggles ──
+document.getElementById('mobileSidebarToggle').addEventListener('click', () => {
+  document.querySelector('.sidebar').classList.add('show');
+  document.getElementById('sidebarOverlay').classList.add('show');
 });
+document.getElementById('sidebarClose').addEventListener('click', closeMobileSidebar);
+document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
 
 // ── Logout ──
 async function doLogout(e) {
   e.preventDefault();
+  closeMobileSidebar();
   try { await fetch('/api/auth/logout', { method: 'POST', headers: H }); } catch {}
   localStorage.clear(); window.location.href = '/';
 }
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
-document.getElementById('mobileLogoutBtn').addEventListener('click', doLogout);
 
 // ─────────────────────────────────────────────
 //  DASHBOARD

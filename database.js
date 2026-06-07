@@ -5,16 +5,16 @@ let db;
 
 async function connectDB(retries = 5, delay = 3000) {
   // Log all DB config on startup (mask password)
-  console.log(`🔌  DB config → host=${process.env.DB_HOST} port=${process.env.DB_PORT} user=${process.env.DB_USER} db=${process.env.DB_NAME}`);
+  console.log(`🔌  DB config → host=${process.env.MYSQLHOST || process.env.DB_HOST} port=${process.env.MYSQLPORT || process.env.DB_PORT} user=${process.env.MYSQLUSER || process.env.DB_USER} db=${process.env.MYSQLDATABASE || process.env.DB_NAME}`);
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       db = await mysql.createPool({
-        host:     process.env.DB_HOST || 'localhost',
-        port:     parseInt(process.env.DB_PORT) || 3306,
-        user:     process.env.DB_USER || 'root',
-        password: process.env.DB_PASS || '',
-        database: process.env.DB_NAME || 'evoting',
+        host:     process.env.MYSQLHOST || process.env.DB_HOST || 'localhost',
+        port:     parseInt(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
+        user:     process.env.MYSQLUSER || process.env.DB_USER || 'root',
+        password: process.env.MYSQLPASSWORD || process.env.DB_PASS || '',
+        database: process.env.MYSQLDATABASE || process.env.DB_NAME || 'evoting',
         waitForConnections: true,
         connectionLimit: 10,
         connectTimeout: 10000,
@@ -30,7 +30,7 @@ async function connectDB(retries = 5, delay = 3000) {
       return;
     } catch (err) {
       console.error(`❌  MySQL connection failed (attempt ${attempt}/${retries}): ${err.message || JSON.stringify(err)}`);
-      console.error(`    code=${err.code} errno=${err.errno} host=${process.env.DB_HOST} port=${process.env.DB_PORT}`);
+      console.error(`    code=${err.code} errno=${err.errno} host=${process.env.MYSQLHOST || process.env.DB_HOST} port=${process.env.MYSQLPORT || process.env.DB_PORT}`);
       if (attempt < retries) {
         console.log(`⏳  Retrying in ${delay/1000}s...`);
         await new Promise(r => setTimeout(r, delay));
