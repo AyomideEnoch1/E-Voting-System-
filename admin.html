@@ -1278,7 +1278,7 @@ async function loadResults() {
 
 async function quickViewResults(id) {
   document.getElementById('resultsModalBody').innerHTML = '<div class="text-center py-4"><span class="spinner-border"></span></div>';
-  new bootstrap.Modal(document.getElementById('resultsModal')).show();
+  getOrCreateModal('resultsModal').show();
   document.getElementById('resultsModalBody').innerHTML = await buildResultsHTML(id, true);
 }
 
@@ -1454,8 +1454,7 @@ async function saveCandidate() {
     const res  = await fetch(`/api/candidates/${elId}`, { method:'POST', headers:H, body:JSON.stringify(body) });
     const data = await res.json();
     if (!res.ok) return showModalAlert('candidateAlert', data.error || 'Failed to save candidate.', 'danger');
-    const m = bootstrap.Modal.getInstance(document.getElementById('candidateModal'));
-    if (m) m.hide();
+    getOrCreateModal('candidateModal').hide();
     document.getElementById('candidateElectionFilter').value = elId;
     loadCandidates();
   } catch (err) {
@@ -1479,7 +1478,7 @@ function openUploadPhoto(candId, currentUrl) {
   const prev = document.getElementById('photoUploadPreview');
   prev.innerHTML = currentUrl ? `<img src="${currentUrl}" class="preview-img mb-2" /><br/><small class="text-muted">Current photo</small>` : '';
   document.getElementById('photoFileInput').value = '';
-  new bootstrap.Modal(document.getElementById('uploadPhotoModal')).show();
+  getOrCreateModal('uploadPhotoModal').show();
 }
 
 async function doUploadPhoto() {
@@ -1492,8 +1491,7 @@ async function doUploadPhoto() {
     const res = await fetch(`/api/candidates/profile/${candId}/photo`, { method:'POST', headers:{'Authorization':`Bearer ${token}`}, body:form });
     const d   = await res.json();
     if (!res.ok) return alert(d.error || 'Photo upload failed.');
-    const m = bootstrap.Modal.getInstance(document.getElementById('uploadPhotoModal'));
-    if (m) m.hide();
+    getOrCreateModal('uploadPhotoModal').hide();
     loadCandidates();
   } catch (err) {
     console.error('[doUploadPhoto]', err);
@@ -1506,7 +1504,7 @@ async function doUploadPhoto() {
 function openUploadManifesto(candId) {
   document.getElementById('uploadManifestoCandId').value = candId;
   document.getElementById('manifestoFileInput').value = '';
-  new bootstrap.Modal(document.getElementById('uploadManifestoModal')).show();
+  getOrCreateModal('uploadManifestoModal').show();
 }
 
 async function doUploadManifesto() {
@@ -1519,8 +1517,7 @@ async function doUploadManifesto() {
     const res = await fetch(`/api/candidates/profile/${candId}/manifesto`, { method:'POST', headers:{'Authorization':`Bearer ${token}`}, body:form });
     const d   = await res.json();
     if (!res.ok) return alert(d.error || 'Manifesto upload failed.');
-    const m = bootstrap.Modal.getInstance(document.getElementById('uploadManifestoModal'));
-    if (m) m.hide();
+    getOrCreateModal('uploadManifestoModal').hide();
     loadCandidates();
   } catch (err) {
     console.error('[doUploadManifesto]', err);
@@ -1742,7 +1739,7 @@ function openRejectModal(requestId) {
   rejectTargetId = requestId;
   document.getElementById('rejectReasonInput').value = '';
   document.getElementById('rejectModalAlert').classList.add('d-none');
-  new bootstrap.Modal(document.getElementById('rejectVoterIdModal')).show();
+  getOrCreateModal('rejectVoterIdModal').show();
 }
 
 async function submitRejectVoterId() {
@@ -1763,8 +1760,7 @@ async function submitRejectVoterId() {
       btn.disabled = false;
       return;
     }
-    const m = bootstrap.Modal.getInstance(document.getElementById('rejectVoterIdModal'));
-    if (m) m.hide();
+    getOrCreateModal('rejectVoterIdModal').hide();
     const pageAlert = document.getElementById('voterIdRequestsAlert');
     pageAlert.className = 'alert alert-success mb-3';
     pageAlert.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${data.message}`;

@@ -168,11 +168,11 @@
 
 <!-- Top Bar -->
 <div class="top-bar">
-  <a href="javascript:history.back()" class="brand" style="text-decoration:none;">
+  <a href="#" class="brand back-action" style="text-decoration:none;">
     <i class="bi bi-shield-lock-fill"></i>
     <span>SecureVote</span>
   </a>
-  <a href="javascript:history.back()" class="back-link"><i class="bi bi-arrow-left me-1"></i>Back</a>
+  <a href="#" class="back-link back-action"><i class="bi bi-arrow-left me-1"></i>Back</a>
 </div>
 
 <!-- Content -->
@@ -352,6 +352,18 @@
       document.getElementById('loadingView').innerHTML = '<div class="alert alert-danger mx-auto" style="max-width:400px;">Profile not found.</div>';
     }
   }
+
+  // ── Back Button Handler (CSP Compliant) ──
+  document.querySelectorAll('.back-action').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (document.referrer && document.referrer.includes(window.location.host)) {
+        history.back();
+      } else {
+        window.location.href = '/voter';
+      }
+    });
+  });
 
   loadProfile();
 </script>
