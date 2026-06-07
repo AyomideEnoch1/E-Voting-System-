@@ -1,36 +1,36 @@
 /**
- * Email Service — Resend HTTPS REST API
+ * Email Service — Brevo HTTPS REST API
  * Handles verification emails and voter ID delivery
  */
 require('dotenv').config();
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_AQw25y3m_4fqx2QR4iE4uoAqcBZAdn6o8';
-const EMAIL_FROM     = process.env.EMAIL_FROM     || 'onboarding@resend.dev';
-const APP_NAME       = process.env.APP_NAME       || 'RUN E-Voting System';
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const SENDER_EMAIL  = process.env.GMAIL_USER     || 'ayomidenoch15@gmail.com';
+const APP_NAME      = process.env.APP_NAME       || 'RUN E-Voting System';
 
-if (!RESEND_API_KEY) {
-  console.error('❌  Email service: RESEND_API_KEY is missing');
+if (!BREVO_API_KEY) {
+  console.error('❌  Email service: BREVO_API_KEY is missing');
 } else {
-  console.log(`✅  Email service: Resend HTTP API configured — sending via ${EMAIL_FROM}`);
+  console.log(`✅  Email service: Brevo HTTP API configured — sending via ${SENDER_EMAIL}`);
 }
 
 // ── Helper using native fetch (Node 18+) ──
 async function sendMail({ to, subject, html }) {
-  if (!RESEND_API_KEY) {
-    throw new Error('Resend API Key is not configured.');
+  if (!BREVO_API_KEY) {
+    throw new Error('Brevo API Key is not configured.');
   }
 
-  const res = await fetch('https://api.resend.com/emails', {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'api-key': BREVO_API_KEY,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      from: `"${APP_NAME}" <${EMAIL_FROM}>`,
-      to,
-      subject,
-      html
+      sender: { name: APP_NAME, email: SENDER_EMAIL },
+      to: [{ email: to }],
+      subject: subject,
+      htmlContent: html
     })
   });
 
@@ -39,7 +39,7 @@ async function sendMail({ to, subject, html }) {
     throw new Error(data.message || JSON.stringify(data));
   }
 
-  return { messageId: data.id };
+  return { messageId: data.messageId };
 }
 
 /**
