@@ -13,7 +13,7 @@ const { sendVoterIdRequestReceived } = require('./email_service');
 const liveEvents     = require('./live_events');
 
 const auth    = authMiddleware.authenticate.bind(authMiddleware);
-const isVoter = authMiddleware.authorize('voter', 'admin');
+const isVoter = authMiddleware.authorize('voter', 'admin', 'superadmin');
 
 /* ── CAST VOTE ── */
 router.post('/cast', auth, isVoter, voteLimiter, async (req, res) => {

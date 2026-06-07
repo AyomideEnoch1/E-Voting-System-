@@ -9,7 +9,7 @@ const secUtils       = require('./security_utils');
 const { q, q1, qa }  = require('./database');
 
 const auth    = authMiddleware.authenticate.bind(authMiddleware);
-const isAdmin = authMiddleware.authorize('admin');
+const isAdmin = authMiddleware.authorize('admin', 'superadmin');
 
 function fileUrl(filePath) {
   if (!filePath) return null;
