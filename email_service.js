@@ -1,49 +1,45 @@
 /**
- * Email Service — Gmail SMTP via Nodemailer
+ * Email Service — Resend HTTPS REST API
  * Handles verification emails and voter ID delivery
  */
 require('dotenv').config();
-const nodemailer = require('nodemailer');
 
-// ── Validate env vars on startup ──
-const GMAIL_USER = process.env.GMAIL_USER;
-const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
-const APP_NAME   = process.env.APP_NAME || 'RUN E-Voting System';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_AQw25y3m_4fqx2QR4iE4uoAqcBZAdn6o8';
+const EMAIL_FROM     = process.env.EMAIL_FROM     || 'onboarding@resend.dev';
+const APP_NAME       = process.env.APP_NAME       || 'RUN E-Voting System';
 
-if (!GMAIL_USER || !GMAIL_PASS) {
-  console.error('❌  Email service: GMAIL_USER or GMAIL_APP_PASSWORD is missing in .env');
+if (!RESEND_API_KEY) {
+  console.error('❌  Email service: RESEND_API_KEY is missing');
 } else {
-  console.log(`✅  Email service: Gmail SMTP configured — sending from ${GMAIL_USER}`);
+  console.log(`✅  Email service: Resend HTTP API configured — sending via ${EMAIL_FROM}`);
 }
 
-const dns = require('dns');
-if (typeof dns.setDefaultResultOrder === 'function') {
-  dns.setDefaultResultOrder('ipv4first');
-}
-
-// ── Transporter ──
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // true for port 465, false for other ports
-  auth: {
-    user: GMAIL_USER,
-    pass: GMAIL_PASS,   // Use a Gmail App Password, NOT your account password
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
-// ── Helper ──
+// ── Helper using native fetch (Node 18+) ──
 async function sendMail({ to, subject, html }) {
-  const info = await transporter.sendMail({
-    from: `"${APP_NAME}" <${GMAIL_USER}>`,
-    to,
-    subject,
-    html,
+  if (!RESEND_API_KEY) {
+    throw new Error('Resend API Key is not configured.');
+  }
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: `"${APP_NAME}" <${EMAIL_FROM}>`,
+      to,
+      subject,
+      html
+    })
   });
-  return info;
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || JSON.stringify(data));
+  }
+
+  return { messageId: data.id };
 }
 
 /**
