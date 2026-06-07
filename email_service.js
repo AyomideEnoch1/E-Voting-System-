@@ -24,8 +24,8 @@ if (typeof dns.setDefaultResultOrder === 'function') {
 // ── Transporter ──
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // true for port 465, false for other ports
+  port: 465,
+  secure: true, // true for port 465, false for other ports
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_PASS,   // Use a Gmail App Password, NOT your account password
