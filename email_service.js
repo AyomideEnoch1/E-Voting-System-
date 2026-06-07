@@ -1,45 +1,66 @@
 /**
- * Email Service — Brevo HTTPS REST API
+ * Email Service — Mailjet HTTPS REST API
  * Handles verification emails and voter ID delivery
  */
 require('dotenv').config();
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
-const SENDER_EMAIL  = process.env.GMAIL_USER     || 'ayomidenoch15@gmail.com';
-const APP_NAME      = process.env.APP_NAME       || 'RUN E-Voting System';
+const MAILJET_API_KEY    = process.env.MAILJET_API_KEY;
+const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
+const SENDER_EMAIL       = process.env.GMAIL_USER     || 'ayomidenoch15@gmail.com';
+const APP_NAME           = process.env.APP_NAME       || 'RUN E-Voting System';
 
-if (!BREVO_API_KEY) {
-  console.error('❌  Email service: BREVO_API_KEY is missing');
+if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
+  console.error('❌  Email service: MAILJET_API_KEY or MAILJET_SECRET_KEY is missing');
 } else {
-  console.log(`✅  Email service: Brevo HTTP API configured — sending via ${SENDER_EMAIL}`);
+  console.log(`✅  Email service: Mailjet HTTP API configured — sending via ${SENDER_EMAIL}`);
 }
 
 // ── Helper using native fetch (Node 18+) ──
 async function sendMail({ to, subject, html }) {
-  if (!BREVO_API_KEY) {
-    throw new Error('Brevo API Key is not configured.');
+  if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
+    throw new Error('Mailjet API Key or Secret Key is not configured.');
   }
 
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+  const authHeader = 'Basic ' + Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString('base64');
+
+  const res = await fetch('https://api.mailjet.com/v3.1/send', {
     method: 'POST',
     headers: {
-      'api-key': BREVO_API_KEY,
+      'Authorization': authHeader,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      sender: { name: APP_NAME, email: SENDER_EMAIL },
-      to: [{ email: to }],
-      subject: subject,
-      htmlContent: html
+      Messages: [
+        {
+          From: {
+            Email: SENDER_EMAIL,
+            Name: APP_NAME
+          },
+          To: [
+            {
+              Email: to
+            }
+          ],
+          Subject: subject,
+          HTMLPart: html
+        }
+      ]
     })
   });
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.message || JSON.stringify(data));
+    throw new Error(data.ErrorMessage || JSON.stringify(data));
   }
 
-  return { messageId: data.messageId };
+  const msgResult = data.Messages && data.Messages[0];
+  if (msgResult && msgResult.Status === 'success') {
+    const toResult = msgResult.To && msgResult.To[0];
+    return { messageId: toResult ? toResult.MessageID : 'unknown' };
+  } else {
+    const errorMsg = msgResult ? JSON.stringify(msgResult.Errors || msgResult) : JSON.stringify(data);
+    throw new Error(`Mailjet delivery failed: ${errorMsg}`);
+  }
 }
 
 /**
