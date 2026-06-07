@@ -251,7 +251,7 @@
   (function() {
     const t = localStorage.getItem('token');
     const u = JSON.parse(localStorage.getItem('user') || '{}');
-    if (t && u.role === 'admin') window.location.href = '/admin';
+    if (t && ['admin', 'superadmin'].includes(u.role)) window.location.href = '/admin';
   })();
 
   // ── Toggle password visibility ──

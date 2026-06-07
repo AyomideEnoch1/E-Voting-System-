@@ -319,7 +319,7 @@
   const existingToken = localStorage.getItem('token');
   const existingUser  = JSON.parse(localStorage.getItem('user') || '{}');
   if (existingToken && existingUser.role) {
-    window.location.href = existingUser.role === 'admin' ? '/admin' : '/voter';
+    window.location.href = ['admin', 'superadmin'].includes(existingUser.role) ? '/admin' : '/voter';
   }
 
   // Toggle password visibility
@@ -410,7 +410,7 @@
       if (!res.ok) return showAlert(data.error || 'Login failed.');
 
       // Block admins from using the voter login — redirect without storing token
-      if (data.user.role === 'admin') {
+      if (['admin', 'superadmin'].includes(data.user.role)) {
         return showAlert('Administrator accounts must use the <a href="/admin/login" style="color:inherit;font-weight:700;">Admin Login portal</a>.', 'warning');
       }
 

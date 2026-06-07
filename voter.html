@@ -754,9 +754,9 @@
   const token = localStorage.getItem('token');
   const user  = JSON.parse(localStorage.getItem('user') || '{}');
   // FIXED: previously only checked for token presence — any role could access this page.
-  // Now explicitly allows only voter and admin roles (admin can observe/test voting).
+  // Now explicitly allows voter, admin, and superadmin roles (admins can observe/test voting).
   // Observers and unauthenticated users are redirected to login.
-  if (!token || !['voter', 'admin'].includes(user.role)) { window.location.href = '/'; }
+  if (!token || !['voter', 'admin', 'superadmin'].includes(user.role)) { window.location.href = '/'; }
 
   // ── Init UI ──
   document.getElementById('sidebarName').textContent = user.name || 'Voter';

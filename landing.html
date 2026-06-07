@@ -1186,7 +1186,7 @@
     const t = localStorage.getItem('token');
     if (t) {
       const payload = JSON.parse(atob(t.split('.')[1]));
-      if (payload.role === 'admin') window.location.href = '/admin';
+      if (['admin', 'superadmin'].includes(payload.role)) window.location.href = '/admin';
       else window.location.href = '/voter';
     }
   } catch(e) {
