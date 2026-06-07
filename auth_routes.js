@@ -362,27 +362,4 @@ router.post('/reset-password', authLimiter, async (req, res) => {
   }
 });
 
-/* ── TEMPORARY EMAIL DIAGNOSTIC ROUTE ── */
-router.get('/test-email', async (req, res) => {
-  try {
-    const targetEmail = req.query.email || 'ayomidenoch15@gmail.com';
-    const emailService = require('./email_service');
-    await emailService.sendVerificationEmail(targetEmail, 'test-token-123456', 'Diagnostic Tester');
-    res.json({
-      success: true,
-      message: `Test email successfully sent to ${targetEmail}`,
-      configUsed: {
-        user: process.env.GMAIL_USER,
-        hasPass: !!process.env.GMAIL_APP_PASSWORD
-      }
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message,
-      stack: err.stack
-    });
-  }
-});
-
 module.exports = router;
